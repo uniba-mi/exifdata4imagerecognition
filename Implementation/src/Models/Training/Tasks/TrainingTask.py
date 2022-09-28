@@ -26,13 +26,6 @@ def createEvaluationFiles(dataGenerator: BatchGenerator, model: Model, name: str
     # get ids
     ids = dataGenerator.ids(len(predictionResult.predictionY))
 
-    # save true / predicted labels for each example
-    #if multiLabel:
-    #    
-    #else:
-    #    trueClassNames = [classNames[i] for i in predictionResult.trueYMax]
-    #    predictedClassNames = [classNames[i] for i in predictionResult.predictionYMax]
-
     trueClassNames = [[classNames[i] for i in range(len(sub)) if sub[i] == 1.0] for sub in predictionResult.trueY]
     predictedClassNames = [[classNames[i] for i in range(len(sub)) if sub[i] == 1.0] for sub in predictionResult.predictionYRounded]
 

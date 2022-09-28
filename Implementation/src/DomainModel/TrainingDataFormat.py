@@ -2,7 +2,6 @@ from enum import Enum
 from Tools.Data.ExifReader import ExifReader, FlickrExifReader, MIRFLICKRExifReader
 from Tools.Data.ImagePathReader import FlickrImagePathReader, FlickrImagePathReader, ImagePathReader, MIRFLICKRImagePathReader
 
-
 class ExifImageTrainingDataFormat(object):
 
     name: str

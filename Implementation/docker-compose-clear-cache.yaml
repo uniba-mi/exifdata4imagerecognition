@@ -1,0 +1,41 @@
+version: "3.9"
+
+#################################
+# 🅲🅻🅴🅰🆁
+#  - note: clears the contents of the model directory or / and the cache (extracted zip-file data)
+#
+#  - 🆁🆄🅽: docker-compose -f docker-compose-clear-cache.yaml up clear-models
+#  -        docker-compose -f docker-compose-clear-cache.yaml up clear-cache
+#################################
+
+#################################
+# 🆅🅾🅻🆄🅼🅴
+#  - for model files (note: adjust for running system)
+#################################
+volumes:
+  ma-lederer-models:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/user79/thesis/models #/Users/ralflederer/Documents/Studium/Master/Masterarbeit/Implementation/models
+
+  ma-lederer-training-data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/user79/thesis/resources #/Users/ralflederer/Documents/Studium/Master/Masterarbeit/Implementation/resources
+  
+services:
+  clear-models:
+    image: ma-lederer-base
+    command: src/Main/ClearMain.py models/ 
+    volumes:
+      - ma-lederer-models:/models/
+  
+  clear-cache:
+    image: ma-lederer-base
+    command: src/Main/ClearMain.py resources/ 1 
+    volumes:
+      - ma-lederer-training-data:/resources/

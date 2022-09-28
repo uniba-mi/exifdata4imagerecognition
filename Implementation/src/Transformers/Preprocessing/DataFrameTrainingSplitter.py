@@ -1,0 +1,57 @@
+from typing import Tuple
+from Transformers.Transformer import Transformer
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+class DataFrameTrainingSplitter(Transformer[pd.DataFrame, Tuple]):
+    """ A training splitter splits a dataframe in stratified train / test / validation sets. Additionally, a list of
+    column keys can be specified, which will be removed before the data is split. """
+    targetColumn: str
+    trainRatio: float
+    validationRatio: float
+    testRatio: float
+    dropColumns: list
+    seed: int
+    stratify: bool
+
+    def __init__(self, targetLabel: str, trainRatio: float = 0.75, testRatio: float = 0.15, validationRatio: float = 0.10, seed: int = 131, dropColumns = [], stratify: bool = True):
+        self.targetColumn = targetLabel
+        self.trainRatio = trainRatio
+        self.testRatio = testRatio
+        self.validationRatio = validationRatio
+        self.seed = seed
+        self.dropColumns = dropColumns
+        self.stratify = stratify
+        sum = self.trainRatio + self.testRatio + self.validationRatio
+        if sum < 0.9999999 or sum > 1.0000001: # floats don't sum up to exactly one
+            raise ValueError("the size of the train, test and validation set must sum up to 1.0")
+
+    def transform(self, data: pd.DataFrame) -> Tuple:
+        if len(self.dropColumns) > 0:
+            data = data.drop(self.dropColumns, axis = 1)
+
+        yData = data[self.targetColumn]
+        xData = data.drop(self.targetColumn, axis = 1)
+
+        # if we want the whole dataset for training, (e.g. for k-cross validation) we return it here
+        if self.trainRatio == 1.0:
+            return xData, yData, None, None, None, None
+
+        # frist split in train / test set
+        trainX, testX, trainY, testY = train_test_split(xData, 
+                                                        yData, 
+                                                        test_size = self.testRatio,
+                                                        stratify = yData if self.stratify else None,
+                                                        random_state = self.seed)
+
+        if self.validationRatio > 0.0:
+            # then, split train data in train / validation set
+            trainX, valX, trainY, valY = train_test_split(trainX, 
+                                                          trainY, 
+                                                          test_size = (self.validationRatio / (self.trainRatio + self.validationRatio)), 
+                                                          stratify = trainY if self.stratify else None,
+                                                          random_state = self.seed)
+            return trainX, trainY, testX, testY, valX, valY
+        else:
+            return trainX, trainY, testX, testY, None, None
+        

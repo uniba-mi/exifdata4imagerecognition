@@ -1,0 +1,16 @@
+version: "3.9"
+
+#################################
+# 🅱🅰🆂🅴 🅸🅼🅰🅶🅴
+#  - generates the base image needed for individual training tasks
+#
+#  - 🆁🆄🅽: docker-compose -f docker-compose-build-base.yaml build
+#################################
+
+services:
+  base:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ma-lederer-base
+    

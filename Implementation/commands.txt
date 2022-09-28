@@ -1,0 +1,4 @@
+### tensorboard commands
+
+# start tensorboard with log dir
+tensorboard --logdir pathToLogDir

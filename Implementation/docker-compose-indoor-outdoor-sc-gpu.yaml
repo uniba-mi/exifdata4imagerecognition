@@ -1,0 +1,187 @@
+version: "3.9"
+
+#################################
+# 🆃🆁🅰🅸🅽🅸🅽🅶 - 🅶🅿🆄
+#  - note: the execution of this docker containers will fail on systems without GPU 
+#
+#  - 🆁🆄🅽: (individual task - detached mode)         docker-compose -f docker-compose-indoor-outdoor-sc-gpu.yaml up -d 'training-task-name'
+#  - 🆁🆄🅽: (individual task - attached mode)         docker-compose -f docker-compose-indoor-outdoor-sc-gpu.yaml up 'training-task-name'
+#  - 🆁🆄🅽: (all tasks - not recommended)             docker-compose -f docker-compose-indoor-outdoor-sc-gpu.yaml up
+#################################
+
+#################################
+# 🆅🅾🅻🆄🅼🅴🆂
+#  - for training data and output files (note: adjust for running system)
+#################################
+
+volumes:
+  ma-lederer-training-data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/user79/thesis/resources #/Users/ralflederer/Documents/Studium/Master/Masterarbeit/Implementation/resources
+  
+  ma-lederer-models:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /home/user79/thesis/models #/Users/ralflederer/Documents/Studium/Master/Masterarbeit/Implementation/models
+
+#################################
+# 🆃🆁🅰🅸🅽🅸🅽🅶 🆃🅰🆂🅺🆂 - 🅸🅽🅳🅾🅾🆁 🅾🆄🆃🅳🅾🅾🆁 🆂🅰🅼🅴 🅲🅾🅽🅲🅴🅿🆃🆂
+#  - each task runs in an individual docker-container (service)
+#  - MLP (Exif-Only)
+#  - CNN (Image-Only)
+#  - Mixed-Model (Exif & Image)
+#################################
+
+services:
+
+  # 🅴🆇🅸🅵 🅾🅽🅻🆈
+
+  train-exif-only-sc-indoor-outdoor-super:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name IndoorOutdoorScSuperExifOnly
+             -datapath resources/indoor_outdoor_multilabel.zip 
+             -cachepath resources/ 
+             -outpath models/ 
+             -bs 128 
+             -epochs 300 
+             -esepochs 50 
+             -eo 
+             -super 
+             -optimize loss
+             -permutations 50
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
+
+  train-exif-only-sc-indoor-outdoor:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name IndoorOutdoorScExifOnly
+             -datapath resources/indoor_outdoor_multilabel.zip
+             -cachepath resources/ 
+             -outpath models/ 
+             -bs 128 
+             -epochs 300 
+             -esepochs 50 
+             -eo 
+             -optimize loss
+             -permutations 50
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
+
+  # 🅸🅼🅰🅶🅴 🅾🅽🅻🆈
+  
+  train-image-only-sc-indoor-outdoor-super:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name IndoorOutdoorScSuperImageOnly
+             -datapath resources/indoor_outdoor_multilabel.zip
+             -cachepath resources/ 
+             -outpath models/ 
+             -bs 32 
+             -epochs 115 
+             -esepochs 10 -io 
+             -super 
+             -tuneepochs 100 
+             -tunelayers 50 
+             -size 150,150
+             -optimize loss
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
+    
+  train-image-only-sc-indoor-outdoor:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name IndoorOutdoorScImageOnly
+             -datapath resources/indoor_outdoor_multilabel.zip 
+             -cachepath resources/ 
+             -outpath models/ 
+             -bs 32 
+             -epochs 115 
+             -esepochs 10 
+             -io 
+             -tuneepochs 100 
+             -tunelayers 50 
+             -size 150,150
+             -optimize loss
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
+    
+  # 🅼🅸🆇🅴🅳 🅼🅾🅳🅴🅻
+  
+  train-mixed-sc-indoor-outdoor-super:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name IndoorOutdoorScSuperMixed
+             -datapath resources/indoor_outdoor_multilabel.zip 
+             -cachepath resources/ 
+             -outpath models/ 
+             -bs 32 
+             -epochs 115 
+             -esepochs 20 
+             -super 
+             -tuneepochs 100 
+             -tunelayers 50 
+             -size 150,150
+             -optimize loss
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
+  
+  train-mixed-sc-indoor-outdoor:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name IndoorOutdoorScMixed
+             -datapath resources/indoor_outdoor_multilabel.zip 
+             -cachepath resources/ 
+             -outpath models/ 
+             -bs 32 
+             -epochs 115
+             -esepochs 20 
+             -tuneepochs 100
+             -tunelayers 50 
+             -size 150,150
+             -optimize loss
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
+  

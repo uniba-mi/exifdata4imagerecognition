@@ -65,7 +65,7 @@ def printUsage():
     print("\t \t{key} Flickr api key (only if exif data is to be crawled)".format(key = PARAM_API_KEY))
     print("\toptional:")
     print("\t \t{exif} if set, exif data will be crawled".format(exif = PARAM_CRAWL_EXIF))
-    print("\t \t{requiredExif} list of (required) exif tags photos must provide, seperated by ','".format(requiredExif = PARAM_REQUIRED_EXIF))
+    print("\t \t{requiredExif} list of (required) exif tags photos must provide, separated by ','".format(requiredExif = PARAM_REQUIRED_EXIF))
     print("\t \t{ps} size of the crawled photos (default: ' ')".format(ps = PARAM_PHOTO_SIZE))
     print("\t \t  possible values: {sizes}".format(sizes = FlickrUrlBuilder.validSizeKeys))
     print("\t \t  see: https://www.flickr.com/services/api/misc.urls.html")

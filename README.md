@@ -54,6 +54,7 @@ OutputDir
 └───exif
     │   {ImageId1}.json
     │   {ImageId2}.json
+    │   ...
 ```
 
 The following functions and parameters can be used (the order of the parameters is arbitrary):

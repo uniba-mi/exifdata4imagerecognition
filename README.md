@@ -8,19 +8,19 @@ While most semantic image classification approaches rely solely on raw image dat
 
 The programming language of the project is [Python](https://www.python.org/), version **3.8.13**. In addition, the following packages are used:
 
-- [TensorFlow v.2.9.2](https://pypi.org/project/tensorflow/2.9.2/)
-- [Keras v.2.9.0](https://pypi.org/project/keras/2.9.0/)
-- [SciPi v1.8.1](https://scipy.org/)
-- [Pandas v1.4.2](https://pypi.org/project/pandas/1.4.2/)
-- [Pillow v9.1.1](https://pypi.org/project/Pillow/9.1.1/)
-- [AIOHTTP v3.8.1](https://pypi.org/project/aiohttp/3.8.1/)
-- [AIOFiles v0.8.0](https://pypi.org/project/aiofiles/0.8.0/)
-- [PsUtil v5.9.1](https://pypi.org/project/psutil/5.9.1/)
-- [SciKeras v0.9.0](https://pypi.org/project/scikeras/0.9.0/)
-- [MatPlotLib v3.5.2](https://pypi.org/project/matplotlib/3.5.2/)
-- [PyDot v1.4.2](https://pypi.org/project/pydot/1.4.2/)
-- [Scikit-Learn v1.1.2](https://pypi.org/project/scikit-learn/1.1.2/)
-- [GraphViz v0.20.1](https://pypi.org/project/graphviz/0.20.1/)
+- [TensorFlow 2.9.2](https://pypi.org/project/tensorflow/2.9.2/)
+- [Keras 2.9.0](https://pypi.org/project/keras/2.9.0/)
+- [SciPi 1.8.1](https://scipy.org/)
+- [Pandas 1.4.2](https://pypi.org/project/pandas/1.4.2/)
+- [Pillow 9.1.1](https://pypi.org/project/Pillow/9.1.1/)
+- [AIOHTTP 3.8.1](https://pypi.org/project/aiohttp/3.8.1/)
+- [AIOFiles 0.8.0](https://pypi.org/project/aiofiles/0.8.0/)
+- [PsUtil 5.9.1](https://pypi.org/project/psutil/5.9.1/)
+- [SciKeras 0.9.0](https://pypi.org/project/scikeras/0.9.0/)
+- [MatPlotLib 3.5.2](https://pypi.org/project/matplotlib/3.5.2/)
+- [PyDot 1.4.2](https://pypi.org/project/pydot/1.4.2/)
+- [Scikit-Learn 1.1.2](https://pypi.org/project/scikit-learn/1.1.2/)
+- [GraphViz 0.20.1](https://pypi.org/project/graphviz/0.20.1/)
 
 It is possible to set up the development environment manually, however, it is recommended to use the provided Docker files.
 

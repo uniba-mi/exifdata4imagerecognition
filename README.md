@@ -16,12 +16,16 @@ python FlickrCrawlerMain.py
 
 The following functions and parameters can be used:
 
+**Group Export**
+
 ```sh
-python FlickrCrawlerMain.py -group 'groupId' of the Flickr group to crawl
+python FlickrCrawlerMain.py -group #'groupId' of the Flickr group to crawl
+
+** Free-Text Search **
 ```
 
 ```sh
-python FlickrCrawlerMain.py -search 'search term' to use for searching photos
+python FlickrCrawlerMain.py -search #'search term' to use for searching photos
 ```
 
 required parameters:
@@ -40,6 +44,8 @@ optional parameters:
 | -om | if set, only metadata will be crawled, no photos or exif data |
 | -sm | path for storing crawled metadata file (needed when -om is set) |
 | all parameters of the 'photos' function, see below, only if -om is not set |
+
+** Metadata Export **
 
 ```sh
 python FlickrCrawlerMain.py -photos 'path' to metadata file containing photoIds, secrets and servers

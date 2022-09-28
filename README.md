@@ -10,7 +10,7 @@ The Flickr crawler is used to export image and EXIF data from the image portal F
 
 The crawler application can be executed via the command line, using the main entry point in **[FlickrCrawlerMain.py](/Implementation/src/Main/FlickrCrawlerMain.py)**. The crawler is invoked with a command line parameter, which determines the function to be executed, either a group export or a free text search. Additionally, EXIF data can be exported. The crawler offers the possibility to crawl an existing metadata file with image IDs, secrets and server information. In order to use the crawler, a valid [API-Key](https://www.flickr.com/services/api/misc.api_keys.html) is required.
 
-The following functions and parameters can be used:
+The following functions and parameters can be used (the order of the parameters is arbitrary):
 
 **Group Export**
 
@@ -65,12 +65,13 @@ optional parameters:
 Free-Text search for 'outdoor dog'. The start page is set to 1 and the page limit to 50, which is a total of 25000 images. However, only images that provide EXIF data will be crawled and the EXIF data must contain the EXIF tags FocalLength, ISO, FNumber, ExposureTime and Flash. The image size key is set to 'q' = 150x150px. 
 
 ```sh
-    python FlickrCrawlerMain.py -search 'outdoor dog'
-    -key some_api_key
-    -exif
-    -ps q
-    -re FocalLength,ISO,FNumber,ExposureTime,Flash
-    -odir /path/to/store/image/and/exif/data
-    -sp 1
-    -pl 50
+python FlickrCrawlerMain.py 
+-search 'outdoor dog'
+-key some_api_key
+-exif
+-ps q
+-re FocalLength,ISO,FNumber,ExposureTime,Flash
+-odir /path/to/store/image/and/exif/data
+-sp 1
+-pl 50
 ```

@@ -39,6 +39,23 @@ The Flickr crawler is used to export image and EXIF data from the image portal F
 
 The crawler application can be executed via the command line, using the main entry point in **[FlickrCrawlerMain.py](/Implementation/src/Main/FlickrCrawlerMain.py)**. The crawler is invoked with a command line parameter, which determines the function to be executed, either a group export or a free text search. Additionally, EXIF data can be exported. The crawler offers the possibility to crawl an existing metadata file with image IDs, secrets and server information. In order to use the crawler, a valid [API-Key](https://www.flickr.com/services/api/misc.api_keys.html) is required.
 
+The crawler saves the crawled images and EXIF data in the following directory structure. EXIF tags are saved in [JSON](https://www.json.org/json-de.html) file format:
+
+```
+OutputDir
+│
+│
+│
+└───images
+│   │   {ImageId1_Secret_Server}.jpg
+│   │   {ImageId2_Secret_Server}.jpg
+│   │   ...
+│
+└───exif
+    │   {ImageId1}.json
+    │   {ImageId2}.json
+```
+
 The following functions and parameters can be used (the order of the parameters is arbitrary):
 
 **Group Export**

@@ -4,6 +4,32 @@ While most semantic image classification approaches rely solely on raw image dat
 
 ## Technical Documentation
 
+### Development Environment
+
+The programming language of the project is [Python](https://www.python.org/), version **3.8.13**. In addition, the following packages are used:
+
+- [SciPi v1.8.1](https://scipy.org/)
+- [Pandas v1.4.2](https://pypi.org/project/pandas/1.4.2/)
+- [Pillow v9.1.1](https://pypi.org/project/Pillow/9.1.1/)
+- [AIOHTTP v3.8.1](https://pypi.org/project/aiohttp/3.8.1/)
+- [AIOFiles v0.8.0](https://pypi.org/project/aiofiles/0.8.0/)
+- [PsUtil v5.9.1](https://pypi.org/project/psutil/5.9.1/)
+- [SciKeras v0.9.0](https://pypi.org/project/scikeras/0.9.0/)
+- [MatPlotLib v3.5.2](https://pypi.org/project/matplotlib/3.5.2/)
+- [PyDot v1.4.2](https://pypi.org/project/pydot/1.4.2/)
+- [Scikit-Learn v1.1.2](https://pypi.org/project/scikit-learn/1.1.2/)
+- [GraphViz v0.20.1](https://pypi.org/project/graphviz/0.20.1/)
+
+
+### Project Structure
+
+The source code of the project is located in **[src](/Implementation/src/)**, the main entry points for the different applications in **[Main](/Implementation/src/Main/)**. To be able to execute code from src, the directory must first be added to the **PYTHONPATH** environment variable:
+
+```sh
+export PYTHONPATH=$PYTHONPATH:/path/to/src
+```
+
+
 ### Flickr Crawler
 
 The Flickr crawler is used to export image and EXIF data from the image portal Flickr and provides two basic functionalities. Photos can either be exported directly from Flickr groups or by conducting a free-text search using an arbitrary search term. Groups are identified by a unique ID and contain photos related to a particular topic. In some groups, only photos that exclusively show the group's topic may be uploaded. In other groups, however, it is also allowed to upload photos that contain objects that are not directly related to the group’s main topic, e.g. in the background of a photo. Therefore, and since the group rules are enforced with varying degrees of strictness, it can be assumed that training data collected from groups contains a certain amount of noise. When a free text search is performed, the Flickr API returns images whose title, description or user tags contain the corresponding search term. User tags are keywords used to succinctly describe the content of images. They can be added by the image authors. In addition, user tags are automatically determined and added by Flickr robots. The retrieved photos are then sorted according to their relevance determined by Flickr. Since Flickr does not define strict rules for image titles, descriptions and user tags, and the way Flickr determines the relevance of photos for search terms is unknown, it can be assumed that training data collected via free text search also contains a certain amount of images that do not match the desired target concept. Thus, training data collected with the Flickr crawler is always subject to noise if no further filtering is performed.

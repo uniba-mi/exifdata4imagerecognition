@@ -8,7 +8,7 @@ While most semantic image classification approaches rely solely on raw image dat
 
 The Flickr crawler is used to export image and EXIF data from the image portal Flickr and provides two basic functionalities. Photos can either be exported directly from Flickr groups or by conducting a free-text search using an arbitrary search term. Groups are identified by a unique ID and contain photos related to a particular topic. In some groups, only photos that exclusively show the group's topic may be uploaded. In other groups, however, it is also allowed to upload photos that contain objects that are not directly related to the group’s main topic, e.g. in the background of a photo. Therefore, and since the group rules are enforced with varying degrees of strictness, it can be assumed that training data collected from groups contains a certain amount of noise. When a free text search is performed, the Flickr API returns images whose title, description or user tags contain the corresponding search term. User tags are keywords used to succinctly describe the content of images. They can be added by the image authors. In addition, user tags are automatically determined and added by Flickr robots. The retrieved photos are then sorted according to their relevance determined by Flickr. Since Flickr does not define strict rules for image titles, descriptions and user tags, and the way Flickr determines the relevance of photos for search terms is unknown, it can be assumed that training data collected via free text search also contains a certain amount of images that do not match the desired target concept. Thus, training data collected with the Flickr crawler is always subject to noise if no further filtering is performed.
 
-The crawler application can be executed via the command line, using the main entry point in **[FlickrCrawlerMain](/Implementation/src/Main/FlickrCrawlerMain.py)**. The crawler is invoked with a command line parameter, which determines the function to be executed, either a group export or a free text search. Additionally, EXIF data can be exported. The crawler offers the possibility to crawl an existing metadata file with image IDs, secrets and server information. In order to use the crawler, a valid [API-Key](https://www.flickr.com/services/api/misc.api_keys.html) is required.
+The crawler application can be executed via the command line, using the main entry point in **[FlickrCrawlerMain.py](/Implementation/src/Main/FlickrCrawlerMain.py)**. The crawler is invoked with a command line parameter, which determines the function to be executed, either a group export or a free text search. Additionally, EXIF data can be exported. The crawler offers the possibility to crawl an existing metadata file with image IDs, secrets and server information. In order to use the crawler, a valid [API-Key](https://www.flickr.com/services/api/misc.api_keys.html) is required.
 
 The following functions and parameters can be used:
 
@@ -44,7 +44,7 @@ optional parameters:
 **Metadata Export**
 
 ```sh
-python FlickrCrawlerMain.py -photos 'path' to metadata file containing photoIds, secrets and servers
+python FlickrCrawlerMain.py -photos 	# 'path' to metadata file containing photoIds, secrets and servers
 ```
 
 required parameters:
@@ -60,6 +60,10 @@ optional parameters:
 | -re | list of (required) exif tags photos must provide, separated by ',' |
 | -ps | size of the crawled photos (default: ' ')<br />possible values: ['s', 'q', 't', 'm', 'n', 'w', 'z', 'c', 'b', 'h', 'k', '3k', '4k', 'f', '5k', '6k', 'o', ' ']<br />see: https://www.flickr.com/services/api/misc.urls.html |
 
- 
+**Examples**
 
+Free-Text search for 'outdoor dog'. The start page is set to 1 and the page limit to 50, which makes a total of 25000 images. However, only images that provide EXIF data will be crawled and the EXIF data must contain the EXIF tags FocalLength, ISO, FNumber, ExposureTime and Flash.
 
+```sh
+python FlickrCrawlerMain.py -search 'outdoor dog'<br />-key some_api_key<br />-sm /path/to/store/metadata<br />-exif<br />-ps q<br />-re FocalLength,ISO,FNumber,ExposureTime,Flash<br />-odir /path/to/store/image/and/exif/data<br />-sp 1<br />-pl 50
+```

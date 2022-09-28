@@ -25,10 +25,14 @@ python FlickrCrawlerMain.py -search 'search term' to use for searching photos
 ```
 
 required parameters:
+| parameter  | description  |
+|---|---|
 | -key | Flickr api key |
 | -odir | directory for storing crawled photos and exif data |
 
 optional parameters:
+| parameter  | description  |
+|---|---|
 | -sp | start page of the group |
 | -pl | page limit |
 | -ppp | photos per group page (default 500) |
@@ -42,10 +46,14 @@ python FlickrCrawlerMain.py -photos 'path' to metadata file containing photoIds,
 ```
 
 required parameters:
+| parameter  | description  |
+|---|---|
 | -odir | directory for storing crawled photos and exif data |
 | -key | Flickr api key (only if exif data is to be crawled) |
 
 optional parameters:
+| parameter  | description  |
+|---|---|
 | -exif | if set, exif data will be crawled |
 | -re | list of (required) exif tags photos must provide, separated by ',' |
 | -ps | size of the crawled photos (default: ' ')

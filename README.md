@@ -8,6 +8,8 @@ While most semantic image classification approaches rely solely on raw image dat
 
 The programming language of the project is [Python](https://www.python.org/), version **3.8.13**. In addition, the following packages are used:
 
+- [TensorFlow v.2.9.2](https://pypi.org/project/tensorflow/2.9.2/)
+- [Keras v.2.9.0](https://pypi.org/project/keras/2.9.0/)
 - [SciPi v1.8.1](https://scipy.org/)
 - [Pandas v1.4.2](https://pypi.org/project/pandas/1.4.2/)
 - [Pillow v9.1.1](https://pypi.org/project/Pillow/9.1.1/)
@@ -20,6 +22,7 @@ The programming language of the project is [Python](https://www.python.org/), ve
 - [Scikit-Learn v1.1.2](https://pypi.org/project/scikit-learn/1.1.2/)
 - [GraphViz v0.20.1](https://pypi.org/project/graphviz/0.20.1/)
 
+It is possible to set up the development environment manually, however, it is recommended to use the provided Docker files.
 
 ### Project Structure
 

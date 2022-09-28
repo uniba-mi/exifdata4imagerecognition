@@ -9,7 +9,6 @@ from Tools.Data.ExifTagCounter import ExifTagCounter
 from DataSource.DatasetFile import ExifImageDatasetFile
 from DataSource.TrainingDataSource import CompositeTrainingDataSource, StaticTrainingDataSource
 from DataSource.DatasetFile import ExifImageDatasetFile
-from DomainModel.ExifData import ExifData
 from DomainModel.TrainingDataFormat import ExifImageTrainingDataFormats
 from Transformers.DataSource.DataSourceInstanceTransformer import DataSourceInstanceTransformer
 from Transformers.DataSource.DataSourceToDataFrameTransformer import ExiImageDataSourceToDataFrameTransformer
@@ -170,7 +169,7 @@ class ExifImageProvider(BatchGeneratorProvider):
             exifTagTransformer.addWhitelistedValue(np.nan) 
 
             # create typed tag lists for the exif tags
-            numerical, categorical, binary = ExifData.typedTagLists(exifTags = self.exifTags)
+            numerical, categorical, binary = exifTagTransformer.typedTagLists
 
             # create exif tag filter
             exifTagFilter = ExifTagFilter(filterTags = self.exifTags, dummyValue = np.nan)

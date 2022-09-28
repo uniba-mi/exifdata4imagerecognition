@@ -1,11 +1,26 @@
-from typing import Callable, Dict, Set
+from typing import Callable, Dict, List, Set, Tuple
 from DomainModel.ExifData import ExifData, ExifTag
 from Transformers.Transformer import Transformer, TransformError
 from numpy.core.numeric import Infinity
 import copy
 import numpy as np
+import math
 
 TOTAL_SECONDS_PER_DAY = 86400
+
+class ExifTagTransformerFunction(object):
+    """ Represents a transformer function for an exif tag transformer object. The function provides a callable which
+    will be called for transforming an exif tag. Additionally, the number of possible uniqe values the callable can produce
+    will be stored.  """
+    callable: Callable
+    valueCount: int
+
+    def __init__(self, callable: Callable, valueCount: int = math.inf):
+        """ creates a new transformer function object. The value count indicates the number of unique values that 
+        can be produced by the transformer function. """
+        self.callable = callable
+        self.valueCount = valueCount
+
 
 class ExifTagTransformer(Transformer[ExifData, ExifData]):
     """ The exif tag transformer transforms strings representations of exif tags into their corresponding numeric value by using
@@ -15,27 +30,27 @@ class ExifTagTransformer(Transformer[ExifData, ExifData]):
     def standard() -> "ExifTagTransformer":
         """ Returns an exif tag transformer with registered transformer functions for the tags  
         [FocalLength, ISO, FNumber, ExposureTime, Flash, BrightnessValue, ExposureCompensation, FocalLengthIn35mmFormat,
-        Saturation, Sharpness, Contrast, Orientation]. """
+        Saturation, Sharpness, Contrast, Orientation, LightSource, MaxApertureValue]. """
         transformer = ExifTagTransformer()
-        transformer.registerTransformerFunction(ExifTag.FocalLength.name, transformFocalLength)
-        transformer.registerTransformerFunction(ExifTag.ISO.name, transformNumber)
-        transformer.registerTransformerFunction(ExifTag.FNumber.name, transformFNumber)
-        transformer.registerTransformerFunction(ExifTag.ExposureTime.name, transformExposureTime)
-        transformer.registerTransformerFunction(ExifTag.Flash.name, transformFlash)
-        transformer.registerTransformerFunction(ExifTag.BrightnessValue.name, transformFractureOrDecimal)
-        transformer.registerTransformerFunction(ExifTag.ExposureCompensation.name, transformExposureCompensation)
-        transformer.registerTransformerFunction(ExifTag.FocalLengthIn35mmFormat.name, transformFocalLength)
-        transformer.registerTransformerFunction(ExifTag.Saturation.name, transformSaturation)
-        transformer.registerTransformerFunction(ExifTag.Sharpness.name, transformSharpness)
-        transformer.registerTransformerFunction(ExifTag.Contrast.name, transformContrast)
-        transformer.registerTransformerFunction(ExifTag.Orientation.name, transformOrientation)
-        transformer.registerTransformerFunction(ExifTag.LightSource.name, transformLightSource)
-        transformer.registerTransformerFunction(ExifTag.MaxApertureValue.name, transformFractureOrDecimal)
-        #transformer.registerTransformerFunction(ExifTag.DateTimeOriginalCos.name, transformDateTimeCos)
-        #transformer.registerTransformerFunction(ExifTag.DateTimeOriginalSin.name, transformDateTimeSin)
+        transformer.registerTransformerFunction(ExifTag.FocalLength.name, ExifTagTransformerFunction(transformFocalLength))
+        transformer.registerTransformerFunction(ExifTag.ISO.name, ExifTagTransformerFunction(transformNumber))
+        transformer.registerTransformerFunction(ExifTag.FNumber.name, ExifTagTransformerFunction(transformFNumber))
+        transformer.registerTransformerFunction(ExifTag.ExposureTime.name, ExifTagTransformerFunction(transformExposureTime))
+        transformer.registerTransformerFunction(ExifTag.Flash.name, ExifTagTransformerFunction(transformFlash, 2))
+        transformer.registerTransformerFunction(ExifTag.BrightnessValue.name, ExifTagTransformerFunction(transformFractureOrDecimal))
+        transformer.registerTransformerFunction(ExifTag.ExposureCompensation.name, ExifTagTransformerFunction(transformExposureCompensation))
+        transformer.registerTransformerFunction(ExifTag.FocalLengthIn35mmFormat.name, ExifTagTransformerFunction(transformFocalLength))
+        transformer.registerTransformerFunction(ExifTag.Saturation.name, ExifTagTransformerFunction(transformSaturation, 3))
+        transformer.registerTransformerFunction(ExifTag.Sharpness.name, ExifTagTransformerFunction(transformSharpness, 3))
+        transformer.registerTransformerFunction(ExifTag.Contrast.name, ExifTagTransformerFunction(transformContrast, 3))
+        transformer.registerTransformerFunction(ExifTag.Orientation.name, ExifTagTransformerFunction(transformOrientation, 9))
+        transformer.registerTransformerFunction(ExifTag.LightSource.name, ExifTagTransformerFunction(transformLightSource, 17))
+        transformer.registerTransformerFunction(ExifTag.MaxApertureValue.name, ExifTagTransformerFunction(transformFractureOrDecimal))
+        #transformer.registerTransformerFunction(ExifTag.DateTimeOriginalCos.name, ExifTagTransformerFunctiontransformDateTimeCos))
+        #transformer.registerTransformerFunction(ExifTag.DateTimeOriginalSin.name, ExifTagTransformerFunctiontransformDateTimeSin))
         return transformer
 
-    transformerFunctions: Dict[str, Callable]
+    transformerFunctions: Dict[str, ExifTagTransformerFunction]
     whiteList: list
     insertNanOnTransformError: bool
     verbose: int
@@ -45,13 +60,30 @@ class ExifTagTransformer(Transformer[ExifData, ExifData]):
         self.whiteList = []
         self.insertNanOnTransformError = insertNanOnTransformError
         self.verbose = verbose
+    
+    @property
+    def typedTagLists(self) -> Tuple[List[str], List[str], List[str]]:
+        """ Returns three sets with the tansformers transformed tags put into depending on their type, either numerical, categorical or binary.  """
+        numerical = []
+        categorical = []
+        binary = []
+        for exifTag in self.transformedTags:
+            transformerFunction = self.transformerFunctions[exifTag]
+            if transformerFunction.valueCount == math.inf:
+                numerical.append(exifTag)
+            elif transformerFunction.valueCount > 2:
+                categorical.append(exifTag)
+            elif transformerFunction.valueCount == 2:
+                binary.append(exifTag)
+        
+        return numerical, categorical, binary
 
     @property
     def transformedTags(self) -> Set[str]:
         """ Returns a list of all exif tags the transformer currently has a transformer function for. """
         return set(self.transformerFunctions.keys())
 
-    def registerTransformerFunction(self, exifTag: str, function: Callable):
+    def registerTransformerFunction(self, exifTag: str, function: ExifTagTransformerFunction):
         if not str is None and not function is None:
             self.transformerFunctions[exifTag] = function
     
@@ -71,7 +103,7 @@ class ExifTagTransformer(Transformer[ExifData, ExifData]):
                     exifTagValue = data.tags[tag]
                     if exifTagValue not in self.whiteList:
                         try:
-                            newTags[tag] = self.transformerFunctions[tag](exifTagValue)
+                            newTags[tag] = self.transformerFunctions[tag].callable(exifTagValue)
                         except TransformError as exception:
                             if self.insertNanOnTransformError:
                                 newTags[tag] = np.nan

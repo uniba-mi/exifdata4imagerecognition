@@ -1,12 +1,5 @@
 from enum import Enum
-from typing import List, Set, Tuple
-
-class ExifTagType(Enum):
-    NUMERICAL = 1
-    CATEGORICAL = 2
-    BINARY = 3
-    UNKNOWN = 4
-
+from typing import Set, Tuple
 
 class ExifTag(Enum):
     Flash = 1,
@@ -69,41 +62,7 @@ class ExifData(object):
     """ An "ExifData" object represents the exif data for an image. The tags are stored in a dictionary. 
     The keys of the dictionary represent the names of the corresponding exif-tags.
     """
-
-    @staticmethod
-    def tagType(exifTag: str) -> "ExifTagType":
-        """ Returns the type of the given exif tag which can be either binary, categorical or numerical. """
-        if exifTag in [ExifTag.Flash.name]:
-            return ExifTagType.BINARY
-        elif exifTag in [ExifTag.Saturation.name, ExifTag.Sharpness.name, ExifTag.Contrast.name, ExifTag.Orientation.name, 
-                         ExifTag.LightSource.name]:
-            return ExifTagType.CATEGORICAL
-        elif exifTag in [ExifTag.FocalLength.name, ExifTag.ISO.name, ExifTag.FNumber.name, ExifTag.ExposureTime.name, 
-                         ExifTag.BrightnessValue.name, ExifTag.ExposureCompensation.name, ExifTag.FocalLengthIn35mmFormat.name,
-                         ExifTag.MaxApertureValue.name]: #ExifTag.DateTimeOriginalCos.name, ExifTag.DateTimeOriginalSin.name
-            return ExifTagType.NUMERICAL
-        else:
-            return ExifTagType.UNKNOWN
     
-    @staticmethod
-    def typedTagLists(exifTags: List[str]) -> Tuple[List[str], List[str], List[str]]:
-        """ Returns three sets with the given tags put into depending on their type, either numerical, categorical or binary.  """
-        numerical = []
-        categorical = []
-        binary = []
-        for exifTag in exifTags:
-            type = ExifData.tagType(exifTag = exifTag)
-            if type == ExifTagType.BINARY:
-                binary.append(exifTag)
-            elif type == ExifTagType.CATEGORICAL:
-                categorical.append(exifTag)
-            elif type == ExifTagType.NUMERICAL:
-                numerical.append(exifTag)
-            else:
-                raise ValueError("unknown exif tag {tag} in tag list".format(tag = exifTag))
-        
-        return numerical, categorical, binary
-
     tags: dict
     id: str
 

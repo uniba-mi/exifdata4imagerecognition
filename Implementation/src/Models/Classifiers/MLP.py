@@ -31,8 +31,8 @@ def createTunedModel(inputSize: int, outputSize: int, multiLabel: bool = False) 
     """ Creates a model with tuned parameters for classyfing exif data. """
     return createModel(inputSize, 
                       outputSize, 
-                      optimizer = Adam(epsilon = 1e-8, learning_rate = 0.001), 
-                      dropoutRate = 0.5, 
+                      optimizer = Adam(epsilon = 1e-8, learning_rate = 0.0001), 
+                      dropoutRate = 0.1, 
                       alpha = 0.0001,
                       multiLabel = multiLabel)
 

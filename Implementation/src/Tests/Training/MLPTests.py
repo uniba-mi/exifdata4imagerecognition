@@ -20,15 +20,15 @@ class MLPTrainingTests(unittest.TestCase):
                                         testSize = 0.2,
                                         validationSize = 0.1,
                                         batchSize = 128,
-                                        useSuperConcepts = False,
+                                        useSuperConcepts = True,
                                         exifOnly = True,
                                         seed = 131)
         
         # create training task
-        trainingTask = TrainingTask(classifier = MLPClassifier(name = "IndoorOutdoorScExifOnly"), 
+        trainingTask = TrainingTask(classifier = MLPClassifier(name = "IndoorOutdoorMiExifOnly"), 
                                     storagePath = TestTrainingConstants.modelDirectory, 
                                     provider = dataProvider)
-        trainingTask.run(epochs = 2, earlyStoppingPatience = 50, optimize = "loss")
+        trainingTask.run(epochs = 300, earlyStoppingPatience = 50, optimize = "loss")
 
         # create permutation task to assess the feature importance of individual exif features
         #permutationTask = ExifPermutationTask(permutations = 2, storagePath = TestTrainingConstants.modelDirectory)

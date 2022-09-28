@@ -62,7 +62,7 @@ optional parameters:
 
 **Examples**
 
-Free-Text search for 'outdoor dog'. The start page is set to 1 and the page limit to 50, which is a total of 25000 images. However, only images that provide EXIF data will be crawled and the EXIF data must contain the EXIF tags FocalLength, ISO, FNumber, ExposureTime and Flash. The image size key is set to 'q' = 150x150px. 
+Free-Text search for 'outdoor dog'. The start page is set to 1 and the page limit to 50, which is a total of 25000 images (500 images per page). However, only images that provide EXIF data will be crawled and the EXIF data must contain the EXIF tags FocalLength, ISO, FNumber, ExposureTime and Flash. The image size key is set to 'q' = 150x150px. 
 
 ```sh
 python FlickrCrawlerMain.py 
@@ -74,4 +74,16 @@ python FlickrCrawlerMain.py
 -odir /path/to/store/image/and/exif/data
 -sp 1
 -pl 50
+```
+
+Group export for group with ID '44176395@N00'. The start page is set to 1 and the page limit to 100, which is a total of 50000 images (500 images per page). The image size key is set to 'q' = 150x150px. 
+
+```sh
+python FlickrCrawlerMain.py 
+-group 44176395@N00
+-key some_api_key
+-ps q
+-odir /path/to/store/image/and/exif/data
+-sp 1
+-pl 100
 ```

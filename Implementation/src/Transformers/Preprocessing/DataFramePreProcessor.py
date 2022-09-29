@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 from Transformers.Transformer import Transformer
 import pandas as pd
 import numpy as np
@@ -11,21 +11,32 @@ class TabularDataFramePreProcessor(Transformer[pd.DataFrame, pd.DataFrame]):
     Additionaly, imputing for missing values (np.nan) can be performed. For imputing binary and categorical features, 
     the most frequent value will be used, for numerical features, the mean value of the corresponding column.
     One-Hot encoding will be performed for binary and categorical features, while for numerical features standard scaling 
-    will be applied. """
+    will be applied. Optionally, a dictionary with categorical feature counts can be injected into the pre-processor. 
+    The dictionary must contain the name of the categorical columns as keys and the number of possible values for 
+    the featues as value. This can be helpfull when there are missing categories in categorical features."""
     numericalColumns: List[str]
     categoricalColumns: List[str]
     binaryColumns: List[str]
     impute: bool
     oneHotEncode: bool
     scale: bool
+    categoricalFeatureCounts: Dict[str, int]
 
-    def __init__(self, numericalColumns: List[str], categoricalColumns: List[str], binaryColumns: List[str], impute: bool = True, oneHoteEncode: bool = True, scale: bool = True):
+    def __init__(self, 
+                numericalColumns: List[str], 
+                categoricalColumns: List[str], 
+                binaryColumns: List[str], 
+                impute: bool = True, 
+                oneHoteEncode: bool = True, 
+                scale: bool = True, 
+                categoricalFeatureCounts = None):
         self.numericalColumns = numericalColumns
         self.categoricalColumns = categoricalColumns
         self.binaryColumns = binaryColumns
         self.impute = impute
         self.oneHotEncode = oneHoteEncode
         self.scale = scale
+        self.categoricalFeatureCounts = categoricalFeatureCounts
 
     def transform(self, data: pd.DataFrame) -> pd.DataFrame:
         if self.impute:
@@ -59,6 +70,11 @@ class TabularDataFramePreProcessor(Transformer[pd.DataFrame, pd.DataFrame]):
         if len(self.binaryColumns + self.categoricalColumns) > 0:
             for column in self.binaryColumns + self.categoricalColumns:
                 if column in dataFrame.columns:
+                    # encode each categorical feature depending on the number of categories present in the data set
+                    if not self.categoricalFeatureCounts == None and column in self.categoricalFeatureCounts.keys():
+                        # we have a fixed number of possible values for the current categorical feature
+                        # we encode it with this number of values
+                        dataFrame[column] = dataFrame[column].astype(pd.CategoricalDtype(categories = list(range(0, self.categoricalFeatureCounts[column]))))
                     dataFrame = pd.get_dummies(dataFrame, columns = [column])
         return dataFrame
     

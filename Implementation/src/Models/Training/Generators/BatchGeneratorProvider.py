@@ -171,13 +171,18 @@ class ExifImageProvider(BatchGeneratorProvider):
             # create typed tag lists for the exif tags
             numerical, categorical, binary = exifTagTransformer.typedTagLists
 
+            # create dict which contains the number of possible values for each categorical feature
+            featureValueCounts = {}
+            for feature in categorical + binary:
+                featureValueCounts[feature] = exifTagTransformer.transformerFunctions[feature].valueCount
+
             # create exif tag filter
             exifTagFilter = ExifTagFilter(filterTags = self.exifTags, dummyValue = np.nan)
 
             # create pipeline for pre-processing the data of the data source
             transformers = [DataSourceInstanceTransformer(transformers = [exifTagFilter, exifTagTransformer], variableSelector = "exif"),
                             ExiImageDataSourceToDataFrameTransformer(targetLabel = "Target", useSuperConceptNames = self.useSuperConcepts, imagePathColumnName = "ImagePath", idColumnName = "id"),
-                            TabularDataFramePreProcessor(numericalColumns = numerical, categoricalColumns = categorical, binaryColumns = binary),
+                            TabularDataFramePreProcessor(numericalColumns = numerical, categoricalColumns = categorical, binaryColumns = binary, categoricalFeatureCounts = featureValueCounts),
                             DataFrameLabelEncoder(targetLabel = "Target", dropTargetColumn = False, encodedLabel = "Target_Encoded")]
 
             # crate dataframe

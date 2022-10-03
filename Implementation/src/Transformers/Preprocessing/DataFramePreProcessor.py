@@ -13,7 +13,8 @@ class TabularDataFramePreProcessor(Transformer[pd.DataFrame, pd.DataFrame]):
     One-Hot encoding will be performed for binary and categorical features, while for numerical features standard scaling 
     will be applied. Optionally, a dictionary with categorical feature counts can be injected into the pre-processor. 
     The dictionary must contain the name of the categorical columns as keys and the number of possible values for 
-    the featues as value. This can be helpfull when there are missing categories in categorical features."""
+    the featues as integer value. This can be helpfull when there are missing categories in categorical features that don't appear
+    in the encoded data set."""
     numericalColumns: List[str]
     categoricalColumns: List[str]
     binaryColumns: List[str]
@@ -73,7 +74,7 @@ class TabularDataFramePreProcessor(Transformer[pd.DataFrame, pd.DataFrame]):
                     # encode each categorical feature depending on the number of categories present in the data set
                     if not self.categoricalFeatureCounts == None and column in self.categoricalFeatureCounts.keys():
                         # we have a fixed number of possible values for the current categorical feature
-                        # we encode it with this number of values
+                        # we encode it with this number of values instead of the number of values that appears in the data set
                         dataFrame[column] = dataFrame[column].astype(pd.CategoricalDtype(categories = list(range(0, self.categoricalFeatureCounts[column]))))
                     dataFrame = pd.get_dummies(dataFrame, columns = [column])
         return dataFrame

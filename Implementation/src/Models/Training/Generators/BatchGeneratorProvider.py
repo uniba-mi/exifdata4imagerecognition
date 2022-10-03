@@ -52,6 +52,7 @@ class ExifImageProvider(BatchGeneratorProvider):
     exifOnly: bool
     imageOnly: bool
     exifTags: List[str]
+    exifTagTransformer: ExifTagTransformer
     trainingDataFormat: ExifImageTrainingDataFormats
     
     def __init__(self, dataSetsPaths: Dict[str, ExifImageTrainingDataFormats],
@@ -86,11 +87,16 @@ class ExifImageProvider(BatchGeneratorProvider):
         self.cachedGenerators = None
         self.useStandardTags = False
 
+        # create exif tag transformer for the generator provider
+        self.exifTagTransformer = ExifTagTransformer.standard()
+        self.exifTagTransformer.insertNanOnTransformError = True
+        self.exifTagTransformer.addWhitelistedValue(np.nan) 
+
         # we use the pre-defined list of exif tags or all available tags there is a transformer function for
         if len(exifTags) > 0:
             self.exifTags = sorted(exifTags)
         else:
-            self.exifTags = ExifTagTransformer.standard().transformedTags
+            self.exifTags = self.exifTagTransformer.transformedTags
             self.useStandardTags = True
 
         if exifOnly and imageOnly:
@@ -163,24 +169,19 @@ class ExifImageProvider(BatchGeneratorProvider):
                     csvWriter = csv.writer(file)
                     csvWriter.writerows(counter.count().most_common())
 
-            # create transformers for transforming exif data
-            exifTagTransformer = ExifTagTransformer.standard()
-            exifTagTransformer.insertNanOnTransformError = True
-            exifTagTransformer.addWhitelistedValue(np.nan) 
-
             # create typed tag lists for the exif tags
-            numerical, categorical, binary = exifTagTransformer.typedTagLists
+            numerical, categorical, binary = ExifTagTransformer.typedTagLists(exifTags = self.exifTags, transformer = self.exifTagTransformer)
 
             # create dict which contains the number of possible values for each categorical feature
             featureValueCounts = {}
             for feature in categorical + binary:
-                featureValueCounts[feature] = exifTagTransformer.transformerFunctions[feature].valueCount
+                featureValueCounts[feature] = self.exifTagTransformer.transformerFunctions[feature].valueCount
 
             # create exif tag filter
             exifTagFilter = ExifTagFilter(filterTags = self.exifTags, dummyValue = np.nan)
 
             # create pipeline for pre-processing the data of the data source
-            transformers = [DataSourceInstanceTransformer(transformers = [exifTagFilter, exifTagTransformer], variableSelector = "exif"),
+            transformers = [DataSourceInstanceTransformer(transformers = [exifTagFilter, self.exifTagTransformer], variableSelector = "exif"),
                             ExiImageDataSourceToDataFrameTransformer(targetLabel = "Target", useSuperConceptNames = self.useSuperConcepts, imagePathColumnName = "ImagePath", idColumnName = "id"),
                             TabularDataFramePreProcessor(numericalColumns = numerical, categoricalColumns = categorical, binaryColumns = binary, categoricalFeatureCounts = featureValueCounts),
                             DataFrameLabelEncoder(targetLabel = "Target", dropTargetColumn = False, encodedLabel = "Target_Encoded")]

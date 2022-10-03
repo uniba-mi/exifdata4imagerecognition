@@ -16,7 +16,7 @@ class MLPTrainingTests(unittest.TestCase):
         #dataSetPaths = { TestTrainingConstants.datasetFilePath : ExifImageTrainingDataFormats.Flickr,
         #                 TestTrainingConstants.mirDatasetFilePath : ExifImageTrainingDataFormats.MirFlickr }
         
-        dataSetPaths = { TestTrainingConstants.indoorOutdoorFilePath : ExifImageTrainingDataFormats.Flickr }
+        dataSetPaths = { TestTrainingConstants.miIndoorOutdoorFilePath : ExifImageTrainingDataFormats.Flickr }
 
         dataProvider = ExifImageProvider(dataSetsPaths = dataSetPaths,
                                         cachePath = TestTrainingConstants.cacheStoragePath,
@@ -24,7 +24,7 @@ class MLPTrainingTests(unittest.TestCase):
                                         testSize = 0.2,
                                         validationSize = 0.1,
                                         batchSize = 32,
-                                        useSuperConcepts = False,
+                                        useSuperConcepts = True,
                                         imageSize = (150, 150),
                                         seed = 131)
 

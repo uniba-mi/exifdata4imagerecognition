@@ -24,21 +24,12 @@ class ExifDataTests(unittest.TestCase):
         self.assertFalse(exifData.containsTag(tag = "UndefinedTag"))
         self.assertTrue(exifData.containsTags(tags = ["ExposureTime", "FNumber"]))
     
-    def testExifDataTypes(self):
-        testData = ExifData(tags = {
-            "ExposureTime" : 0.3,
-            "FNumber" : 2.8,
-            "FocalLength" : 4.6,
-            "Flash" : 1,
-            "Orientation" : 4,
-            "Saturation" : 1,
-            "Sharpness" : 2,
-            "Contrast" : 3 }, id = "1")
-        
-        numerical, categorical, binary = ExifData.typedTagLists(testData.tagNames)
+    def testExifDataTypedTagLists(self):
+        transformer = ExifTagTransformer.standard()
+        numerical, categorical, binary = ExifTagTransformer.typedTagLists(exifTags = transformer.transformedTags, transformer = transformer)
         self.assertEqual(["Flash"], sorted(binary))
-        self.assertEqual(["Contrast", "Orientation", "Saturation", "Sharpness"], sorted(categorical))
-        self.assertEqual(["ExposureTime", "FNumber", "FocalLength"], sorted(numerical))
+        self.assertEqual(["Contrast", "LightSource", "Orientation", "Saturation", "Sharpness"], sorted(categorical))
+        self.assertEqual(["BrightnessValue", "ExposureCompensation", "ExposureTime", "FNumber", "FocalLength", "FocalLengthIn35mmFormat", "ISO", "MaxApertureValue"], sorted(numerical))
 
 
 class ExifTagFilterTests(unittest.TestCase):

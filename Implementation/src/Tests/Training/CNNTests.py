@@ -16,7 +16,7 @@ class CNNTrainingTests(unittest.TestCase):
         #dataSetPaths = { TestTrainingConstants.datasetFilePath : ExifImageTrainingDataFormats.Flickr,
         #                 TestTrainingConstants.mirDatasetFilePath : ExifImageTrainingDataFormats.MirFlickr }
 
-        dataSetPaths = { TestTrainingConstants.indoorOutdoorFilePath : ExifImageTrainingDataFormats.Flickr }
+        dataSetPaths = { TestTrainingConstants.miIndoorOutdoorFilePath : ExifImageTrainingDataFormats.Flickr }
 
         dataProvider = ExifImageProvider(dataSetsPaths = dataSetPaths,
                                         cachePath = TestTrainingConstants.cacheStoragePath,

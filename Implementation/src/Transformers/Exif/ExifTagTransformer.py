@@ -27,6 +27,25 @@ class ExifTagTransformer(Transformer[ExifData, ExifData]):
     attached transformer functions. """
 
     @staticmethod
+    def typedTagLists(exifTags: List[str], transformer: "ExifTagTransformer") -> Tuple[List[str], List[str], List[str]]:
+        """ Returns three sets with the given tags put into depending on their type, either numerical, categorical or binary, 
+        for the given transformer """
+        numerical = []
+        categorical = []
+        binary = []
+        for exifTag in exifTags:
+            transformerFunction = transformer.transformerFunctions[exifTag]
+            if not transformerFunction == None:
+                if transformerFunction.valueCount == math.inf:
+                    numerical.append(exifTag)
+                elif transformerFunction.valueCount > 2:
+                    categorical.append(exifTag)
+                elif transformerFunction.valueCount == 2:
+                    binary.append(exifTag)
+        
+        return numerical, categorical, binary
+
+    @staticmethod
     def standard() -> "ExifTagTransformer":
         """ Returns an exif tag transformer with registered transformer functions for the tags  
         [FocalLength, ISO, FNumber, ExposureTime, Flash, BrightnessValue, ExposureCompensation, FocalLengthIn35mmFormat,
@@ -61,23 +80,6 @@ class ExifTagTransformer(Transformer[ExifData, ExifData]):
         self.insertNanOnTransformError = insertNanOnTransformError
         self.verbose = verbose
     
-    @property
-    def typedTagLists(self) -> Tuple[List[str], List[str], List[str]]:
-        """ Returns three sets with the tansformers transformed tags put into depending on their type, either numerical, categorical or binary.  """
-        numerical = []
-        categorical = []
-        binary = []
-        for exifTag in self.transformedTags:
-            transformerFunction = self.transformerFunctions[exifTag]
-            if transformerFunction.valueCount == math.inf:
-                numerical.append(exifTag)
-            elif transformerFunction.valueCount > 2:
-                categorical.append(exifTag)
-            elif transformerFunction.valueCount == 2:
-                binary.append(exifTag)
-        
-        return numerical, categorical, binary
-
     @property
     def transformedTags(self) -> Set[str]:
         """ Returns a list of all exif tags the transformer currently has a transformer function for. """

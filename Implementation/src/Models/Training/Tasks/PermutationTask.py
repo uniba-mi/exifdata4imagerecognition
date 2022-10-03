@@ -1,7 +1,7 @@
 from typing import Any, Callable, List
 from Models.Training.Generators.BatchGeneratorProvider import BatchGeneratorProvider, ExifImageProvider
 from Models.Training.Generators.BatchGenerators import BatchGenerator
-from DomainModel.ExifData import ExifData
+from Transformers.Exif.ExifTagTransformer import ExifTagTransformer
 from Models.Classifiers.Classifier import Classifier
 from sklearn.metrics import f1_score, accuracy_score
 import numpy as np
@@ -103,6 +103,6 @@ class ExifPermutationTask(PermutationEvaluationTask):
 
     def run(self, classifier: Classifier, dataGeneratorProvider: ExifImageProvider, normalize: bool = False, verbose: int = 1) -> dict:
         # create typed tag lists for the exif tags, since categorical and binary features are spread over mulitple columns
-        _, categorical, binary = ExifData.typedTagLists(exifTags = dataGeneratorProvider.exifTags)
+        _, categorical, binary = ExifTagTransformer.typedTagLists(exifTags = dataGeneratorProvider.exifTags, transformer = dataGeneratorProvider.exifTagTransformer)
         self.combinedFeatures = categorical + binary
         super().run(classifier = classifier, dataGeneratorProvider = dataGeneratorProvider, normalize = normalize, verbose = verbose)

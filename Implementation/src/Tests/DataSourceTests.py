@@ -2,13 +2,10 @@ from pathlib import Path
 from DataSource.TrainingDataSource import StaticTrainingDataSource, TrainingDataSource, CompositeTrainingDataSource
 from DomainModel.ExifData import ExifData
 from DomainModel.Image import Image
-from Tools.Data.ExifReader import FlickrExifReader
-from Tools.Data.ImagePathReader import FlickrImagePathReader
 from Transformers.DataSource.DataSourceInstanceTransformer import DataSourceInstanceTransformer
 from Transformers.DataSource.DataSourceToDataFrameTransformer import ExiImageDataSourceToDataFrameTransformer
 from Transformers.Exif.ExifTagFilter import ExifTagFilter
 from Transformers.Exif.ExifTagTransformer import ExifTagTransformer
-from DataSource.DatasetFile import ExifImageDatasetFile
 from DataSource.DatasetFile import DatasetFile
 from DomainModel.TrainingConcept import TrainingConcept
 from DomainModel.TrainingData import EXIFImageTrainingData, TestTrainingData
@@ -19,8 +16,11 @@ from Transformers.Preprocessing.DataFrameLabelEncoder import DataFrameLabelEncod
 from Transformers.Preprocessing.DataFrameTrainingSplitter import DataFrameTrainingSplitter
 from Transformers.Preprocessing.DataFramePreProcessor import TabularDataFramePreProcessor
 from Transformers.Transformer import CompositeTransformer
+from Tests.Training.TestTrainingConstants import TestTrainingConstants
 
-datasetFilepath = "resources/dataset.zip"
+# Note: To successfully run all data source tests, the mi indoor / outdoor data set must be present within the resource folder
+
+datasetFilepath = TestTrainingConstants.miIndoorOutdoorFilePath
 
 class DatasetFileTests(unittest.TestCase):
 
@@ -29,32 +29,12 @@ class DatasetFileTests(unittest.TestCase):
     def testDatasetFileExists(self):
         self.assertTrue(self.datasetFile.exists)
 
-    """ def testDatasetFileExtractsCorrectly(self):
+    def testDatasetFileExtractsCorrectly(self):
         self.datasetFile.removeDatasetDirecotry()
         self.assertFalse(self.datasetFile.isExtracted)
         self.datasetFile.unpack()
-        self.assertTrue(self.datasetFile.isExtracted) """
+        self.assertTrue(self.datasetFile.isExtracted)
 
-
-class FlickrDatasetFileIntegrationTests(unittest.TestCase):
-    """ def setUp(self):
-        self.dataSetFile = ExifImageDatasetFile(datasetFilepath, 
-                                                exifReader = FlickrExifReader(), 
-                                                imagePathReader = FlickrImagePathReader())
-        if not self.dataSetFile.isExtracted:
-            self.dataSetFile.unpack()
-        self.dataSetFile.reloadTrainingData()
-    
-    def testLoadingAndExtractingFlickrDatasetFileContainsCorrectConcepts(self):
-        self.assertTrue(self.dataSetFile.exists)
-        self.assertTrue(self.dataSetFile.isExtracted)
-        self.assertEqual(len(self.dataSetFile.getConcepts()), 12)
-        self.assertEqual(len(self.dataSetFile.getConceptsForSuperConcept(names = ("indoor"))), 6)
-        self.assertEqual(len(self.dataSetFile.getConceptsForSuperConcept(names = ("outdoor"))), 6)
-        self.assertTrue(all(concept.superConceptNames == ("indoor") for concept in self.dataSetFile.getConceptsForSuperConcept(names = ("indoor"))))
-        self.assertTrue(all(concept.superConceptNames == ("outdoor") for concept in self.dataSetFile.getConceptsForSuperConcept(names = ("outdoor"))))
-        self.assertEqual(self.dataSetFile.getConceptNames(), { ("bathroom"), ("bedroom"), ("corridor"), ("kitchen"), ("office"), ("random-indoor"), ("beach"), ("forest"), ("mountain"), ("river"), ("urban"), ("random-outdoor") })
- """
 class DataSourceTests(unittest.TestCase):
 
     concept1 = TrainingConcept[TestTrainingData](names = ("ape"), superConceptNames = ("animal"))

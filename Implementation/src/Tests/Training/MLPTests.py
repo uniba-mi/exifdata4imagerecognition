@@ -20,12 +20,12 @@ class MLPTrainingTests(unittest.TestCase):
                                         testSize = 0.2,
                                         validationSize = 0.1,
                                         batchSize = 128,
-                                        useSuperConcepts = True,
+                                        useSuperConcepts = False,
                                         exifOnly = True,
                                         seed = 131)
         
         # create training task
-        trainingTask = TrainingTask(classifier = MLPClassifier(name = "IndoorOutdoorScExifOnly"), 
+        trainingTask = TrainingTask(classifier = MLPClassifier(name = "IndoorOutdoorScExifOnly2"), 
                                     storagePath = TestTrainingConstants.modelDirectory, 
                                     provider = dataProvider)
         trainingTask.run(epochs = 300, earlyStoppingPatience = 50, optimize = "loss")

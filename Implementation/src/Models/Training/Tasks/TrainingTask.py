@@ -10,12 +10,66 @@ from Models.Training.Generators.BatchGenerators import BatchGenerator
 import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
-from sklearn.metrics import ConfusionMatrixDisplay, classification_report, multilabel_confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay, classification_report, multilabel_confusion_matrix, PrecisionRecallDisplay, average_precision_score, precision_recall_curve
 import time
 import shutil
 import csv
 from keras.utils.vis_utils import plot_model
 import math
+from itertools import cycle
+
+def createPrecisionRecallGraph(yTrue, yPred, classes: List[str], storagePath: Path, name: str, multilabel: bool):
+    """ creates a precision-recall graph for the given true / predicted labels, using the given class names.
+    Adapted from: https://scikit-learn.org/stable/auto_examples/model_selection/plot_precision_recall.html"""
+
+    precision = dict()
+    recall = dict()
+    average_precision = dict()
+    thresholds = dict()
+    for i in range(len(classes)):
+        precision[i], recall[i], thresholds[i] = precision_recall_curve(yTrue[:, i], yPred[:, i])
+        average_precision[i] = average_precision_score(yTrue[:, i], yPred[:, i])
+
+    precision["micro"], recall["micro"], thresholds["micro"] = precision_recall_curve(yTrue.ravel(), yPred.ravel())   
+    f1 = (2 * precision["micro"] * recall["micro"]) / (precision["micro"] + recall["micro"])
+    average_precision["micro"] = average_precision_score(yTrue, yPred, average="micro")
+
+    # setup plot details
+    colors = cycle(["navy", "turquoise", "darkorange", "cornflowerblue", "teal", "cyan", "green", "blue", "yellow", "brown", "purple", "olive", "gray", "indigo"])
+    _, ax = plt.subplots(figsize = (7, 8))
+    f_scores = np.linspace(0.1, 0.8, num = 7)
+    labels = []
+    for f_score in f_scores:
+        x = np.linspace(0.01, 1)
+        y = f_score * x / (2 * x - f_score)
+        (l,) = plt.plot(x[y >= 0], y[y >= 0], color = "gray", alpha = 0.2)
+        plt.annotate("f1={0:0.1f}".format(f_score), xy = (0.9, y[45] + 0.02))
+
+    display = PrecisionRecallDisplay(recall = recall["micro"], 
+                                     precision = precision["micro"], 
+                                     average_precision = average_precision["micro"])
+    bestF1Index = np.argmax(f1)
+    bestF1 = f1[bestF1Index]
+    display.plot(ax = ax, name="average", color="gold")
+    plt.scatter(recall["micro"][bestF1Index], precision["micro"][bestF1Index], marker = "x", color=  "red", zorder = 10)
+    ax.annotate(f"f1={bestF1:.2f}", (recall["micro"][bestF1Index], precision["micro"][bestF1Index] + 0.02), zorder = 11, weight = "bold")
+
+    if multilabel:
+        for i, color in zip(range(len(classes)), colors):
+            display = PrecisionRecallDisplay(recall = recall[i],
+                                         precision = precision[i],
+                                         average_precision = average_precision[i])
+            display.plot(ax = ax, name=f"{classes[i]}", color=color)
+
+    # add the legend (iso-f1)
+    handles, labels = display.ax_.get_legend_handles_labels()
+    handles.extend([l])
+
+    # add the legend and the axes
+    ax.set_xlim([0.0, 1.0])
+    ax.set_ylim([0.0, 1.05])
+    ax.legend(handles = handles, labels = labels, loc = "upper left", bbox_to_anchor = (1.02, 1))
+    display.figure_.savefig(storagePath.joinpath(name + "_precision_recall_graph_single.png"), dpi = 300, bbox_inches = "tight")
 
 def createEvaluationFiles(dataGenerator: BatchGenerator, model: Model, name: str, classNames: List[str], storagePath: Path, omitAxisLabels: bool = False, multiLabel: bool = False):
     """ Creates evaluation files for the given model, evaluating the given data generator. """
@@ -92,6 +146,14 @@ def createEvaluationFiles(dataGenerator: BatchGenerator, model: Model, name: str
         plt.yticks(fontsize = 15)
         plot.figure_.savefig(confusionMatrixSavePath, dpi = 300)
     
+    # create p-r graph
+    createPrecisionRecallGraph(predictionResult.trueY, 
+                               predictionResult.predictionY, 
+                               classes = classNames, 
+                               storagePath = storagePath, 
+                               name = name,
+                               multilabel = multiLabel)
+
     # save prediction time to txt
     with open(storagePath.joinpath(name + "_prediction_time.txt"), "w") as timeFile:
         timeFile.write(str(predictionResult.predictionTime))
@@ -111,32 +173,31 @@ def createTrainingFiles(history: History, duration: float, storagePath: Path, ea
     validationAccuracy = history.history["val_" + accuracyKey]
     loss = history.history["loss"]
     validationLoss = history.history["val_loss"]
-
     targetEpoch = len(history.history["val_loss"]) - earlyStoppingPatience - 1 if earlyStoppingPatience > 0 else 0
 
     # create plot for accuracy
     plt.figure(figsize = (9, 5))
-    plt.plot(accuracy, label = "training accuracy", color = "deepskyblue")
-    plt.plot(validationAccuracy, label = "validation accuracy", color = "darkseagreen")
+    plt.plot(accuracy, label = "training", color = "deepskyblue")
+    plt.plot(validationAccuracy, label = "validation", color = "darkseagreen")
     plt.ylim([min(plt.ylim()), 1])
     if targetEpoch > 0:
         plt.axvline(x = targetEpoch, color = "black", label = "target epoch")
-    plt.legend(loc = "upper left", fontsize = "medium")
+    plt.legend(fontsize = "medium", loc = "upper left", bbox_to_anchor = (1.01, 1))
     plt.xlabel("epoch", fontsize = 12)
     plt.ylabel('accuracy', fontsize = 12)
-    plt.savefig(storagePath.joinpath("training_accuracy.png"), bbox_inches = 'tight', dpi = 300)
+    plt.savefig(storagePath.joinpath("training_accuracy.png"), bbox_inches = "tight", dpi = 300)
 
     # create plot for loss
     plt.figure(figsize = (9, 5))
-    plt.plot(loss, label = "training loss", color = "deepskyblue")
-    plt.plot(validationLoss, label = "validation loss", color = "darkseagreen")
+    plt.plot(loss, label = "training", color = "deepskyblue")
+    plt.plot(validationLoss, label = "validation", color = "darkseagreen")
     plt.ylim([0, max(validationLoss) + 0.5])
     if targetEpoch > 0:
         plt.axvline(x = targetEpoch, color = "black", label = "target epoch")
-    plt.legend(loc = "lower left", fontsize = "medium")
+    plt.legend(fontsize = "medium", loc = "upper left", bbox_to_anchor = (1.01, 1))
     plt.xlabel("epoch", fontsize = 12)
     plt.ylabel("loss", fontsize = 12)
-    plt.savefig(storagePath.joinpath("training_loss.png"), bbox_inches = 'tight', dpi = 300)
+    plt.savefig(storagePath.joinpath("training_loss.png"), bbox_inches = "tight", dpi = 300)
 
     # save history to csv
     historyDataframe = pd.DataFrame(history.history).round(3)

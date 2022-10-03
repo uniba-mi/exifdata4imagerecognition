@@ -73,7 +73,9 @@ def readMIProjectImageMetadata(directoryPath: str, serverDummy: str) -> list:
 def reArangeMIRFlickr25Dataset(annotationDirectoryPath: str, 
                                imageDirectoryPath: str, 
                                exifDirectoryPath: str, 
-                               destinationDirectoryPath: str) -> dict:
+                               destinationDirectoryPath: str,
+                               relevantOnly: bool = False,
+                               minImagesPerConcept: int = 0) -> dict:
     """ re-aranges the images contained in the MIRFlickr25Dataset (https://press.liacs.nl/mirflickr/mirdownload.html). The images will be
     sorted according to their label names, such that there is a directory for each unique combination of class labels which containing the 
     corresponding images and exif files. """
@@ -84,25 +86,34 @@ def reArangeMIRFlickr25Dataset(annotationDirectoryPath: str,
     
     textFiles = PathHelpers.matchingFilePaths(folderPath = annotationDirectoryPath, extension = "txt")
 
-    # read in the concepts and the image numbers for each concept
-    imagesAndConcepts = {}
-
+    # select file paths
+    paths = []
     for file in textFiles:
         filePath = Path(file)
+        if relevantOnly:
+            # we only use the r1 concepts, the releveant ones
+            if "_r1" in filePath.name.lower():
+                paths.append(filePath)
+        else:
+            if not "_r1" in filePath.name.lower():
+                paths.append(filePath)
 
-        # we only use the r1 concepts, the releveant ones
-        if "_r1" in filePath.name.lower():
-            with open(filePath) as conceptImages:
-                for line in conceptImages.readlines():
-                    imageNumber = line.strip()
-
-                    # create entry for image number, if there is not already one
-                    if not imageNumber in imagesAndConcepts.keys():
-                        imagesAndConcepts[imageNumber] = list()
-                    
-                    # add concept name to image number
-                    imagesAndConcepts[imageNumber].append(filePath.stem.replace("_r1", ""))
+    # read in the concepts and the image numbers for each concept
+    imagesAndConcepts = {}
     
+    for filePath in paths:
+        print("reading in " + filePath.name.lower())
+        with open(filePath) as conceptImages:
+            for line in conceptImages.readlines():
+                imageNumber = line.strip()
+
+                # create entry for image number, if there is not already one
+                if not imageNumber in imagesAndConcepts.keys():
+                    imagesAndConcepts[imageNumber] = list()
+                    
+                # add concept name to image number
+                imagesAndConcepts[imageNumber].append(filePath.stem.replace("_r1", ""))
+            
     # create / clear destination folder
     superFolder = Path(destinationDirectoryPath).joinpath("concepts")
     if superFolder.exists():
@@ -114,6 +125,7 @@ def reArangeMIRFlickr25Dataset(annotationDirectoryPath: str,
     exifDirectoryPath = Path(exifDirectoryPath)
     
     # create multi-label concept folders for the images and copy exif / image data
+    print("copying images and exif data to destination folders")
     for imageNumber in imagesAndConcepts.keys():
         concepts = imagesAndConcepts[imageNumber]
         conceptFolderName = ",".join(concepts)
@@ -136,29 +148,40 @@ def reArangeMIRFlickr25Dataset(annotationDirectoryPath: str,
             shutil.copy(imagePath, conceptImageDirectory)
         if not conceptExifDirectory.joinpath(exifName).exists():
             shutil.copy(exifPath, conceptExifDirectory)
+    
+    # filter out concepts with less than n images
+    conceptDirectories = [dir for dir in superFolder.iterdir() if dir.is_dir()]
+    for directory in conceptDirectories:
+        subDirectory = directory.joinpath("images")
+        imagePaths = [file for file in subDirectory.iterdir() if file.is_file()]
+        print("concept " + directory.name.lower() + " contains " + str(len(imagePaths)) + " images")
+        if len(imagePaths) < minImagesPerConcept:
+            print("... removing concept because of to less images")
+            shutil.rmtree(directory)
 
     
 if __name__ == '__main__':
-    """ reArangeMIRFlickr25Dataset(
+    reArangeMIRFlickr25Dataset(
         annotationDirectoryPath = "/Users/ralflederer/Downloads/mirflickr25k_annotations_v080", 
         imageDirectoryPath = "/Users/ralflederer/Downloads/mirflickr",
         exifDirectoryPath = "/Users/ralflederer/Downloads/mirflickr/meta/exif",
-        destinationDirectoryPath = "/Users/ralflederer/Desktop/mirflickr_rearanged") """
+        destinationDirectoryPath = "/Users/ralflederer/Desktop/mirflickr_rearanged",
+        relevantOnly = False)
 
-    """ indorClasses = ["bathroom", "bedroom", "corridor", "kitchen", "office"]
-    outdoorClasses = ["beach", "forest", "mountain", "river", "urban"] 
+    """ indorClasses = ["indoor", "indoor,bathroom", "indoor,bedroom", "indoor,corridor", "indoor,kitchen", "indoor,office"]
+    outdoorClasses = ["outdoor", "outdoor,beach", "outdoor,forest", "outdoor,mountain", "outdoor,river", "outdoor,urban"] 
 
     # write metadata files for old mi project to be able to re-crawl the data
-    metadataPath = Path("resources/metadata/")
+    metadataPath = Path("resources/mi_metadata/")
     metadataPath.mkdir(parents = True, exist_ok = True)
     for indoorClass in indorClasses:
-        path = "resources/dataset/indoor/{className}/images".format(className = indoorClass)
+        path = "resources/mi_indoor_outdoor_multilabel/indoor/{className}/images".format(className = indoorClass)
         metadata = readMIProjectImageMetadata(path, "1234")
         with open(metadataPath.joinpath(indoorClass + ".json"), "w") as file:
             json.dump(metadata, file)
 
     for outdoorClass in outdoorClasses:
-        path = "resources/dataset/outdoor/{className}/images".format(className = outdoorClass)
+        path = "resources/mi_indoor_outdoor_multilabel/outdoor/{className}/images".format(className = outdoorClass)
         metadata = readMIProjectImageMetadata(path, "1234")
         with open(metadataPath.joinpath(outdoorClass + ".json"), "w") as file:
             json.dump(metadata, file) """

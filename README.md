@@ -198,5 +198,54 @@ optional parameters for exif training (note: cannot be used when '-io' is set):
 | -tags | list of exif tags to use for training, comma-separated |
 | -permutations | number of permutations used to assess the feature importance of exif tags, default = 50 (only when '-eo' is set) |
 
+**Examples**
 
+Train an EXIF data only model using super concepts.
 
+```sh
+TrainingMain.py 
+-name LandscapeObjectSuperExifOnly
+-datapath resources/landscape_object_multilabel.zip 
+-cachepath resources/ 
+-outpath models/ 
+-bs 128 
+-epochs 300 
+-esepochs 50 
+-eo
+-super 
+-optimize loss
+-permutations 50
+```
+
+Train an image data only model using sub concepts. Since the parameter '-basemodel' is not set, the application will generate three models using the architectures EfficientNetB4, MobileNetV2 and ResNet50V2.
+
+```sh
+-name IndoorOutdoorImageOnly
+-datapath resources/indoor_outdoor_multilabel.zip
+-cachepath resources/ 
+-outpath models/ 
+-bs 32 
+-epochs 115 # total epoch count
+-esepochs 10 -io 
+-tuneepochs 100 # fine-tune epoch count
+-tunelayers 50 # fine-tune layer count
+-size 150,150
+-optimize loss
+```
+
+Train a mixed model using EfficientNetB5 base architecture for the CNN.
+
+```sh
+-name IndoorOutdoorScMixed
+-datapath resources/indoor_outdoor_multilabel.zip 
+-cachepath resources/ 
+-outpath models/ 
+-bs 32 
+-epochs 115
+-esepochs 20 
+-tuneepochs 100
+-tunelayers 50 
+-size 150,150
+-optimize loss
+-basemodel EfficientNetB5
+```

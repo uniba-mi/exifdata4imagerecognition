@@ -24,7 +24,6 @@ The programming language of the project is [Python](https://www.python.org/), ve
 
 It is possible to set up the development environment manually, however, it is recommended to use the provided [Docker](https://www.docker.com/) containers.
 
-<a name="devenv"/>
 ## Project Structure
 
 The source code of the project is located in **[src](/Implementation/src/)**, the main entry points for the different applications in **[Main](/Implementation/src/Main/)**. To be able to execute code from src, the directory must first be added to the **PYTHONPATH** environment variable:

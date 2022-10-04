@@ -270,13 +270,13 @@ Due to the ephemeral nature of docker containers, training data and model storag
 
 ### Training Tasks
 
-For each training dataset, there is a docker-compose file that contains the specifications for each individual training task. Each file contains a container specification for training exif-only, image-only and mixed-models. If a dataset can be trained on both super and sub concepts, the specification provides a container for both options. 
+For each training dataset, there is a docker-compose file that contains the specification for individual training tasks. Each file contains a container specification for training exif-only, image-only and mixed-models. If a dataset can be trained on both super and sub concepts, the specification provides a container for both options. 
 
 **Example:**
 
 The object/landscape dataset can be trained on super or on sub concepts. The corresponding docker-compose file **[docker-compose-landscape-object.yaml](/Implementation/docker-compose-landscape-object.yaml)** provides the following container specifications:
 
-- train-exif-only-landscape-super-object
+- train-exif-only-landscape-object-super
 - train-exif-only-landscape-object
 - train-image-only-landscape-object-super
 - train-image-only-landscape-object
@@ -286,5 +286,32 @@ The object/landscape dataset can be trained on super or on sub concepts. The cor
 In order to run a specific training task, the following command can be executed:
 
 ```sh
-docker-compose -f docker-compose-landscape-object.yaml up -d 'training-task-name' #-d detaches the terminal from the container output
+docker-compose -f docker-compose-landscape-object.yaml up -d 'training-task-name' #-d detaches the terminal from the container
+```
+
+Each container starts the training application using appropriate command line parameters, e.g. the specification of the container 'train-mixed-landscsape-object' is as follows:
+
+```sh
+train-mixed-landscsape-object:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name LandscapeObjectMixed 
+             -datapath resources/landscape_object_multilabel.zip  
+             -cachepath resources/ 
+             -outpath models/ 
+             -bs 32 
+             -epochs 115 
+             -esepochs 10 
+             -tuneepochs 100 
+             -tunelayers 50 
+             -size 150,150
+             -optimize loss
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
 ```

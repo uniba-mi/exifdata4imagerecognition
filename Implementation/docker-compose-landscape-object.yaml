@@ -41,7 +41,7 @@ services:
 
   # 🅴🆇🅸🅵 🅾🅽🅻🆈
 
-  train-exif-only-landscape-super-object:
+  train-exif-only-landscape-object-super:
     image: ma-lederer-base
     command: src/Main/TrainingMain.py 
              -name LandscapeObjectSuperExifOnly

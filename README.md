@@ -252,7 +252,7 @@ Train a mixed model using EfficientNetB5 base architecture for the CNN.
 
 ## Docker Containers
 
-Docker is used to modularize and simplify the training process of the models. In addition, using docker containers enables easy portability since the containers can be run on arbitrary machines. 
+[Docker](https://www.docker.com/) is used to modularize and simplify the training process of the models. In addition, using docker containers enables easy portability since the containers can be run on arbitrary machines. 
 
 ### Base Image
 

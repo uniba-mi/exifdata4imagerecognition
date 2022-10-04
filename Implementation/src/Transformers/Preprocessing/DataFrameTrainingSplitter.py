@@ -28,7 +28,9 @@ class DataFrameTrainingSplitter(Transformer[pd.DataFrame, Tuple]):
 
     def transform(self, data: pd.DataFrame) -> Tuple:
         if len(self.dropColumns) > 0:
-            data = data.drop(self.dropColumns, axis = 1)
+            for column in self.dropColumns:
+                if column in data.columns:
+                    data = data.drop(column, axis = 1)
 
         yData = data[self.targetColumn]
         xData = data.drop(self.targetColumn, axis = 1)
@@ -37,21 +39,27 @@ class DataFrameTrainingSplitter(Transformer[pd.DataFrame, Tuple]):
         if self.trainRatio == 1.0:
             return xData, yData, None, None, None, None
 
-        # frist split in train / test set
-        trainX, testX, trainY, testY = train_test_split(xData, 
-                                                        yData, 
-                                                        test_size = self.testRatio,
-                                                        stratify = yData if self.stratify else None,
-                                                        random_state = self.seed)
+        try:
+            # frist split in train / test set
+            trainX, testX, trainY, testY = train_test_split(xData, 
+                                                            yData, 
+                                                            test_size = self.testRatio,
+                                                            stratify = yData if self.stratify else None,
+                                                            random_state = self.seed)
 
-        if self.validationRatio > 0.0:
-            # then, split train data in train / validation set
-            trainX, valX, trainY, valY = train_test_split(trainX, 
-                                                          trainY, 
-                                                          test_size = (self.validationRatio / (self.trainRatio + self.validationRatio)), 
-                                                          stratify = trainY if self.stratify else None,
-                                                          random_state = self.seed)
-            return trainX, trainY, testX, testY, valX, valY
-        else:
-            return trainX, trainY, testX, testY, None, None
-        
+            if self.validationRatio > 0.0:
+                # then, split train data in train / validation set
+                trainX, valX, trainY, valY = train_test_split(trainX, 
+                                                              trainY, 
+                                                              test_size = (self.validationRatio / (self.trainRatio + self.validationRatio)), 
+                                                              stratify = trainY if self.stratify else None,
+                                                              random_state = self.seed)
+                return trainX, trainY, testX, testY, valX, valY
+            else:
+                return trainX, trainY, testX, testY, None, None
+        except Exception as e:
+            if len(e.args) > 0 and "the least populated class in y has only 1 member, which is too few" in e.args[0].lower():
+                print("WARNING: some class labels appear too rare to perform a stratified split, hence omitting stratification.")
+                self.stratify = False
+                return self.transform(data = data)
+                

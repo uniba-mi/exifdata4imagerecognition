@@ -215,11 +215,11 @@ class ExifImageProvider(BatchGeneratorProvider):
 
         # split in train / test / val set
         splitter = DataFrameTrainingSplitter(targetLabel = "Target_Encoded", 
-                                                trainRatio = self.trainSize,
-                                                testRatio = self.testSize,
-                                                validationRatio = self.validationSize, 
-                                                seed = self.seed,
-                                                dropColumns = ["ImagePath"] if self.exifOnly else [])
+                                             trainRatio = self.trainSize,
+                                             testRatio = self.testSize,
+                                             validationRatio = self.validationSize, 
+                                             seed = self.seed,
+                                             dropColumns = ["ImagePath"] if self.exifOnly else [])
         
         trainX, trainY, testX, testY, valX, valY = splitter.transform(data = dataFrame)
 

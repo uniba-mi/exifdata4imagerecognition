@@ -1,6 +1,6 @@
 # Master Thesis Project - Ralf Lederer
 
-While most semantic image classification approaches rely solely on raw image data to determine the contents of a photograph, EXIF metadata can also add value to image analysis. In addition to image data, many digital cameras and smartphones capture EXIF data, which contains information about lighting conditions and the camera parameters used when taking a photograph. The aim of this work is to examine whether EXIF data can improve image classification performed by *Convolutional Neural Networks*. We first analyze which EXIF tags are suitable for the classification of selected target concepts, and then incorporate EXIF data into the training process of three state of the art CNN architectures to create fusion-models. To evaluate the added value of camera metadata for image classification, we then compare the classification performance of the created fusion models with image-only and EXIF-only models. Besides the classification performance, we also evaluate economical and ecological aspects of the created models. The results show that ...
+While most semantic image classification approaches rely solely on raw image data to determine the contents of a photograph, EXIF metadata can also add value to image analysis. In addition to image data, many digital cameras and smartphones capture EXIF data, which contains information about lighting conditions and the camera parameters used when a photograph was captured. The aim of this work is to examine whether EXIF data can improve image classification performed by *Convolutional Neural Networks*. We first analyze which EXIF tags seem to be suitable for the classification of selected target concepts and then incorporate EXIF data into the training process of fusion models based on state-of-the-art CNN architectures. To evaluate the added value of EXIF data for image classification, we then compare the classification performance of the created fusion models with models that use only image data and only EXIF data for classifying the same target concepts. Besides the classification performance, we also evaluate economical and ecological aspects of the created models. The results show that ...
 
 ## Technical Documentation
 
@@ -22,7 +22,7 @@ The programming language of the project is [Python](https://www.python.org/), ve
 - [Scikit-Learn 1.1.2](https://pypi.org/project/scikit-learn/1.1.2/)
 - [GraphViz 0.20.1](https://pypi.org/project/graphviz/0.20.1/)
 
-It is possible to set up the development environment manually, however, it is recommended to use the provided Docker files.
+It is possible to set up the development environment manually, however, it is recommended to use the provided [Docker](https://www.docker.com/) files.
 
 ### Project Structure
 
@@ -134,3 +134,69 @@ python FlickrCrawlerMain.py
 -sp 1
 -pl 100
 ```
+
+### Training
+
+The usefulness of EXIF data for image classification is evaluated by comparing the classification performance of baseline models with that of fusion models. Baseline models classify images using only one type of data, either EXIF data or image data, whereas fusion models use both types of data. 
+
+## Training with EXIF data
+
+For image classification with EXIF data, a fully-connected, deep neural network with four hidden layers is used. The architecture is individually adapted to the respective classification task based on the used training data. The number of neurons in the input layer is based on the number of EXIF tags used for classification. The output layer contains as many neurons as there are target concepts in the training data. The first hidden layer contains 256 neurons, with the number of neurons in each subsequent layer being halved. All hidden layers use a RELU (rectified linear unit) activation function. The activation function of the output layer is determined based on the training data. A softmax activation function is used for a single-label classification problem and a sigmoid activation function is used for a multi-label classification problem.
+
+## Training with image data
+
+A Convolutional Neural Network (CNN) is used for classification based on image data. To facilitate the training process and shorten the training time, transfer learning is used, in which an already trained CNN model is adapted to a new classification task. First, the model architecture is extended with a new classification head that is suitable for the new classification task. Then, the new classification head is trained using the training data without adapting the weights of the pre-trained model. In the subsequent fine-tuning phase, the weights of the top layers of the pre-trained model are adjusted to detect features present in training images which are important for the new classification task. For this purpose, the weights of the top layers are trained for a certain number of epochs. Since high-level image features are recognized in the top layers of a CNN, it is sufficient to adjust only a certain number of layers of the pre-trained model, depending on the models depth. The CNN model can be created using the state-of-the-art architectures EfficientNet, MobileNet and ResNet, which are then initialized with pre-trained weights of the ImageNet competition to enable transfer-learning. The architectures differ in terms of model depth and number of parameters. The larger and deeper a model is, the longer is usually the required training time. However, with increasing depth and number of parameters, the classification performance usually increases as well.
+
+## Training with EXIF & image data
+
+A mixed model combines a CNN used for classification based on image data and a deep neural network used for classification based on EXIF data by concatenating the output layers of both models and adding a new classification head. The concatenation layer feeds the combined output into an additional fully connected layer before the final classification is performed in the output layer of the new classification head of the mixed model.
+
+The training process of the different models can be carried out using the application in **[TrainingMain.py](/Implementation/src/Main/TrainingMain.py)** which can be started by executing the following command:
+
+```sh
+python TrainingMain.py 
+```
+
+In order to control the training process, the following command line parameters can be used:
+
+required parameters:
+| parameter  | description  |
+|---|---|
+| -name | output name of the final model |
+| -datapath | paths to the zip files containing the training data, comma-separated |
+| -outpath | path to the directory to store the created model / evaluation files |
+| -bs | batch size to use for training |
+| -epochs | number of epochs to use for training |
+| -esepochs | number of early stopping patience epochs to use for training |
+
+optional parameters:
+| parameter  | description  |
+|---|---|
+| -cachepath | path to the caching directory |
+| -super | if set, uses super concepts for training |
+| -filter | list of concepts to filter from the input data source, comma-separated |
+| -seed | random seed to use for training |
+| -io | training will be performed with image data only |
+| -eo | training will be performed with exif data only |
+| -trainsize | amount of training data to use for training, default = 0.7 |
+| -testsize | amount of training data to use for testing, default = 0.2 |
+| -valsize | amount of training data to use for validation, default = 0.1 |
+| -tformat | data format of the training data [flickr, mirflickr], comma-separated for multiple zip-files, default = flickr |
+| -optimize | optimization criteria [accuracy, loss], default = loss |
+
+required parameters for image only & mixed model training:
+| parameter  | description  |
+|---|---|
+| -size | image size to use (width/height), comma-separated |
+| -tuneepochs| number of fine-tune epochs to use for training (transfer-learning) |
+| -tunelayers | number of fine-tune layers of the model (transfer-learning) |
+| -basemodel | name of the cnn base-model architecture to use for transfer-learning<br />if not set, three models will be trained using **EfficientNetB4** & **MobileNetV2** & **ResNet50V2**<br />possible values: EfficientNetB1, EfficientNetB2, EfficientNetB3, EfficientNetB4, EfficientNetB5,<br />EfficientNetB6, EfficientNetB7, MobileNetV2, ResNet152V2, ResNet101V2, ResNet50V2 |
+
+optional parameters for exif training (note: cannot be used when '-io' is set):
+| parameter  | description  |
+|---|---|
+| -tags | list of exif tags to use for training, comma-separated |
+| -permutations | number of permutations used to assess the feature importance of exif tags, default = 50 (only when '-eo' is set) |
+
+
+

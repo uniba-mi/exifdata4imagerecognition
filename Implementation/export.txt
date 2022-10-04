@@ -1,1 +1,1 @@
-export PYTHONPATH=$PYTHONPATH:/Users/ralflederer/Documents/Studium/Master/Masterarbeit/Implementation/src
+export PYTHONPATH=$PYTHONPATH:/Users/ralflederer/Development/Studium\ \(Git\)/ma-lederer/Implementation/src

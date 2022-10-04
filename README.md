@@ -135,19 +135,19 @@ python FlickrCrawlerMain.py
 -pl 100
 ```
 
-### Training
+## Model Training
 
 The usefulness of EXIF data for image classification is evaluated by comparing the classification performance of baseline models with that of fusion models. Baseline models classify images using only one type of data, either EXIF data or image data, whereas fusion models use both types of data. 
 
-## Training with EXIF data
+### Training with EXIF data
 
 For image classification with EXIF data, a fully-connected, deep neural network with four hidden layers is used. The architecture is individually adapted to the respective classification task based on the used training data. The number of neurons in the input layer is based on the number of EXIF tags used for classification. The output layer contains as many neurons as there are target concepts in the training data. The first hidden layer contains 256 neurons, with the number of neurons in each subsequent layer being halved. All hidden layers use a RELU (rectified linear unit) activation function. The activation function of the output layer is determined based on the training data. A softmax activation function is used for a single-label classification problem and a sigmoid activation function is used for a multi-label classification problem.
 
-## Training with image data
+### Training with image data
 
 A Convolutional Neural Network (CNN) is used for classification based on image data. To facilitate the training process and shorten the training time, transfer learning is used, in which an already trained CNN model is adapted to a new classification task. First, the model architecture is extended with a new classification head that is suitable for the new classification task. Then, the new classification head is trained using the training data without adapting the weights of the pre-trained model. In the subsequent fine-tuning phase, the weights of the top layers of the pre-trained model are adjusted to detect features present in training images which are important for the new classification task. For this purpose, the weights of the top layers are trained for a certain number of epochs. Since high-level image features are recognized in the top layers of a CNN, it is sufficient to adjust only a certain number of layers of the pre-trained model, depending on the models depth. The CNN model can be created using the state-of-the-art architectures EfficientNet, MobileNet and ResNet, which are then initialized with pre-trained weights of the ImageNet competition to enable transfer-learning. The architectures differ in terms of model depth and number of parameters. The larger and deeper a model is, the longer is usually the required training time. However, with increasing depth and number of parameters, the classification performance usually increases as well.
 
-## Training with EXIF & image data
+### Training with EXIF & image data
 
 A mixed model combines a CNN used for classification based on image data and a deep neural network used for classification based on EXIF data by concatenating the output layers of both models and adding a new classification head. The concatenation layer feeds the combined output into an additional fully connected layer before the final classification is performed in the output layer of the new classification head of the mixed model.
 

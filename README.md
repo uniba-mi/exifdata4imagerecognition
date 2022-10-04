@@ -274,7 +274,7 @@ For each training dataset, there is a docker-compose file that contains the spec
 
 **Example:**
 
-The object/landscape dataset can be trained on super or on sub concepts. The corresponding docker-compose file **[docker-compose-landscape-object.yaml](/Implementation/docker-compose-landscape-object.yaml)** provides the following container specifications:
+The object/landscape dataset can be trained on super or on sub concepts. The corresponding docker-compose file **[docker-compose-landscape-object-gpu.yaml](/Implementation/docker-compose-landscape-object-gpu.yaml)** provides the following container specifications:
 
 - train-exif-only-landscape-object-super
 - train-exif-only-landscape-object

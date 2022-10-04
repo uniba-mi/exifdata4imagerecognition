@@ -256,10 +256,35 @@ Docker is used to modularize and simplify the training process of the models. In
 
 ### Base Image
 
-The base image serves as the foundation for all containers and contains the source code, as well as all required libraries and frameworks to run the training application. It executes the Python interpreter on startup, allowing any Python application to be started via container parameters. The dependencies and the behavior of the base image is defined in **[DockerFile](/Implementation/Dockerfile)**. It can be built using the docker-compose file **[docker-compose-build-base.yaml](/Implementation/docker-compose-build-base.yaml)** with the following command:
+The base image serves as the foundation for all containers and contains the source code, as well as all required libraries and frameworks to run the training application. It executes the Python interpreter on startup, allowing any Python application to be started via container parameters. The dependencies and the behavior of the base image is defined in **[DockerFile](/Implementation/Dockerfile)**. It can be built using the docker-compose file **[docker-compose-build-base.yaml](/Implementation/docker-compose-build-base.yaml)** executing the following command:
 
 ```sh
 docker-compose -f docker-compose-build-base.yaml build
 ```
 
-The created image will be named: **ma-lederer-base**. After building the image can be used to create docker containers.
+The created image will be named: **ma-lederer-base**. After building, the image can be used to create docker containers.
+
+### Volumes
+
+Due to the ephemeral nature of docker containers, training data and model storage locations are only referenced using volumes instead of storing the files directly within the container. For the training of models two volumes are used. One for providing training data and as a cache location (**ma-lederer-training-data**) and one for storing the created models (**ma-lederer-models**). The volumes are automatically created when starting a training task using docker-compose. However, the file locations need to be adjusted when porting the docker-compose files to another system.
+
+### Training Tasks
+
+For each training dataset, there is a docker-compose file that contains the specifications for each individual training task. Each file contains a container specification for training exif-only, image-only and mixed-models. If a dataset can be trained on both super and sub concepts, the specification provides a container for both options. 
+
+**Example:**
+
+The object/landscape dataset can be trained on super or on sub concepts. The corresponding docker-compose file **[docker-compose-landscape-object.yaml](/Implementation/docker-compose-landscape-object.yaml)** provides the following container specifications:
+
+- train-exif-only-landscape-super-object
+- train-exif-only-landscape-object
+- train-image-only-landscape-object-super
+- train-image-only-landscape-object
+- train-mixed-landscsape-object-super
+- train-mixed-landscsape-object
+
+In order to run a specific training task, the following command can be executed:
+
+```sh
+docker-compose -f docker-compose-landscape-object.yaml up -d 'training-task-name' #-d detaches the terminal from the container output
+```

@@ -1,6 +1,6 @@
 # Master Thesis Project - Ralf Lederer
 
-While most semantic image classification approaches rely solely on raw image data to determine the contents of a photograph, EXIF metadata can also add value to image analysis. In addition to image data, many digital cameras and smartphones capture EXIF data, which contains information about lighting conditions and the camera parameters used when a photograph was captured. The aim of this work is to examine whether EXIF data can improve image classification performed by *Convolutional Neural Networks*. We first analyze which EXIF tags seem to be suitable for the classification of selected target concepts and then incorporate EXIF data into the training process of fusion models based on state-of-the-art CNN architectures. To evaluate the added value of EXIF data for image classification, we then compare the classification performance of the created fusion models with models that use only image data and only EXIF data for classifying the same target concepts. Besides the classification performance, we also evaluate economical and ecological aspects of the created models. The results show that ...
+While most semantic image classification approaches rely solely on raw image data to determine the contents of a photograph, EXIF metadata can also add value to image analysis. In addition to image data, many digital cameras and smartphones capture EXIF data, which contains information about lighting conditions and the camera parameters used when a photograph was captured. The aim of this work is to examine whether EXIF data can improve image classification performed by *Convolutional Neural Networks*. We first analyze which EXIF tags seem to be suitable for the classification of selected target concepts and then incorporate EXIF data into the training process of fusion models based on state-of-the-art CNN architectures. To evaluate the added value of EXIF data for image classification, we then compare the classification performance of the created fusion models with models using only either EXIF data or image data for classifying the same target concepts. Besides the classification performance, we also evaluate economical and ecological aspects of the created models. The results show that ...
 
 ## Technical Documentation
 
@@ -137,7 +137,7 @@ python FlickrCrawlerMain.py
 
 ## Model Training
 
-The usefulness of EXIF data for image classification is evaluated by comparing the classification performance of baseline models with that of fusion models. Baseline models classify images using only one type of data, either EXIF data or image data, whereas fusion models use both types of data. 
+The usefulness of EXIF data for image classification is evaluated by comparing the classification performance of base models against that of fusion models. Baseline models classify images using only one type of data, either EXIF data or image data, whereas fusion models use both types of data. 
 
 ### Training with EXIF data
 

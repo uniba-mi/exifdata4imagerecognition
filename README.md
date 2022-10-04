@@ -5,11 +5,12 @@ While most semantic image classification approaches rely solely on raw image dat
 # Technical Documentation
 
 ##  Table of Contents
-1. [Development Environment](#Development Environment)
+1. [Development Environment](#devenv)
 2. [Project Structure](#Project Structure)
 3. [Flickr Crawler](#Flickr Crawler)
 4. [Model Training](#Model Training)
 
+<a name="devEnv"/>
 ## Development Environment
 
 The programming language of the project is [Python](https://www.python.org/), version **3.8.13**. In addition, the following packages are used:
@@ -30,6 +31,7 @@ The programming language of the project is [Python](https://www.python.org/), ve
 
 It is possible to set up the development environment manually, however, it is recommended to use the provided [Docker](https://www.docker.com/) files.
 
+<a name="devenv"/>
 ## Project Structure
 
 The source code of the project is located in **[src](/Implementation/src/)**, the main entry points for the different applications in **[Main](/Implementation/src/Main/)**. To be able to execute code from src, the directory must first be added to the **PYTHONPATH** environment variable:

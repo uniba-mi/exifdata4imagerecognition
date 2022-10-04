@@ -4,13 +4,6 @@ While most semantic image classification approaches rely solely on raw image dat
 
 # Technical Documentation
 
-##  Table of Contents
-1. [Development Environment](#devenv)
-2. [Project Structure](#Project Structure)
-3. [Flickr Crawler](#Flickr Crawler)
-4. [Model Training](#Model Training)
-
-<a name="devEnv"/>
 ## Development Environment
 
 The programming language of the project is [Python](https://www.python.org/), version **3.8.13**. In addition, the following packages are used:
@@ -39,7 +32,6 @@ The source code of the project is located in **[src](/Implementation/src/)**, th
 ```sh
 export PYTHONPATH=$PYTHONPATH:/path/to/src
 ```
-
 
 ## Flickr Crawler
 
@@ -257,3 +249,17 @@ Train a mixed model using EfficientNetB5 base architecture for the CNN.
 -optimize loss
 -basemodel EfficientNetB5
 ```
+
+## Docker Containers
+
+Docker is used to modularize and simplify the training process of the models. In addition, using docker containers enables easy portability since the containers can be run on arbitrary machines. 
+
+### Base Image
+
+The base image serves as the foundation for all containers and contains the source code, as well as all required libraries and frameworks to run the training application. It executes the Python interpreter on startup, allowing any Python application to be started via container parameters. The dependencies and the behavior of the base image is defined in **[DockerFile](/Implementation/Dockerfile)**. It can be built using the docker-compose file **[docker-compose-build-base.yaml](/Implementation/docker-compose-build-base.yaml)** with the following command:
+
+```sh
+docker-compose -f docker-compose-build-base.yaml build
+```
+
+The created image will be named: **ma-lederer-base**. After building the image can be used to create docker containers.

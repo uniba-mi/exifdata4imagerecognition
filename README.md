@@ -22,7 +22,7 @@ The programming language of the project is [Python](https://www.python.org/), ve
 - [Scikit-Learn 1.1.2](https://pypi.org/project/scikit-learn/1.1.2/)
 - [GraphViz 0.20.1](https://pypi.org/project/graphviz/0.20.1/)
 
-It is possible to set up the development environment manually, however, it is recommended to use the provided [Docker](https://www.docker.com/) files.
+It is possible to set up the development environment manually, however, it is recommended to use the provided [Docker](https://www.docker.com/) containers.
 
 <a name="devenv"/>
 ## Project Structure
@@ -256,7 +256,7 @@ Docker is used to modularize and simplify the training process of the models. In
 
 ### Base Image
 
-The base image serves as the foundation for all containers and contains the source code, as well as all required libraries and frameworks to run the training application. It executes the Python interpreter on startup, allowing any Python application to be started via container parameters. The dependencies and the behavior of the base image is defined in **[DockerFile](/Implementation/Dockerfile)**. It can be built using the docker-compose file **[docker-compose-build-base.yaml](/Implementation/docker-compose-build-base.yaml)** executing the following command:
+The base image serves as the foundation for all containers and contains the source code, as well as all required libraries and frameworks to run the training application. It executes the Python interpreter on startup, allowing any Python application to be started via container commands. The dependencies and the behavior of the base image is defined in **[DockerFile](/Implementation/Dockerfile)**. It can be built using the docker-compose file **[docker-compose-build-base.yaml](/Implementation/docker-compose-build-base.yaml)** executing the following command:
 
 ```sh
 docker-compose -f docker-compose-build-base.yaml build
@@ -266,7 +266,7 @@ The created image will be named: **ma-lederer-base**. After building, the image 
 
 ### Volumes
 
-Due to the ephemeral nature of docker containers, training data and model storage locations are only referenced using volumes instead of storing the files directly within the container. For the training of models two volumes are used. One for providing training data and as a cache location (**ma-lederer-training-data**) and one for storing the created models (**ma-lederer-models**). The volumes are automatically created when starting a training task using docker-compose. However, the file locations need to be adjusted when porting the docker-compose files to another system.
+Due to the ephemeral nature of docker containers, training data and model storage locations are only referenced using volumes instead of storing the files directly within the container. For the training of models two volumes are used. One for providing training data and as cache location (**ma-lederer-training-data**) and one for storing the created models (**ma-lederer-models**). The volumes are automatically created when starting a training task using docker-compose. However, the file locations need to be adjusted when porting the docker-compose files to another system.
 
 ### Training Tasks
 

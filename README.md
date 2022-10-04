@@ -2,9 +2,15 @@
 
 While most semantic image classification approaches rely solely on raw image data to determine the contents of a photograph, EXIF metadata can also add value to image analysis. In addition to image data, many digital cameras and smartphones capture EXIF data, which contains information about lighting conditions and the camera parameters used when a photograph was captured. The aim of this work is to examine whether EXIF data can improve image classification performed by *Convolutional Neural Networks*. We first analyze which EXIF tags seem to be suitable for the classification of selected target concepts and then incorporate EXIF data into the training process of fusion models based on state-of-the-art CNN architectures. To evaluate the added value of EXIF data for image classification, we then compare the classification performance of the created fusion models with models using only either EXIF data or image data for classifying the same target concepts. Besides the classification performance, we also evaluate economical and ecological aspects of the created models. The results show that ...
 
-## Technical Documentation
+# Technical Documentation
 
-### Development Environment
+##  Table of Contents
+1. [Development Environment](#Development Environment)
+2. [Project Structure](#Project Structure)
+3. [Flickr Crawler](#Flickr Crawler)
+4. [Model Training](#Model Training)
+
+## Development Environment
 
 The programming language of the project is [Python](https://www.python.org/), version **3.8.13**. In addition, the following packages are used:
 
@@ -24,7 +30,7 @@ The programming language of the project is [Python](https://www.python.org/), ve
 
 It is possible to set up the development environment manually, however, it is recommended to use the provided [Docker](https://www.docker.com/) files.
 
-### Project Structure
+## Project Structure
 
 The source code of the project is located in **[src](/Implementation/src/)**, the main entry points for the different applications in **[Main](/Implementation/src/Main/)**. To be able to execute code from src, the directory must first be added to the **PYTHONPATH** environment variable:
 
@@ -33,7 +39,7 @@ export PYTHONPATH=$PYTHONPATH:/path/to/src
 ```
 
 
-### Flickr Crawler
+## Flickr Crawler
 
 The Flickr crawler is used to export image and EXIF data from the image portal [Flickr](https://flickr.com/) and provides two basic functionalities. Photos can either be exported directly from [Flickr groups](https://www.flickr.com/groups) or by conducting a free-text search using an arbitrary search term. Groups are identified by a unique ID and contain photos related to a particular topic. In some groups, only photos that exclusively show the group's topic may be uploaded. In other groups, however, it is also allowed to upload photos that contain objects that are not directly related to the group’s main topic, e.g. in the background of a photo. Therefore, and since the group rules are enforced with varying degrees of strictness, it can be assumed that training data collected from groups contains a certain amount of noise. When a free text search is performed, the Flickr API returns images whose title, description or user tags contain the corresponding search term. User tags are keywords used to succinctly describe the content of images. They can be added by the image authors. In addition, user tags are automatically determined and added by Flickr robots. The retrieved photos are then sorted according to their relevance determined by Flickr. Since Flickr does not define strict rules for image titles, descriptions and user tags, and the way Flickr determines the relevance of photos for search terms is unknown, it can be assumed that training data collected via free text search also contains a certain amount of images that do not match the desired target concept. Thus, training data collected with the Flickr crawler is always subject to noise if no further filtering is performed.
 

@@ -97,7 +97,8 @@ services:
              -outpath models/ 
              -bs 32 
              -epochs 115 
-             -esepochs 10 -io 
+             -esepochs 5 
+             -io 
              -super 
              -tuneepochs 100 
              -tunelayers 50 
@@ -121,7 +122,7 @@ services:
              -outpath models/ 
              -bs 32 
              -epochs 115 
-             -esepochs 10 
+             -esepochs 5  
              -io 
              -tuneepochs 100 
              -tunelayers 50 
@@ -147,7 +148,7 @@ services:
              -outpath models/ 
              -bs 32 
              -epochs 115 
-             -esepochs 20 
+             -esepochs 5  
              -super 
              -tuneepochs 100 
              -tunelayers 50 
@@ -171,7 +172,7 @@ services:
              -outpath models/ 
              -bs 32 
              -epochs 115
-             -esepochs 20 
+             -esepochs 5 
              -tuneepochs 100
              -tunelayers 50 
              -size 150,150

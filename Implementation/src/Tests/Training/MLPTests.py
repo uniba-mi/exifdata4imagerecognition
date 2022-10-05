@@ -25,7 +25,7 @@ class MLPTrainingTests(unittest.TestCase):
                                         seed = 131)
         
         # create training task
-        trainingTask = TrainingTask(classifier = MLPClassifier(name = "MovingStaticExifOnly"), 
+        trainingTask = TrainingTask(classifier = MLPClassifier(name = "MovingStillExifOnlySuper"), 
                                     storagePath = TestTrainingConstants.modelDirectory, 
                                     provider = dataProvider)
         trainingTask.run(epochs = 300, earlyStoppingPatience = 50, optimize = "loss")

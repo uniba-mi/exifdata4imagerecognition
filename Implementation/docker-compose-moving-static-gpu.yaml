@@ -64,6 +64,28 @@ services:
           devices:
             - capabilities: [gpu]
   
+  train-exif-only-moving-static:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name MovingStaticExifOnly
+             -datapath resources/moving_static.zip 
+             -cachepath resources/ 
+             -outpath models/ 
+             -bs 128 
+             -epochs 300 
+             -esepochs 50 
+             -eo 
+             -optimize loss
+             -permutations 50
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+  
   # 🅸🅼🅰🅶🅴 🅾🅽🅻🆈
 
   train-image-only-moving-static-super:
@@ -75,9 +97,33 @@ services:
              -outpath models/ 
              -bs 32 
              -epochs 115 
-             -esepochs 10 
+             -esepochs 5 
              -io 
              -super
+             -tuneepochs 100 
+             -tunelayers 50 
+             -size 150,150
+             -optimize loss
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
+  
+  train-image-only-moving-static:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name MovingStaticImageOnly
+             -datapath resources/moving_static.zip 
+             -cachepath resources/ 
+             -outpath models/ 
+             -bs 32 
+             -epochs 115 
+             -esepochs 5 
+             -io 
              -tuneepochs 100 
              -tunelayers 50 
              -size 150,150
@@ -102,8 +148,31 @@ services:
              -outpath models/ 
              -bs 32 
              -epochs 115 
-             -esepochs 10 
+             -esepochs 5 
              -super
+             -tuneepochs 100 
+             -tunelayers 50 
+             -size 150,150
+             -optimize loss
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
+  
+  train-mixed-moving-static:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name MovingStaticMixed
+             -datapath resources/moving_static.zip 
+             -cachepath resources/ 
+             -outpath models/ 
+             -bs 32 
+             -epochs 115 
+             -esepochs 5 
              -tuneepochs 100 
              -tunelayers 50 
              -size 150,150

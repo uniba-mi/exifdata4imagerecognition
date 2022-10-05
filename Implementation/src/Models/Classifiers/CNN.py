@@ -1,5 +1,5 @@
 from typing import Callable, List, Tuple
-from keras.applications.efficientnet import EfficientNetB1, EfficientNetB2, EfficientNetB3, EfficientNetB4, EfficientNetB5, EfficientNetB6, EfficientNetB7
+from keras.applications.efficientnet import EfficientNetB0, EfficientNetB1, EfficientNetB2, EfficientNetB3, EfficientNetB4, EfficientNetB5, EfficientNetB6, EfficientNetB7
 from keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input as pMobileNet
 from keras.applications.resnet_v2 import ResNet152V2, ResNet101V2, ResNet50V2, preprocess_input as pResNet
 from keras.layers import GlobalAveragePooling2D, Dropout, Dense, Input, BatchNormalization
@@ -13,11 +13,13 @@ def validModelNames() -> List[str]:
 
 def standardModelNames() -> List[str]:
     """ Returns a list of standard model names, the cnn model builder can build models for. """
-    return ["EfficientNetB4", "MobileNetV2", "ResNet50V2"]
+    return ["EfficientNetB0", "EfficientNetB4", "MobileNetV2", "ResNet50V2"]
 
 def modelNameToModelFunction(modelName: str) -> Callable[[], Model]:
     """ Returns the model build function for the given model name. possible values are given by validModelNames(). """
-    if modelName == "EfficientNetB1":
+    if modelName == "EfficientNetB0":
+        return EfficientNetB0
+    elif modelName == "EfficientNetB1":
         return EfficientNetB1
     elif modelName == "EfficientNetB2":
         return EfficientNetB2

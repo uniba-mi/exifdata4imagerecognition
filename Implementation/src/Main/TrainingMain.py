@@ -1,5 +1,6 @@
 import sys
 import tensorflow
+import copy
 from DomainModel.TrainingDataFormat import ExifImageTrainingDataFormats
 from Models.Classifiers.MLP import MLPClassifier
 from Models.Classifiers.CNN import CNNClassifier, validModelNames, modelNameToModelFunction, standardModelNames
@@ -7,7 +8,7 @@ from Models.Classifiers.MixedModel import MixedModel
 from Models.Training.Generators.BatchGeneratorProvider import ExifImageProvider
 from Models.Training.Tasks.TrainingTask import TrainingTask
 from Models.Training.Tasks.PermutationTask import ExifPermutationTask
-from Tools.GUI.ArgsHelper import argForParam, paramSet
+from Tools.GUI.ArgsHelper import argForParam, paramSet, setParam
 
 # learning parameters
 PARAM_BATCH_SIZE = "-bs"
@@ -25,6 +26,7 @@ PARAM_TRAIN_SIZE = "-trainsize"
 PARAM_TEST_SIZE = "-testsize"
 PARAM_VAL_SIZE = "-valsize"
 PARAM_OPTIMIZATION_CRITERIA = "-optimize"
+PARAM_ALL = "-all" # flag if exif / image / mixded shall be learned all together
 
 # params only relevant for cnn training
 PARAM_IMAGE_ONLY = "-io"
@@ -62,6 +64,7 @@ def printUsage():
     print("\t \t{valsize}: amount of training data to use for validation, default = 0.1".format(valsize = PARAM_VAL_SIZE))
     print("\t \t{tformat}: data format of the training data, comma-separated for multiple zip-files [flickr, mirflickr], default = flickr".format(tformat = PARAM_TRAINING_DATA_FORMAT))
     print("\t \t{optimize}: optimization criteria [accuracy, loss], default = loss".format(optimize = PARAM_OPTIMIZATION_CRITERIA))
+    print("\t \t{all}: if set, all, exif, image and mixed models will be created".format(all = PARAM_ALL))
 
     print(" ")
     print("\tparameters for cnn training (optional when exif only is set):")
@@ -76,9 +79,7 @@ def printUsage():
     print("\t \t{permutations}: number of permutations used to assess the feature importance of exif tags, default = 50 (only when exif only)".format(permutations = PARAM_EXIF_PERMUTATIONS))
 
 # main entry point
-if __name__ == '__main__':
-    args = sys.argv[1:]
-
+def main(args):
     if len(args) == 0 or (len(args) == 1 and paramSet(args, PARAM_HELP)):
         printUsage()
     else:
@@ -217,3 +218,41 @@ if __name__ == '__main__':
             print(" ") 
             print(exception)
             print(" ")
+
+
+if __name__ == '__main__':
+    args = sys.argv[1:]
+    if paramSet(args, PARAM_ALL):
+        # we want to learn exif, image and mixed models with a default configuration
+
+        if not paramSet(args, PARAM_MODEL_NAME):
+            print("please set a name for the models to be created.")
+        else:
+            baseName = argForParam(args, PARAM_MODEL_NAME)
+
+        exifArgs = [arg for arg in args if not arg == PARAM_ALL] + [PARAM_EXIF_ONLY]
+        while PARAM_IMAGE_ONLY in exifArgs: exifArgs.remove(PARAM_IMAGE_ONLY)
+        setParam(exifArgs, PARAM_BATCH_SIZE, 128)
+        setParam(exifArgs, PARAM_EPOCHS, 300)
+        setParam(exifArgs, PARAM_EARLY_STOPPING_PATIENCE_EPOCHS, 50)
+        setParam(exifArgs, PARAM_EXIF_PERMUTATIONS, 50)
+        setParam(exifArgs, PARAM_MODEL_NAME, baseName + "_ExifOnly")
+
+        imageArgs = [arg for arg in args if not arg == PARAM_ALL] + [PARAM_IMAGE_ONLY]
+        while PARAM_EXIF_ONLY in imageArgs: imageArgs.remove(PARAM_EXIF_ONLY)
+        setParam(imageArgs, PARAM_EPOCHS, 115)
+        setParam(imageArgs, PARAM_EARLY_STOPPING_PATIENCE_EPOCHS, 5)
+        setParam(imageArgs, PARAM_FINE_TUNE_EPOCHS, 100)
+        setParam(imageArgs, PARAM_FINE_TUNE_LAYERS, 50)
+        setParam(imageArgs, PARAM_BATCH_SIZE, 32)
+        setParam(imageArgs, PARAM_MODEL_NAME, baseName + "_ImageOnly")
+
+        mixedArgs = copy.deepcopy(imageArgs)
+        while PARAM_IMAGE_ONLY in mixedArgs: mixedArgs.remove(PARAM_IMAGE_ONLY)
+        setParam(mixedArgs, PARAM_MODEL_NAME, baseName + "_Mixed")
+
+        main(exifArgs)
+        main(imageArgs)
+        main(mixedArgs)
+    else:
+        main(args)

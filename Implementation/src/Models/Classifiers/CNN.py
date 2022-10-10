@@ -9,7 +9,7 @@ from Models.Classifiers.Classifier import FineTuneClassifier, top_2_accuracy
 
 def validModelNames() -> List[str]:
     """ Returns a list of valid model names, the cnn model builder can build models for. """
-    return ["EfficientNetB1", "EfficientNetB2", "EfficientNetB3", "EfficientNetB4", "EfficientNetB5", "EfficientNetB6", "EfficientNetB7", "MobileNetV2", "ResNet152V2", "ResNet101V2", "ResNet50V2"]
+    return ["EfficientNetB0", "EfficientNetB1", "EfficientNetB2", "EfficientNetB3", "EfficientNetB4", "EfficientNetB5", "EfficientNetB6", "EfficientNetB7", "MobileNetV2", "ResNet152V2", "ResNet101V2", "ResNet50V2"]
 
 def standardModelNames() -> List[str]:
     """ Returns a list of standard model names, the cnn model builder can build models for. """

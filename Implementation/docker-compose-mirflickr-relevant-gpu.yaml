@@ -116,3 +116,45 @@ services:
         reservations:
           devices:
             - capabilities: [gpu] 
+  
+  # 🅰🅻🅻
+
+  train-all-mirflickr-relevant-150:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name MirFlickrRelevantAll150
+             -datapath resources/mirflickr_relevant_multilabel.zip 
+             -tformat mirflickr 
+             -cachepath resources/ 
+             -outpath models/ 
+             -size 150,150
+             -optimize loss
+             -all
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
+  
+  train-all-mirflickr-relevant-50:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name MirFlickrRelevantAll50
+             -datapath resources/mirflickr_relevant_multilabel.zip 
+             -tformat mirflickr 
+             -cachepath resources/ 
+             -outpath models/ 
+             -size 50,50
+             -optimize loss
+             -all
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 

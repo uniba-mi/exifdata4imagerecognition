@@ -185,3 +185,83 @@ services:
         reservations:
           devices:
             - capabilities: [gpu] 
+
+  # 🅰🅻🅻
+
+  train-all-moving-static-super-150:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name MovingStaticSuperAll150
+             -datapath resources/moving_static.zip 
+             -cachepath resources/ 
+             -outpath models/   
+             -super
+             -size 150,150
+             -optimize loss
+             -all
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
+  
+  train-all-moving-static-super-50:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name MovingStaticSuperAll50
+             -datapath resources/moving_static.zip 
+             -cachepath resources/ 
+             -outpath models/   
+             -super
+             -size 50,50
+             -optimize loss
+             -all
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
+  
+  train-all-moving-static-150:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name MovingStaticAll150
+             -datapath resources/moving_static.zip 
+             -cachepath resources/ 
+             -outpath models/ 
+             -size 150,150
+             -optimize loss
+             -all
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
+  
+  train-all-moving-static-50:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name MovingStaticAll50
+             -datapath resources/moving_static.zip 
+             -cachepath resources/ 
+             -outpath models/ 
+             -size 50,50
+             -optimize loss
+             -all
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 

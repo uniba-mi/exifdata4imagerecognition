@@ -186,3 +186,82 @@ services:
           devices:
             - capabilities: [gpu] 
   
+  # 🅰🅻🅻
+
+  train-all-sc-indoor-outdoor-super-150:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name IndoorOutdoorScSuper150
+             -datapath resources/indoor_outdoor_multilabel.zip 
+             -cachepath resources/ 
+             -outpath models/ 
+             -super 
+             -size 150,150
+             -optimize loss
+             -all
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
+  
+  train-all-sc-indoor-outdoor-super-50:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name IndoorOutdoorScSuper50
+             -datapath resources/indoor_outdoor_multilabel.zip 
+             -cachepath resources/ 
+             -outpath models/ 
+             -super 
+             -size 50,50
+             -optimize loss
+             -all
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
+  
+  train-all-sc-indoor-outdoor-150:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name IndoorOutdoorScAll150 
+             -datapath resources/indoor_outdoor_multilabel.zip 
+             -cachepath resources/ 
+             -outpath models/ 
+             -size 150,150
+             -optimize loss
+             -all
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 
+  
+  train-all-sc-indoor-outdoor-50:
+    image: ma-lederer-base
+    command: src/Main/TrainingMain.py 
+             -name IndoorOutdoorScAll50 
+             -datapath resources/indoor_outdoor_multilabel.zip 
+             -cachepath resources/ 
+             -outpath models/ 
+             -size 50,50
+             -optimize loss
+             -all
+    volumes:
+      - ma-lederer-training-data:/resources/
+      - ma-lederer-models:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu] 

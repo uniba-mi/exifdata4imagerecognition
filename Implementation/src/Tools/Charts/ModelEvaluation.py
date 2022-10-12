@@ -1,10 +1,12 @@
+from dataclasses import replace
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 import pandas as pd
-from Tools.Charts.Charts import createBarChart
+from Tools.Charts.Charts import createBarChart, createSingleBarChart, createSingleBarChartHorizontal
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 class ClassificationReport(object):
     classNames: List
@@ -344,7 +346,8 @@ class ModelEvaluation(object):
                                                 mixed: bool = False,
                                                 figSize: Tuple = (14.5, 8), 
                                                 barWidth: float = 0.88,
-                                                labelOffset: float = 0.014):
+                                                labelOffset: float = 0.014,
+                                                savePath = None):
         
         highRes = self.getClassificationReport(super = super, 
                                                metric = metric, 
@@ -378,6 +381,7 @@ class ModelEvaluation(object):
             title = "Image-Only " + metric.capitalize() + (" (Super)" if super else ""),
             yLabel = metric.capitalize(),
             figSize = figSize,
+            savePath = savePath,
             barWidth = barWidth,
             labelOffset = labelOffset)
     
@@ -386,10 +390,11 @@ class ModelEvaluation(object):
                                                     highResolution: bool = False, 
                                                     metric: str = "f1-score", 
                                                     customClasses = None, 
-                                                    grid: bool = False,
+                                                    grid: bool = True,
                                                     figSize: Tuple = (14.5, 8), 
                                                     barWidth: float = 0.88,
-                                                    labelOffset: float = 0.014):
+                                                    labelOffset: float = 0.014,
+                                                    savePath = None):
 
         cf = self.getClassificationReport(super = super, 
                                           metric = metric, 
@@ -412,16 +417,18 @@ class ModelEvaluation(object):
             yLabel = metric.capitalize(),
             figSize = figSize,
             barWidth = barWidth,
+            savePath = savePath,
             grid = grid,
             labelOffset = labelOffset)
     
     def createMixedImageOnlyDelta(self, 
                                   super: bool = False, 
                                   metric: str = "f1-score", 
-                                  figSize: Tuple = (14.5, 8), 
-                                  barWidth: float = 0.88,
+                                  figSize: Tuple = (7, 5), 
+                                  barWidth: float = 0.80,
                                   legendPosition: str = "upper right",
-                                  labelOffset: float = 0.014):
+                                  labelOffset: float = 0.001,
+                                  savePath = None):
 
         cfHighRes = self.getClassificationReport(super = super, 
                                                  metric = metric, 
@@ -449,15 +456,17 @@ class ModelEvaluation(object):
             yLabel = metric.capitalize() + " Delta",
             figSize = figSize,
             barWidth = barWidth,
+            savePath = savePath,
             legendPosition = legendPosition,
             labelOffset = labelOffset)
     
     def createMixedImageExifComparison(self, 
                                   super: bool = False, 
                                   metric: str = "f1-score", 
-                                  figSize: Tuple = (14.5, 8), 
-                                  barWidth: float = 0.88,
-                                  labelOffset: float = 0.014):
+                                  figSize = (5.5, 5), 
+                                  barWidth: float = 0.6,
+                                  labelOffset: float = 0.025,
+                                  savePath = None):
         
         cfHighRes = self.getClassificationReport(super = super, 
                                                  metric = metric, 
@@ -485,10 +494,145 @@ class ModelEvaluation(object):
             title = "EXIF vs. Best Image Only vs. Best Mixed " + metric.capitalize() + (" (Super)" if super else ""),
             yLabel = metric.capitalize(),
             figSize = figSize,
+            savePath = savePath,
             barWidth = barWidth,
             grid = True,
             labelOffset = labelOffset)
+    
+    def createTrainingTimeMixedvsImageOnlyComparison(self, 
+                                                    super: bool = False,
+                                                    figSize: Tuple = (7, 5),
+                                                    barWidth: float = 0.9,
+                                                    savePath = None):
+        if super:
+            trainingTimeIO50 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                         self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                         self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                         self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_50_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
 
+            trainingTimeMixed50 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_50_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                            self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_50_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                            self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_50_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                            self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_50_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
+        
+            trainingTimeIO150 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                          self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                          self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                          self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
+
+            trainingTimeMixed150 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                             self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                             self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                             self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
+        else:
+            trainingTimeIO50 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                         self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                         self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                         self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
+
+            trainingTimeMixed50 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                            self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                            self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                            self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
+        
+            trainingTimeIO150 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                          self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                          self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                          self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
+
+            trainingTimeMixed150 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                             self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                             self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                             self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
+
+
+        if super:
+            print("super")
+        sum50IO = np.sum(trainingTimeIO50)
+        sum50Mixed = np.sum(trainingTimeMixed50)
+        print("sum:50 IO " + str(sum50IO))
+        print("sum:50 Mixed " + str(sum50Mixed))
+        print("total_dif:50 " + str(sum50Mixed - sum50IO))
+        print("frac:50 " + str(1 - (sum50Mixed / sum50IO)))
+        
+        sum150IO = np.sum(trainingTimeIO150)
+        sum150Mixed = np.sum(trainingTimeMixed150)
+        print("sum:150 IO " + str(sum150IO))
+        print("sum:150 Mixed " + str(sum150Mixed))
+        print("total_dif:150 " + str(sum150Mixed - sum150IO))
+        print("frac:150 " + str(1 - (sum150Mixed / sum150IO)))
+       
+        print("...")
+
+        createBarChart(
+            [[trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150]], 
+            [["Image-Only 50x50px", "Mixed 50x50px", "Image-Only 150x150px", "Mixed 150x150px"]], 
+            categoryLabels = ["MobileNetV2", "EfficientNetB0", "EfficientNetB4", "ResNet50V2"], 
+            showValues = False, 
+            title = "Super" if super else "",
+            yLabel = "Training Time in Seconds",
+            figSize = figSize,
+            savePath = savePath,
+            barWidth = barWidth,
+            grid = True)
+        
+    def createModelParameterCountComparision(self, figSize: Tuple = (12.5, 5), barWidth: float = 0.7, savePath = None):
+        params = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_EXIF_ONLY][EvaluationFiles.MODEL_PARAMS],
+                           self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_MOBILENET_V2][EvaluationFiles.MODEL_PARAMS], 
+                           self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B0][EvaluationFiles.MODEL_PARAMS], 
+                           self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B4][EvaluationFiles.MODEL_PARAMS],
+                           self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_RESNET_50V2][EvaluationFiles.MODEL_PARAMS],
+                           self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_MOBILENET_V2][EvaluationFiles.MODEL_PARAMS],
+                           self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B0][EvaluationFiles.MODEL_PARAMS],
+                           self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B4][EvaluationFiles.MODEL_PARAMS],
+                           self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_RESNET_50V2][EvaluationFiles.MODEL_PARAMS]])
+        scale_y = 1e7
+        labelFormatter = ticker.FuncFormatter(lambda x, pos: '{0:g}M'.format(x/scale_y))
+        createSingleBarChart(params,
+                             seriesLabels = [],
+                             categoryLabels = ["EXIF MLP", 
+                                               "MobileNetV2\nImage-Only", 
+                                               "EfficientNetB0\nImage-Only", 
+                                               "EfficientNetB4\nImage-Only", 
+                                               "ResNet50V2\nImage-Only",
+                                               "MobileNetV2\nMixed", 
+                                               "EfficientNetB0\nMixed", 
+                                               "EfficientNetB4\nMixed", 
+                                               "ResNet50V2\nMixed"], 
+                             figSize = figSize,
+                             barWidth = barWidth,
+                             labelOffset = -500000,
+                             showValues = True,
+                             yLimit = 2.5e7,
+                             savePath = savePath,
+                             yLabel = "Model Parameter Count",
+                             yLabelFormatter = labelFormatter,
+                             grid = True)
+        
+    def createEXIFFeatureImportanceChart(self, super: bool = False, figSize: Tuple = (8, 5), barHeight: float = 0.7, savePath = None):
+        
+        if super:
+            featureImportanceDf = self.evaluationTargetFiles[EvaluationTarget.SUPER_EXIF_ONLY][EvaluationFiles.VALIDATION_FEATURE_IMPORTANCE]
+        else:
+            featureImportanceDf = self.evaluationTargetFiles[EvaluationTarget.SUB_EXIF_ONLY][EvaluationFiles.VALIDATION_FEATURE_IMPORTANCE]
+
+        featureImportanceDf = featureImportanceDf.reindex(sorted(featureImportanceDf.columns), axis=1)
+        features = featureImportanceDf.columns.to_numpy()
+        featureImportances = featureImportanceDf.iloc[0].to_numpy()
+
+        createSingleBarChartHorizontal(featureImportances,
+                                       seriesLabels = [],
+                                       categoryLabels = features, 
+                                       figSize = figSize,
+                                       barHeight = barHeight,
+                                       showValues = True,
+                                       sc = True,
+                                       valueFormat = "{:.3f}",
+                                       title = "Average F1-Score Drop on 50 Feature Permutations" + (" (Super)" if super else ""),
+                                       labelPrefix = "-",
+                                       xLimit = 0.15,
+                                       savePath = savePath,
+                                       grid = False)
 
 if __name__ == '__main__':
     modelEvaluation = ModelEvaluation(directoryPath = "/Users/ralflederer/Desktop/IndoorOutdoorSc")
@@ -498,14 +642,14 @@ if __name__ == '__main__':
                                                             customClasses = ["micro avg"], 
                                                             mixed = True) """
     
-     # plot for mixed model vs image model performance - super
+    # plot for mixed model vs image model performance - super
     modelEvaluation.createMixedImageResolutionComparisonBarChart(super = True, 
                                                                  metric = "f1-score", 
                                                                  highResolution = False,
                                                                  barWidth = 0.7,
                                                                  figSize=(6, 5),
-                                                                 grid = True,
-                                                                 labelOffset = 0.025)
+                                                                 labelOffset = 0.025,
+                                                                 savePath = None)
     
     # plot for mixed model vs image model performance
     modelEvaluation.createMixedImageResolutionComparisonBarChart(super = False, 
@@ -513,36 +657,28 @@ if __name__ == '__main__':
                                                                  highResolution = False,
                                                                  barWidth = 0.8,
                                                                  figSize=(14, 7),
-                                                                 grid = True,
-                                                                 labelOffset = 0.016)
+                                                                 labelOffset = 0.016,
+                                                                 savePath = None)
 
-    # plot for delta (mixed image only) - super
-    modelEvaluation.createMixedImageOnlyDelta(super = True, 
-                                              metric = "f1-score", 
-                                              barWidth = 0.8,
-                                              figSize=(7, 5),
-                                              labelOffset = 0.001) 
-
-    # plot for delta (mixed, image only)
-    modelEvaluation.createMixedImageOnlyDelta(super = False, 
-                                              metric = "f1-score", 
-                                              barWidth = 0.8,
-                                              figSize=(7, 5),
-                                              labelOffset = 0.001)
-
-    # plot for exif vs. best image only vs  best mixed model - super
-    modelEvaluation.createMixedImageExifComparison(super = True, 
-                                                  metric = "f1-score", 
-                                                  barWidth = 0.6,
-                                                  labelOffset = 0.025,
-                                                  figSize = (5.5, 5))
+    # plot for delta (mixed image only)
+    modelEvaluation.createMixedImageOnlyDelta(super = True, savePath = None) 
+    modelEvaluation.createMixedImageOnlyDelta(super = False, savePath = None)
 
     # plot for exif vs. best image only vs  best mixed model
-    modelEvaluation.createMixedImageExifComparison(super = False, 
-                                                  metric = "f1-score", 
-                                                  barWidth = 0.6,
-                                                  labelOffset = 0.025,
-                                                  figSize = (5.5, 5))
+    modelEvaluation.createMixedImageExifComparison(super = True, savePath = None)
+    modelEvaluation.createMixedImageExifComparison(super = False, savePath = None)
+
+    # plot for training time mixed model vs image only
+    modelEvaluation.createTrainingTimeMixedvsImageOnlyComparison(super = True, savePath = None)
+    modelEvaluation.createTrainingTimeMixedvsImageOnlyComparison(super = False, savePath = None)
+
+    # plot for model parameter count comparison
+    modelEvaluation.createModelParameterCountComparision(savePath = None)
+
+    # plot for exif tag feature importance (exif-only)
+    modelEvaluation.createEXIFFeatureImportanceChart(super = True, savePath = None)
+    modelEvaluation.createEXIFFeatureImportanceChart(super = False, savePath = None)
+
     plt.show()
-          
     #savePath = "/Users/ralflederer/Desktop/test.png"
+    

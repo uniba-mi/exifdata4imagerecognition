@@ -1,9 +1,10 @@
+from cProfile import label
 from dataclasses import replace
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 import pandas as pd
-from Tools.Charts.Charts import createBarChart, createSingleBarChart, createSingleBarChartHorizontal
+from Tools.Charts.Charts import createBarChart, createSingleBarChart, createSingleBarChartHorizontal, createTrainingAccuracyLossChart
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -278,7 +279,8 @@ class ModelEvaluation(object):
                                 highResolution: bool = False, 
                                 metric: str = "f1-score",
                                 customClasses: List = None,
-                                reportType: EvaluationFiles = EvaluationFiles.VALIDATION_CLASSIFICATION_REPORT):
+                                reportType: EvaluationFiles = EvaluationFiles.VALIDATION_CLASSIFICATION_REPORT,
+                                returnPlain: bool = False):
         if not customClasses == None:
             classNames = customClasses
 
@@ -329,15 +331,15 @@ class ModelEvaluation(object):
         
         return ClassificationReport(
             classNames,
-            valReportExifOnly[classNames].loc[metric].to_numpy(),
-            valReportImageOnlyMobileNetV2[classNames].loc[metric].to_numpy(),
-            valReportImageOnlyEfficientNetB0[classNames].loc[metric].to_numpy(),
-            valReportImageOnlyEfficientNetB4[classNames].loc[metric].to_numpy(),
-            valReportImageOnlyResNet50V2[classNames].loc[metric].to_numpy(),
-            valReportMixedMobileNetV2[classNames].loc[metric].to_numpy(),
-            valReportMixedEfficientNetB0[classNames].loc[metric].to_numpy(),
-            valReportMixedEfficientNetB4[classNames].loc[metric].to_numpy(),
-            valReportMixedResNet50V2[classNames].loc[metric].to_numpy())
+            valReportExifOnly[classNames].loc[metric].to_numpy() if not returnPlain else valReportExifOnly,
+            valReportImageOnlyMobileNetV2[classNames].loc[metric].to_numpy() if not returnPlain else valReportImageOnlyMobileNetV2,
+            valReportImageOnlyEfficientNetB0[classNames].loc[metric].to_numpy() if not returnPlain else valReportImageOnlyEfficientNetB0,
+            valReportImageOnlyEfficientNetB4[classNames].loc[metric].to_numpy() if not returnPlain else valReportImageOnlyEfficientNetB4,
+            valReportImageOnlyResNet50V2[classNames].loc[metric].to_numpy() if not returnPlain else valReportImageOnlyResNet50V2,
+            valReportMixedMobileNetV2[classNames].loc[metric].to_numpy() if not returnPlain else valReportMixedMobileNetV2,
+            valReportMixedEfficientNetB0[classNames].loc[metric].to_numpy() if not returnPlain else valReportMixedEfficientNetB0,
+            valReportMixedEfficientNetB4[classNames].loc[metric].to_numpy() if not returnPlain else valReportMixedEfficientNetB4,
+            valReportMixedResNet50V2[classNames].loc[metric].to_numpy() if not returnPlain else valReportMixedResNet50V2)
     
     def createImageResolutionComparisonBarChart(self, 
                                                 super: bool = False, 
@@ -602,6 +604,10 @@ class ModelEvaluation(object):
                              figSize = figSize,
                              barWidth = barWidth,
                              labelOffset = -500000,
+                             valueFormat = "{:.0f}",
+                             labelPostFix = "k",
+                             valueFormatFract = 1000,
+                             labelPrefix = "~",
                              showValues = True,
                              yLimit = 2.5e7,
                              savePath = savePath,
@@ -633,9 +639,74 @@ class ModelEvaluation(object):
                                        xLimit = 0.15,
                                        savePath = savePath,
                                        grid = False)
+    
+    def createTrainingComparisonPlot(self, 
+                                     super: bool = False, 
+                                     highResolution: bool = False, 
+                                     loss: bool = False,
+                                     savePath = None):
+
+        rp = self.getClassificationReport(super = super,  
+                                          customClasses = [], 
+                                          highResolution = highResolution,
+                                          reportType = EvaluationFiles.TRAINING_HISTORY,
+                                          returnPlain = True)
+        
+        # identify accuracy metric key
+        if loss:
+            metricIndexKey = "loss"
+        else:
+            for value in rp.metricExifOnly.index.to_numpy():
+                if "accuracy" in value and not "val" in value:
+                    metricIndexKey = value
+                    break
+        
+        pixels = " (150x150px)" if highResolution else " (50x50px)"
+        s = " (Super)" if super else ""
+        metric = "Accuracy" if not metricIndexKey == "loss" else "Loss"
+        
+        createTrainingAccuracyLossChart(dataFrames = [rp.metricExifOnly],
+                                        dataIndexKey = metricIndexKey, 
+                                        valDataIndexKey = "val_" + metricIndexKey,
+                                        labels = ["EXIF MLP"],
+                                        title = "Training " + metric + " at Epoch - EXIF-Only" + s,
+                                        figSize = (5.5, 3.0),
+                                        targetEpochPatience = 50,
+                                        savePath = savePath)
+
+        createTrainingAccuracyLossChart(dataFrames = [rp.metricImageOnlyMobileNetV2, 
+                                                      rp.metricImageOnlyEfficientNetB0,
+                                                      rp.metricImageOnlyEfficientNetB4,
+                                                      rp.metricImageOnlyResNet50V2],
+                                        dataIndexKey = metricIndexKey, 
+                                        valDataIndexKey = "val_" + metricIndexKey,
+                                        labels = ["MobileNetV2",
+                                                  "EfficientNetB0",
+                                                  "EfficientNetB4",
+                                                  "ResNet50V2"],
+                                        title = "Training " + metric + " at Epoch - Image-Only" + s + pixels,
+                                        targetEpochPatience = 5,
+                                        startFineTuningEpoch = 15,
+                                        savePath = savePath)
+        
+        createTrainingAccuracyLossChart(dataFrames = [rp.metricMixedMobileNetV2, 
+                                                      rp.metricMixedEfficientNetB0,
+                                                      rp.metricMixedEfficientNetB4,
+                                                      rp.metricMixedResNet50V2],
+                                        dataIndexKey = metricIndexKey, 
+                                        valDataIndexKey = "val_" + metricIndexKey,
+                                        labels = ["MobileNetV2",
+                                                  "EfficientNetB0",
+                                                  "EfficientNetB4",
+                                                  "ResNet50V2"],
+                                        title = "Training " + metric + " at Epoch - Mixed" + s + pixels,
+                                        targetEpochPatience = 5,
+                                        startFineTuningEpoch = 15,
+                                        savePath = savePath)
+        
 
 if __name__ == '__main__':
-    modelEvaluation = ModelEvaluation(directoryPath = "/Users/ralflederer/Desktop/IndoorOutdoorSc")
+    modelEvaluation = ModelEvaluation(directoryPath = "/Users/ralflederer/Desktop/IndoorOutdoorMi")
 
     """ modelEvaluation.createImageResolutionComparisonBarChart(super = False, 
                                                             metric = "f1-score", 
@@ -643,7 +714,7 @@ if __name__ == '__main__':
                                                             mixed = True) """
     
     # plot for mixed model vs image model performance - super
-    modelEvaluation.createMixedImageResolutionComparisonBarChart(super = True, 
+    """ modelEvaluation.createMixedImageResolutionComparisonBarChart(super = True, 
                                                                  metric = "f1-score", 
                                                                  highResolution = False,
                                                                  barWidth = 0.7,
@@ -678,6 +749,21 @@ if __name__ == '__main__':
     # plot for exif tag feature importance (exif-only)
     modelEvaluation.createEXIFFeatureImportanceChart(super = True, savePath = None)
     modelEvaluation.createEXIFFeatureImportanceChart(super = False, savePath = None)
+
+    # plots for training accuracy (exif only, image only, mixed) 
+    modelEvaluation.createTrainingComparisonPlot(super = True, highResolution = False)
+    modelEvaluation.createTrainingComparisonPlot(super = True, highResolution = True)
+    modelEvaluation.createTrainingComparisonPlot(super = False, highResolution = False)
+    modelEvaluation.createTrainingComparisonPlot(super = False, highResolution = True)
+
+     # plots for training loss (exif only, image only, mixed) 
+    modelEvaluation.createTrainingComparisonPlot(super = True, highResolution = False, loss = True)
+    modelEvaluation.createTrainingComparisonPlot(super = True, highResolution = True, loss = True)
+    modelEvaluation.createTrainingComparisonPlot(super = False, highResolution = False, loss = True)
+    modelEvaluation.createTrainingComparisonPlot(super = False, highResolution = True, loss = True) """
+
+
+    modelEvaluation.createModelParameterCountComparision(savePath = None)
 
     plt.show()
     #savePath = "/Users/ralflederer/Desktop/test.png"

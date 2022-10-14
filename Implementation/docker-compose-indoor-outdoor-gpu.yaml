@@ -4,9 +4,9 @@ version: "3.9"
 # 🆃🆁🅰🅸🅽🅸🅽🅶 - 🅶🅿🆄
 #  - note: the execution of this docker containers will fail on systems without GPU 
 #
-#  - 🆁🆄🅽: (individual task - detached mode)         docker-compose -f docker-compose-indoor-outdoor-sc-gpu.yaml up -d 'training-task-name'
-#  - 🆁🆄🅽: (individual task - attached mode)         docker-compose -f docker-compose-indoor-outdoor-sc-gpu.yaml up 'training-task-name'
-#  - 🆁🆄🅽: (all tasks - not recommended)             docker-compose -f docker-compose-indoor-outdoor-sc-gpu.yaml up
+#  - 🆁🆄🅽: (individual task - detached mode)         docker-compose -f docker-compose-indoor-outdoor-gpu.yaml up -d 'training-task-name'
+#  - 🆁🆄🅽: (individual task - attached mode)         docker-compose -f docker-compose-indoor-outdoor-gpu.yaml up 'training-task-name'
+#  - 🆁🆄🅽: (all tasks - not recommended)             docker-compose -f docker-compose-indoor-outdoor-gpu.yaml up
 #################################
 
 #################################
@@ -41,10 +41,10 @@ services:
 
   # 🅴🆇🅸🅵 🅾🅽🅻🆈
 
-  train-exif-only-sc-indoor-outdoor-super:
+  train-exif-only-indoor-outdoor-super:
     image: ma-lederer-base
     command: src/Main/TrainingMain.py 
-             -name IndoorOutdoorScSuperExifOnly
+             -name IndoorOutdoorSuperExifOnly
              -datapath resources/indoor_outdoor_multilabel.zip 
              -cachepath resources/ 
              -outpath models/ 
@@ -64,10 +64,10 @@ services:
           devices:
             - capabilities: [gpu] 
 
-  train-exif-only-sc-indoor-outdoor:
+  train-exif-only-indoor-outdoor:
     image: ma-lederer-base
     command: src/Main/TrainingMain.py 
-             -name IndoorOutdoorScExifOnly
+             -name IndoorOutdoorExifOnly
              -datapath resources/indoor_outdoor_multilabel.zip
              -cachepath resources/ 
              -outpath models/ 
@@ -88,10 +88,10 @@ services:
 
   # 🅸🅼🅰🅶🅴 🅾🅽🅻🆈
   
-  train-image-only-sc-indoor-outdoor-super:
+  train-image-only-indoor-outdoor-super:
     image: ma-lederer-base
     command: src/Main/TrainingMain.py 
-             -name IndoorOutdoorScSuperImageOnly
+             -name IndoorOutdoorSuperImageOnly
              -datapath resources/indoor_outdoor_multilabel.zip
              -cachepath resources/ 
              -outpath models/ 
@@ -113,10 +113,10 @@ services:
           devices:
             - capabilities: [gpu] 
     
-  train-image-only-sc-indoor-outdoor:
+  train-image-only-indoor-outdoor:
     image: ma-lederer-base
     command: src/Main/TrainingMain.py 
-             -name IndoorOutdoorScImageOnly
+             -name IndoorOutdoorImageOnly
              -datapath resources/indoor_outdoor_multilabel.zip 
              -cachepath resources/ 
              -outpath models/ 
@@ -139,10 +139,10 @@ services:
     
   # 🅼🅸🆇🅴🅳 🅼🅾🅳🅴🅻
   
-  train-mixed-sc-indoor-outdoor-super:
+  train-mixed-indoor-outdoor-super:
     image: ma-lederer-base
     command: src/Main/TrainingMain.py 
-             -name IndoorOutdoorScSuperMixed
+             -name IndoorOutdoorSuperMixed
              -datapath resources/indoor_outdoor_multilabel.zip 
              -cachepath resources/ 
              -outpath models/ 
@@ -163,10 +163,10 @@ services:
           devices:
             - capabilities: [gpu] 
   
-  train-mixed-sc-indoor-outdoor:
+  train-mixed-indoor-outdoor:
     image: ma-lederer-base
     command: src/Main/TrainingMain.py 
-             -name IndoorOutdoorScMixed
+             -name IndoorOutdoorMixed
              -datapath resources/indoor_outdoor_multilabel.zip 
              -cachepath resources/ 
              -outpath models/ 
@@ -188,10 +188,10 @@ services:
   
   # 🅰🅻🅻
 
-  train-all-sc-indoor-outdoor-super-150:
+  train-all-indoor-outdoor-super-150:
     image: ma-lederer-base
     command: src/Main/TrainingMain.py 
-             -name IndoorOutdoorScSuper150
+             -name IndoorOutdoorSuper150
              -datapath resources/indoor_outdoor_multilabel.zip 
              -cachepath resources/ 
              -outpath models/ 
@@ -208,10 +208,10 @@ services:
           devices:
             - capabilities: [gpu] 
   
-  train-all-sc-indoor-outdoor-super-50:
+  train-all-indoor-outdoor-super-50:
     image: ma-lederer-base
     command: src/Main/TrainingMain.py 
-             -name IndoorOutdoorScSuper50
+             -name IndoorOutdoorSuper50
              -datapath resources/indoor_outdoor_multilabel.zip 
              -cachepath resources/ 
              -outpath models/ 
@@ -228,10 +228,10 @@ services:
           devices:
             - capabilities: [gpu] 
   
-  train-all-sc-indoor-outdoor-150:
+  train-all-indoor-outdoor-150:
     image: ma-lederer-base
     command: src/Main/TrainingMain.py 
-             -name IndoorOutdoorScAll150 
+             -name IndoorOutdoorAll150 
              -datapath resources/indoor_outdoor_multilabel.zip 
              -cachepath resources/ 
              -outpath models/ 
@@ -247,10 +247,10 @@ services:
           devices:
             - capabilities: [gpu] 
   
-  train-all-sc-indoor-outdoor-50:
+  train-all-indoor-outdoor-50:
     image: ma-lederer-base
     command: src/Main/TrainingMain.py 
-             -name IndoorOutdoorScAll50 
+             -name IndoorOutdoorAll50 
              -datapath resources/indoor_outdoor_multilabel.zip 
              -cachepath resources/ 
              -outpath models/ 

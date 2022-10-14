@@ -2,6 +2,11 @@ from pathlib import Path
 from typing import List, Tuple
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import pandas as pd
+import math
+import numpy as np
+from matplotlib.ticker import FormatStrFormatter
+from matplotlib.lines import Line2D
 
 def createBarChart(data: List, 
                    seriesLabels: List[str], 
@@ -94,9 +99,11 @@ def createSingleBarChart(data: List,
                          barWidth: float = 0.9,
                          labelOffset: float = 0.005,
                          yLabelFormatter: ticker.FuncFormatter = None,
+                         valueFormatFract: int = 1,
                          yLimit: float = None,
                          sc: bool = False,
                          labelPrefix: str = "",
+                         labelPostFix: str = "",
                          colors = ["skyblue", "darkseagreen", "goldenrod", "coral", 
                                    "steelblue", "darkolivegreen", "darkgoldenrod", "orangered"],
                          savePath: Path = None):
@@ -141,7 +148,7 @@ def createSingleBarChart(data: List,
                 w, h = bar.get_width(), bar.get_height()
                 plt.text(bar.get_x() + w / 2, 
                          bar.get_y() + h - labelOffset,
-                         labelPrefix + valueFormat.format(h), 
+                         labelPrefix + valueFormat.format(h / valueFormatFract) + labelPostFix, 
                          ha = "center", 
                          va = "center",
                          fontsize = 9)
@@ -212,3 +219,100 @@ def createSingleBarChartHorizontal(data: List,
     if savePath != None:
         plt.savefig(savePath, dpi = 300)
         
+def createTrainingAccuracyLossChart(dataFrames: List[pd.DataFrame], 
+                                    dataIndexKey: str, 
+                                    valDataIndexKey: str, 
+                                    figSize: Tuple = (9, 5.5), 
+                                    labels: List = [], 
+                                    title: str = "",
+                                    targetEpochPatience: int = 0,
+                                    startFineTuningEpoch: int = 0,
+                                    savePath: Path = None):
+
+    fig, axs = plt.subplots(math.ceil(len(dataFrames) / 2.0), 2 if len(dataFrames) > 1 else 1, figsize = figSize)
+    row = 0
+    index = 0
+    count = 0
+
+    if not isinstance(axs, np.ndarray):
+        axs = np.array([[axs]])
+
+    for df in dataFrames:
+        metric = df.loc[[dataIndexKey]]
+        valMetric = df.loc[[valDataIndexKey]]
+        x = metric.columns.to_numpy()
+        y = metric.values[0]
+        xVal = valMetric.columns.to_numpy()
+        yVal = valMetric.values[0]
+
+        ax = axs[row, index] if isinstance(axs, np.ndarray) else axs
+        ax.plot(x, y, color = "deepskyblue")
+        ax.plot(xVal, yVal, color = "darkseagreen")
+        ax.set_title(labels[count])
+
+        start, end = ax.get_ylim()
+        end = 1.0
+
+        if dataIndexKey == "loss":
+            start = 0
+            end = max(yVal) + 0.35
+
+        ax.set_ylim([start, end])
+        ax.yaxis.set_ticks(np.arange(start, end, (end - start) / 8.0))
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+
+        start, end = ax.get_xlim()
+        ax.xaxis.set_ticks(np.arange(0, end, math.ceil(max(x) / 10.0)))
+        ax.tick_params(axis = "both", which = "major", labelsize = 8)
+
+        if targetEpochPatience > 0:
+            ax.axvline(x = max(x) - targetEpochPatience, color = "black")
+        
+        if startFineTuningEpoch > 0:
+            ax.axvline(x = startFineTuningEpoch, color = "orange")
+
+        count += 1
+        if index < 1:
+            index += 1
+        else:
+            index = 0
+            row += 1
+
+    legendLines = [Line2D([0], [0], color = "deepskyblue", lw = 2),
+                   Line2D([0], [0], color = "darkseagreen", lw = 2),
+                   Line2D([0], [0], color = "black", lw = 2),
+                   Line2D([0], [0], color = "orange", lw = 2)]
+    
+    legendLabels = ["training set " + (dataIndexKey if dataIndexKey == "loss" else "accuracy"), 
+                    "test set " + (dataIndexKey if dataIndexKey == "loss" else "accuracy"), 
+                    "target epoch",
+                    "start fine-tuning"]
+    
+    if count == 1:
+        legendLines.pop()
+        legendLabels.pop()
+    
+    fig.legend(legendLines, 
+               legendLabels,
+               loc = "lower left", 
+               fontsize = "medium", 
+               bbox_to_anchor = (0.06, 0.84 if count > 1 else 0.75), ncol = 2)
+
+    fig.suptitle(title)
+    fig.tight_layout()
+    make_space_above(axs, topmargin = 1.3)  
+
+    if savePath != None:
+        plt.savefig(savePath, dpi = 300)
+
+def make_space_above(axes, topmargin = 1):
+    # taken from: https://stackoverflow.com/questions/25068384/bbox-to-anchor-and-loc-in-matplotlib
+    """ increase figure size to make topmargin (in inches) space for 
+        titles, without changing the axes sizes """
+    fig = axes.flatten()[0].figure
+    s = fig.subplotpars
+    w, h = fig.get_size_inches()
+
+    figh = h - (1-s.top)*h  + topmargin
+    fig.subplots_adjust(bottom=s.bottom*h/figh, top=1-topmargin/figh)
+    fig.set_figheight(figh)

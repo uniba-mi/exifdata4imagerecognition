@@ -1,13 +1,12 @@
-from cProfile import label
-from dataclasses import replace
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 import pandas as pd
-from Tools.Charts.Charts import createBarChart, createSingleBarChart, createSingleBarChartHorizontal, createTrainingAccuracyLossChart
+from Tools.Charts.Charts import createBarChart, createSingleBarChart, createSingleBarChartHorizontal, createTrainingAccuracyLossChart, createImageOverviewChart
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+from DomainModel.ExifData import ExifTag
 
 class ClassificationReport(object):
     classNames: List
@@ -68,6 +67,7 @@ class EvaluationFiles(Enum):
     VALIDATION_MISSCLASSIFIED_IDS = "validation_misclassified_ids.csv"
     VALIDATION_FEATURE_IMPORTANCE = "validation_feature_importance.csv"
     MODEL_PARAMS = "model_parameters.txt"
+    VALIDATION_LABELS = "validation_labels.csv"
 
     def read(self, path: Path) -> Any:
         if self == EvaluationFiles.CLASS_NAMES:
@@ -84,6 +84,8 @@ class EvaluationFiles(Enum):
             return [elem[0] for elem in pd.read_csv(path, header = None).to_numpy().tolist()]
         elif self == EvaluationFiles.TRAINING_HISTORY:
             return pd.read_csv(path, index_col = 0).transpose()
+        elif self == EvaluationFiles.VALIDATION_LABELS:
+            return pd.read_csv(path)
         elif self == EvaluationFiles.MODEL_PARAMS:
             with open(path, "r") as modelParamsFile:
                 lines = modelParamsFile.read().split("\n")
@@ -155,42 +157,52 @@ class ModelEvaluation(object):
     evaluation files created during training and enables the generation of charts. """
 
     basePath: Path
+    datasetPath: Path
     evaluationTargetFiles: Dict
 
-    def __init__(self, directoryPath: str):
+    def __init__(self, directoryPath: str, datasetDirectoryPath: str = None):
         path = Path(directoryPath).resolve()
         if not path.exists() or not path.is_dir():
             raise ValueError("There is no directory at the given base path location.")
         self.basePath = path
 
+        if datasetDirectoryPath != None:
+            self.datasetPath = Path(datasetDirectoryPath)
+            if not self.datasetPath.exists() or not self.datasetPath.is_dir():
+                raise ValueError("There is no dataset directory at the given dataset directory location.")
+
         self.evaluationTargetFiles = dict()
         for target in EvaluationTarget:
             self.evaluationTargetFiles[target] = self.createEvaluationFilePaths(target = target)
 
-    def gainedImageIds(self, highResolution: bool = True):
+    def imageIds(self, super: bool = True, highResolution: bool = True):
         """ Returns image IDs of images correctly classified by mixed models but incorrectly by image only classifiers. """
         if highResolution:
-            idsImageOnlyMobileNetV2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_MOBILENET_V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsImageOnlyEfficientNetB0 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B0][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsImageOnlyEfficientNetB4 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B4][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsImageOnlyResNet50V2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_RESNET_50V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedMobileNetV2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_MOBILENET_V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedEfficientNetB0 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B0][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedEfficientNetB4 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B4][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedResNet50V2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_RESNET_50V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsImageOnlyMobileNetV2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_MOBILENET_V2 if super else EvaluationTarget.SUB_IMAGEONLY_150_MOBILENET_V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsImageOnlyEfficientNetB0 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B0 if super else EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B0][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsImageOnlyEfficientNetB4 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B4 if super else EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B4][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsImageOnlyResNet50V2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_RESNET_50V2 if super else EvaluationTarget.SUB_IMAGEONLY_150_RESNET_50V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsMixedMobileNetV2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_MOBILENET_V2 if super else EvaluationTarget.SUB_MIXED_150_MOBILENET_V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsMixedEfficientNetB0 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B0 if super else EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B0][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsMixedEfficientNetB4 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B4 if super else EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B4][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsMixedResNet50V2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_RESNET_50V2 if super else EvaluationTarget.SUB_MIXED_150_RESNET_50V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
         else:
-            idsImageOnlyMobileNetV2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsImageOnlyEfficientNetB0 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B0][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsImageOnlyEfficientNetB4 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B4][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsImageOnlyResNet50V2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_RESNET_50V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedMobileNetV2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_MOBILENET_V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedEfficientNetB0 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B0][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedEfficientNetB4 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B4][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedResNet50V2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_RESNET_50V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsImageOnlyMobileNetV2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_MOBILENET_V2 if super else EvaluationTarget.SUB_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsImageOnlyEfficientNetB0 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B0 if super else EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B0][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsImageOnlyEfficientNetB4 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B4 if super else EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B4][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsImageOnlyResNet50V2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_RESNET_50V2 if super else EvaluationTarget.SUB_IMAGEONLY_50_RESNET_50V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsMixedMobileNetV2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_MOBILENET_V2 if super else EvaluationTarget.SUB_MIXED_50_MOBILENET_V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsMixedEfficientNetB0 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B0 if super else EvaluationTarget.SUB_MIXED_50_EFFICIENTNET_B0][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsMixedEfficientNetB4 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B4 if super else EvaluationTarget.SUB_MIXED_50_EFFICIENTNET_B4][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsMixedResNet50V2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_RESNET_50V2 if super else EvaluationTarget.SUB_MIXED_50_RESNET_50V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
 
-        imageIdsImageOnly = set(idsImageOnlyMobileNetV2 + idsImageOnlyEfficientNetB0 + idsImageOnlyEfficientNetB4 + idsImageOnlyResNet50V2)
-        imageIdsMixed = set(idsMixedMobileNetV2 + idsMixedEfficientNetB0 + idsMixedEfficientNetB4 + idsMixedResNet50V2)
-        return imageIdsImageOnly - imageIdsMixed
+        imageIdsImageOnly = set(idsImageOnlyMobileNetV2).intersection(set(idsImageOnlyEfficientNetB0)).intersection(set(idsImageOnlyEfficientNetB4)).intersection(set(idsImageOnlyResNet50V2))
+        imageIdsMixed = set(idsMixedMobileNetV2).intersection(set(idsMixedEfficientNetB0)).intersection(set(idsMixedEfficientNetB4)).intersection(set(idsMixedResNet50V2))
+
+        # return 
+        # - the image ids correctly classified by the mixed model but wrongly classified by image-only
+        # - the union of image-only and mixed image ids (wrongly classified by both)
+        return imageIdsImageOnly - imageIdsMixed, imageIdsMixed.union(imageIdsImageOnly)
 
     def createEvaluationFilePaths(self, target: EvaluationTarget) -> Dict:
         """ Parses the evaluation files for a specific evaluation target. """
@@ -274,6 +286,43 @@ class ModelEvaluation(object):
                 raise ValueError("Missing evaluation file: " + evaluationFile.value + " for target " + target.name)
         return evaluationFilePaths
     
+    def exifTagDistribution(self):
+        tagList = [file for file in self.basePath.glob('*tag_distribution.csv') if file.is_file()]
+        if len(tagList) == 0:
+            raise ValueError("tag distribution file not found in base directory")
+        
+        tagDistribution = pd.read_csv(tagList[0], header = None, index_col = 0).transpose()
+
+        exifTags = []
+        for tag in ExifTag:
+            exifTags.append(tag.name)
+        
+        return tagDistribution[tagDistribution.columns.intersection(exifTags)]
+
+    def individualClassSupport(self):
+        valClassificationReport = self.getClassificationReport(metric = "support", reportType = EvaluationFiles.VALIDATION_CLASSIFICATION_REPORT)
+        testClassificationReport = self.getClassificationReport(metric = "support", reportType = EvaluationFiles.TEST_CLASSIFICATION_REPORT)
+        trainingClassificationReport = self.getClassificationReport(metric = "support", reportType = EvaluationFiles.TRAINING_CLASSIFICATION_REPORT)
+
+        support = np.add(valClassificationReport.metricExifOnly, testClassificationReport.metricExifOnly)
+        support = np.add(support, trainingClassificationReport.metricExifOnly)
+        support = list(zip(support, valClassificationReport.classNames))
+        return support
+    
+    def trainingSetImageClassExamples(self, index: int = 0):
+        if self.datasetPath == None:
+            raise ValueError("no dataset path given for image examples")
+        
+        subDirs = [directory for directory in self.datasetPath.glob("*") if directory.is_dir()]
+        images = []
+        for subDir in subDirs:
+            dataDirs = [directory for directory in subDir.glob("*") if directory.is_dir()]
+            for dataDir in dataDirs:
+                imagePath = dataDir.joinpath("images")
+                imagePaths = [image for image in imagePath.glob("*") if image.is_file()]
+                images.append((dataDir.stem, imagePaths[index]))  
+        return images
+
     def getClassificationReport(self, 
                                 super: bool = False, 
                                 highResolution: bool = False, 
@@ -578,7 +627,7 @@ class ModelEvaluation(object):
             barWidth = barWidth,
             grid = True)
         
-    def createModelParameterCountComparision(self, figSize: Tuple = (12.5, 5), barWidth: float = 0.7, savePath = None):
+    def createModelParameterCountComparison(self, figSize: Tuple = (12.5, 5), barWidth: float = 0.7, savePath = None):
         params = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_EXIF_ONLY][EvaluationFiles.MODEL_PARAMS],
                            self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_MOBILENET_V2][EvaluationFiles.MODEL_PARAMS], 
                            self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B0][EvaluationFiles.MODEL_PARAMS], 
@@ -616,13 +665,12 @@ class ModelEvaluation(object):
                              grid = True)
         
     def createEXIFFeatureImportanceChart(self, super: bool = False, figSize: Tuple = (8, 5), barHeight: float = 0.7, savePath = None):
-        
         if super:
             featureImportanceDf = self.evaluationTargetFiles[EvaluationTarget.SUPER_EXIF_ONLY][EvaluationFiles.VALIDATION_FEATURE_IMPORTANCE]
         else:
             featureImportanceDf = self.evaluationTargetFiles[EvaluationTarget.SUB_EXIF_ONLY][EvaluationFiles.VALIDATION_FEATURE_IMPORTANCE]
 
-        featureImportanceDf = featureImportanceDf.reindex(sorted(featureImportanceDf.columns), axis=1)
+        featureImportanceDf = featureImportanceDf.reindex(sorted(featureImportanceDf.columns), axis = 1)
         features = featureImportanceDf.columns.to_numpy()
         featureImportances = featureImportanceDf.iloc[0].to_numpy()
 
@@ -704,17 +752,85 @@ class ModelEvaluation(object):
                                         startFineTuningEpoch = 15,
                                         savePath = savePath)
         
+    def createExifTagDistributionChart(self, figSize: Tuple = (8, 5), barHeight: float = 0.7, savePath = None):
+        distribution = self.exifTagDistribution()
+        tags = distribution.columns.to_numpy()
+        tagsCount = distribution.iloc[0].to_numpy()
+
+        # convert to percentage
+        tagsCount = (tagsCount / np.max(tagsCount)) * 100
+
+        createSingleBarChartHorizontal(tagsCount,
+                                       seriesLabels = [],
+                                       categoryLabels = tags, 
+                                       figSize = figSize,
+                                       barHeight = barHeight,
+                                       showValues = True,
+                                       sc = True,
+                                       valueFormat = "{:.0f}",
+                                       title = self.basePath.stem +  " - Dataset EXIF-Tag Distribution",
+                                       xLimit = 105,
+                                       labelPostFix = "%",
+                                       labelOffset = 4,
+                                       savePath = savePath,
+                                       grid = False)
+    
+    def createClassesImagesOverviewChart(self, index: int = 0, figSize: Tuple = (9, 6), imagesPerRow: int = 6, savePath = None):
+        createImageOverviewChart(self.trainingSetImageClassExamples(index = index), 
+                                figSize = figSize, 
+                                imagesPerRow = imagesPerRow,
+                                savePath = savePath)
+    
+    def createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(self, 
+                                                                        super: bool = True,
+                                                                        highResolution: bool = True, 
+                                                                        figSize: Tuple = (7, 4),
+                                                                        imageIndex: List = None,
+                                                                        savePath = None):
+        if self.datasetPath == None:
+            raise ValueError("no dataset path given for image examples")
+        
+        gainedIds, _ = modelEvaluation.imageIds(highResolution = highResolution, super = super)
+
+        if super:
+            labels = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_MOBILENET_V2 if highResolution else EvaluationTarget.SUPER_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.VALIDATION_LABELS]
+        else:
+            labels = self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_MOBILENET_V2 if highResolution else EvaluationTarget.SUB_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.VALIDATION_LABELS]
+
+        images = []
+        imagePaths = [image for image in self.datasetPath.glob("**/*.jpg") if image.is_file()]
+        gainedIds = list(gainedIds)
+
+        if imageIndex == None:
+            imageIndex = range(0, min(len(gainedIds), 20))
+
+        for index in imageIndex:
+            id = gainedIds[index]
+            imagePath = [image for image in imagePaths if str(id) in image.stem][0]
+            loc = labels[labels["id"] == id]
+            trueLabels = loc["true_name"].item().replace("[", "").replace("]", "").replace("'", "")
+            predictedLabels = loc["predicted_name"].item().replace("[", "").replace("]", "").replace("'", "")
+            images.append(("true: " + trueLabels + "\npredicted: " + predictedLabels, imagePath))
+            
+        createImageOverviewChart(images, 
+                                figSize = figSize, 
+                                imagesPerRow = 5,
+                                savePath = savePath)
+            
 
 if __name__ == '__main__':
-    modelEvaluation = ModelEvaluation(directoryPath = "/Users/ralflederer/Desktop/IndoorOutdoorMi")
+    modelEvaluation = ModelEvaluation(directoryPath = "/Users/ralflederer/Desktop/MovingStatic",
+                                      datasetDirectoryPath = "/Users/ralflederer/Desktop/res/moving_static")
+
+    savePath = "/Users/ralflederer/Desktop/test.png"
 
     """ modelEvaluation.createImageResolutionComparisonBarChart(super = False, 
                                                             metric = "f1-score", 
                                                             customClasses = ["micro avg"], 
                                                             mixed = True) """
     
-    # plot for mixed model vs image model performance - super
-    """ modelEvaluation.createMixedImageResolutionComparisonBarChart(super = True, 
+    """  # plot for mixed model vs image model performance - super
+    modelEvaluation.createMixedImageResolutionComparisonBarChart(super = True, 
                                                                  metric = "f1-score", 
                                                                  highResolution = False,
                                                                  barWidth = 0.7,
@@ -727,7 +843,7 @@ if __name__ == '__main__':
                                                                  metric = "f1-score", 
                                                                  highResolution = False,
                                                                  barWidth = 0.8,
-                                                                 figSize=(14, 7),
+                                                                 figSize=(18, 7), #28,9
                                                                  labelOffset = 0.016,
                                                                  savePath = None)
 
@@ -744,7 +860,7 @@ if __name__ == '__main__':
     modelEvaluation.createTrainingTimeMixedvsImageOnlyComparison(super = False, savePath = None)
 
     # plot for model parameter count comparison
-    modelEvaluation.createModelParameterCountComparision(savePath = None)
+    modelEvaluation.createModelParameterCountComparison(savePath = None)
 
     # plot for exif tag feature importance (exif-only)
     modelEvaluation.createEXIFFeatureImportanceChart(super = True, savePath = None)
@@ -760,11 +876,23 @@ if __name__ == '__main__':
     modelEvaluation.createTrainingComparisonPlot(super = True, highResolution = False, loss = True)
     modelEvaluation.createTrainingComparisonPlot(super = True, highResolution = True, loss = True)
     modelEvaluation.createTrainingComparisonPlot(super = False, highResolution = False, loss = True)
-    modelEvaluation.createTrainingComparisonPlot(super = False, highResolution = True, loss = True) """
-
-
-    modelEvaluation.createModelParameterCountComparision(savePath = None)
-
-    plt.show()
-    #savePath = "/Users/ralflederer/Desktop/test.png"
+    modelEvaluation.createTrainingComparisonPlot(super = False, highResolution = True, loss = True) 
     
+    # plot for exif tag distribution in the data set 
+    modelEvaluation.createExifTagDistributionChart(savePath = None) 
+    
+   
+    """
+    # dataset-individual plots
+
+    # indoor-outdoor
+    #modelEvaluation.createClassesImagesOverviewChart(savePath = None)
+    #modelEvaluation.createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [7, 1, 2, 5, 11, 30, 38, 36, 25, 33], highResolution = True, savePath = None)
+    #modelEvaluation.createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [5, 6, 9, 12, 14, 34, 46, 53, 59, 21], highResolution = False, savePath = None)
+
+    # moving-static
+    #modelEvaluation.createClassesImagesOverviewChart(index = 63, imagesPerRow = 5, figSize = (7, 3.5), savePath = savePath)
+    #modelEvaluation.createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [1, 2, 5, 7, 9, 14, 17, 22, 24, 29], highResolution = True, savePath = None)
+    #modelEvaluation.createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [2, 3, 51, 11, 13, 14, 28, 33, 34, 38], highResolution = False, savePath = None) 
+    
+    plt.show()

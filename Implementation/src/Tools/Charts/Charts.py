@@ -7,6 +7,7 @@ import math
 import numpy as np
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.lines import Line2D
+import matplotlib.image as mpimg
 
 def createBarChart(data: List, 
                    seriesLabels: List[str], 
@@ -84,7 +85,7 @@ def createBarChart(data: List,
     plt.tight_layout()
     
     if savePath != None:
-        plt.savefig(savePath, dpi = 300)
+        plt.savefig(savePath, dpi = 300, transparent = True)
     
 def createSingleBarChart(data: List, 
                          seriesLabels: List[str], 
@@ -155,7 +156,7 @@ def createSingleBarChart(data: List,
     plt.tight_layout()
             
     if savePath != None:
-        plt.savefig(savePath, dpi = 300)
+        plt.savefig(savePath, dpi = 300, transparent = True)
 
 
 def createSingleBarChartHorizontal(data: List,
@@ -171,6 +172,7 @@ def createSingleBarChartHorizontal(data: List,
                                    sc: bool = False,
                                    xLimit: float = None,
                                    labelPrefix: str = "",
+                                   labelPostFix: str = "",
                                    colors = ["skyblue", "darkseagreen", "goldenrod", "coral", 
                                               "steelblue", "darkolivegreen", "darkgoldenrod", "orangered"],
                                    savePath: Path = None):
@@ -209,7 +211,7 @@ def createSingleBarChartHorizontal(data: List,
                 if w > 0.0000:
                     plt.text(bar.get_x() + w + labelOffset, 
                             bar.get_y() + h / 2,
-                            labelPrefix + valueFormat.format(w), 
+                            labelPrefix + valueFormat.format(w) + labelPostFix, 
                             ha = "center", 
                             va = "center",
                             fontsize = 9)
@@ -217,7 +219,7 @@ def createSingleBarChartHorizontal(data: List,
     plt.tight_layout()
 
     if savePath != None:
-        plt.savefig(savePath, dpi = 300)
+        plt.savefig(savePath, dpi = 300, transparent = True)
         
 def createTrainingAccuracyLossChart(dataFrames: List[pd.DataFrame], 
                                     dataIndexKey: str, 
@@ -303,7 +305,7 @@ def createTrainingAccuracyLossChart(dataFrames: List[pd.DataFrame],
     make_space_above(axs, topmargin = 1.3)  
 
     if savePath != None:
-        plt.savefig(savePath, dpi = 300)
+        plt.savefig(savePath, dpi = 300, transparent = True)
 
 def make_space_above(axes, topmargin = 1):
     # taken from: https://stackoverflow.com/questions/25068384/bbox-to-anchor-and-loc-in-matplotlib
@@ -316,3 +318,19 @@ def make_space_above(axes, topmargin = 1):
     figh = h - (1-s.top)*h  + topmargin
     fig.subplots_adjust(bottom=s.bottom*h/figh, top=1-topmargin/figh)
     fig.set_figheight(figh)
+
+def createImageOverviewChart(images: List[Tuple], figSize: Tuple = (9, 6), imagesPerRow: int = 6, savePath: Path = None):
+    rows = math.ceil(len(images) / imagesPerRow)
+    fig = plt.figure(figsize = figSize)
+    for index, image in enumerate(images):
+        ax = plt.subplot(rows, imagesPerRow, index + 1)
+        imageRGB = mpimg.imread(image[1])
+        plt.imshow(imageRGB)
+        plt.title(image[0], fontsize = 10)
+        ax.axis("off")
+    
+    plt.axis("off")
+    fig.tight_layout()
+
+    if savePath != None:
+        plt.savefig(savePath, dpi = 300, transparent = True)

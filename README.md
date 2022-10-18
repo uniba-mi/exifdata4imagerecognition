@@ -282,6 +282,10 @@ The object/landscape dataset can be trained on super or on sub concepts. The cor
 - train-image-only-landscape-object
 - train-mixed-landscsape-object-super
 - train-mixed-landscsape-object
+- train-all-landscsape-object-super-150
+- train-all-landscsape-object-super-50
+- train-all-landscape-object-150
+- train-all-landscape-object-50
 
 In order to run a specific training task, the following command can be executed:
 

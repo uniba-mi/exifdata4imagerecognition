@@ -182,6 +182,7 @@ optional parameters:
 | -valsize | amount of training data to use for validation, default = 0.1 |
 | -tformat | data format of the training data [flickr, mirflickr], comma-separated for multiple zip-files, default = flickr |
 | -optimize | optimization criteria [accuracy, loss], default = loss |
+| -all | if set, all, exif, image and mixed models will be created using default learning parameters and the default<br />CNN architectures: EfficientNetB0, EfficientNetB4, MobileNetV2 and ResNet50V2 (see also: **[source file](/Implementation/src/Main/TrainingMain.py)**)  |
 
 required parameters for image only & mixed model training:
 | parameter  | description  |
@@ -189,7 +190,7 @@ required parameters for image only & mixed model training:
 | -size | image size to use (width/height), comma-separated |
 | -tuneepochs| number of fine-tune epochs to use for training (transfer-learning) |
 | -tunelayers | number of fine-tune layers of the model (transfer-learning) |
-| -basemodel | name of the cnn base-model architecture to use for transfer-learning<br />if not set, three models will be trained using **EfficientNetB4** & **MobileNetV2** & **ResNet50V2**<br />possible values: EfficientNetB1, EfficientNetB2, EfficientNetB3, EfficientNetB4, EfficientNetB5,<br />EfficientNetB6, EfficientNetB7, MobileNetV2, ResNet152V2, ResNet101V2, ResNet50V2 |
+| -basemodel | name of the cnn base-model architecture to use for transfer-learning<br />if not set, three models will be trained using **EfficientNetB4** & **MobileNetV2** & **ResNet50V2**<br />possible values: EfficientNetB0, EfficientNetB1, EfficientNetB2, EfficientNetB3, EfficientNetB4, EfficientNetB5,<br />EfficientNetB6, EfficientNetB7, MobileNetV2, ResNet152V2, ResNet101V2, ResNet50V2 |
 
 optional parameters for exif training (note: cannot be used when '-io' is set):
 | parameter  | description  |

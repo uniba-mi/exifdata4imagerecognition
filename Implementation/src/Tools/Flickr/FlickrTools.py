@@ -211,7 +211,7 @@ if __name__ == '__main__':
         destinationDirectoryPath = "/Users/ralflederer/Desktop/mirflickr_rearanged",
         relevantOnly = False)
 
-    """ indorClasses = ["indoor", "indoor,bathroom", "indoor,bedroom", "indoor,corridor", "indoor,kitchen", "indoor,office"]
+    indorClasses = ["indoor", "indoor,bathroom", "indoor,bedroom", "indoor,corridor", "indoor,kitchen", "indoor,office"]
     outdoorClasses = ["outdoor", "outdoor,beach", "outdoor,forest", "outdoor,mountain", "outdoor,river", "outdoor,urban"] 
 
     # write metadata files for old mi project to be able to re-crawl the data

@@ -158,10 +158,53 @@ def reArangeMIRFlickr25Dataset(annotationDirectoryPath: str,
         if len(imagePaths) < minImagesPerConcept:
             print("... removing concept because of to less images")
             shutil.rmtree(directory)
+    
+def shrinkDataset(imagesPerClass: int, directoryPath: str, destinationDirectoryPath: str):
+    """ Reduces the dataset at the given file path to contain only the given amount of images per training concept. """
+    datasetPath = Path(directoryPath)
+    destinationPath = Path(destinationDirectoryPath)
+    if datasetPath.exists and datasetPath.is_dir():
+        subDirs = [directory for directory in datasetPath.glob("*") if directory.is_dir()]
+        for superConceptDir in subDirs:
+            subConceptDirs = [directory for directory in superConceptDir.glob("*") if directory.is_dir()]
+            for dataDir in subConceptDirs:
+                print("copying images and exif data for concept: " + dataDir.stem)
+                destinationDirectory = destinationPath.joinpath(superConceptDir.stem).joinpath(dataDir.stem)
+                imageDirPath = dataDir.joinpath("images")
+                exifDirPath = dataDir.joinpath("exif")
+                    
+                # read in images
+                imagePaths = [image for image in imageDirPath.glob("*") if image.is_file()]
 
+                for index in range(0, min(imagesPerClass, len(imagePaths))):
+                    imagePath = imagePaths[index]
+
+                    # extract image-id and find corresponding exif file
+                    imageId = imagePath.stem.split("_")[0]
+
+                    exifPaths = [exif for exif in exifDirPath.glob(imageId + "*.json") if exif.is_file()]
+                    if len(exifPaths) == 1:
+                        exifPath = exifPaths[0]
+                        exifDestinationPath = destinationDirectory.joinpath("exif").joinpath(exifPath.name)
+                        imageDestinationPath = destinationDirectory.joinpath("images").joinpath(imagePath.name)
+
+                        # create directories if needed and copy files
+                        os.makedirs(os.path.dirname(exifDestinationPath), exist_ok = True)
+                        os.makedirs(os.path.dirname(imageDestinationPath), exist_ok = True)
+                        shutil.copy(exifPath, exifDestinationPath)
+                        shutil.copy(imagePath, imageDestinationPath)
+
+                    else:
+                        raise ValueError("no exif file found for image with id: " + imageId)
+    else:
+        raise ValueError("no dataset directory found at: " + directoryPath)
     
 if __name__ == '__main__':
-    reArangeMIRFlickr25Dataset(
+    shrinkDataset(imagesPerClass = 5000, 
+                  directoryPath = "/Users/ralflederer/Desktop/landscape_object_multilabel", 
+                  destinationDirectoryPath = "/Users/ralflederer/Desktop/landscape_object_multilabel_shrinked")
+
+    """ reArangeMIRFlickr25Dataset(
         annotationDirectoryPath = "/Users/ralflederer/Downloads/mirflickr25k_annotations_v080", 
         imageDirectoryPath = "/Users/ralflederer/Downloads/mirflickr",
         exifDirectoryPath = "/Users/ralflederer/Downloads/mirflickr/meta/exif",

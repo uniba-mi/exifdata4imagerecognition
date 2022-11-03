@@ -175,7 +175,7 @@ class ModelEvaluation(object):
         for target in EvaluationTarget:
             self.evaluationTargetFiles[target] = self.createEvaluationFilePaths(target = target)
 
-    def imageIds(self, super: bool = True, highResolution: bool = True):
+    def imageIds(self, super: bool = True, highResolution: bool = True, count: bool = False):
         """ Returns image IDs of images correctly classified by mixed models but incorrectly by image only classifiers. """
         if highResolution:
             idsImageOnlyMobileNetV2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_MOBILENET_V2 if super else EvaluationTarget.SUB_IMAGEONLY_150_MOBILENET_V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
@@ -196,13 +196,16 @@ class ModelEvaluation(object):
             idsMixedEfficientNetB4 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B4 if super else EvaluationTarget.SUB_MIXED_50_EFFICIENTNET_B4][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
             idsMixedResNet50V2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_RESNET_50V2 if super else EvaluationTarget.SUB_MIXED_50_RESNET_50V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
 
-        imageIdsImageOnly = set(idsImageOnlyMobileNetV2).intersection(set(idsImageOnlyEfficientNetB0)).intersection(set(idsImageOnlyEfficientNetB4)).intersection(set(idsImageOnlyResNet50V2))
-        imageIdsMixed = set(idsMixedMobileNetV2).intersection(set(idsMixedEfficientNetB0)).intersection(set(idsMixedEfficientNetB4)).intersection(set(idsMixedResNet50V2))
 
-        # return 
-        # - the image ids correctly classified by the mixed model but wrongly classified by image-only
-        # - the union of image-only and mixed image ids (wrongly classified by both)
-        return imageIdsImageOnly - imageIdsMixed, imageIdsMixed.union(imageIdsImageOnly)
+        if count:
+            return [len(idsMixedMobileNetV2) - len(idsImageOnlyMobileNetV2), len(idsMixedEfficientNetB0) - len(idsImageOnlyEfficientNetB0), len(idsMixedEfficientNetB4) - len(idsImageOnlyEfficientNetB4), len(idsMixedResNet50V2) - len(idsImageOnlyResNet50V2)]
+        else:
+            imageIdsImageOnly = set(idsImageOnlyMobileNetV2).intersection(set(idsImageOnlyEfficientNetB0)).intersection(set(idsImageOnlyEfficientNetB4)).intersection(set(idsImageOnlyResNet50V2))
+            imageIdsMixed = set(idsMixedMobileNetV2).intersection(set(idsMixedEfficientNetB0)).intersection(set(idsMixedEfficientNetB4)).intersection(set(idsMixedResNet50V2))
+            # return 
+            # - the image ids correctly classified by the mixed model but wrongly classified by image-only
+            # - the union of image-only and mixed image ids (wrongly classified by both)
+            return imageIdsImageOnly - imageIdsMixed, imageIdsMixed.union(imageIdsImageOnly)
 
     def createEvaluationFilePaths(self, target: EvaluationTarget) -> Dict:
         """ Parses the evaluation files for a specific evaluation target. """
@@ -298,6 +301,18 @@ class ModelEvaluation(object):
             exifTags.append(tag.name)
         
         return tagDistribution[tagDistribution.columns.intersection(exifTags)]
+    
+    def mixedImageOnlyDelta(self, super: bool = False, metric: str = "f1-score"):
+        cfHighRes = self.getClassificationReport(super = super, 
+                                                 metric = metric, 
+                                                 customClasses = ["micro avg"],
+                                                 highResolution = True)
+        
+        cfLowRes = self.getClassificationReport(super = super, 
+                                                metric = metric, 
+                                                customClasses = ["micro avg"],
+                                                highResolution = False)
+        return cfHighRes, cfLowRes
 
     def individualClassSupport(self):
         valClassificationReport = self.getClassificationReport(metric = "support", reportType = EvaluationFiles.VALIDATION_CLASSIFICATION_REPORT)
@@ -481,15 +496,7 @@ class ModelEvaluation(object):
                                   labelOffset: float = 0.001,
                                   savePath = None):
 
-        cfHighRes = self.getClassificationReport(super = super, 
-                                                 metric = metric, 
-                                                 customClasses = ["micro avg"], 
-                                                 highResolution = True)
-        
-        cfLowRes = self.getClassificationReport(super = super, 
-                                                metric = metric, 
-                                                customClasses = ["micro avg"], 
-                                                highResolution = False)
+        cfHighRes, cfLowRes = self.mixedImageOnlyDelta(super = super, metric = metric)
         
         mobileNetV2Delta = np.concatenate([cfLowRes.metricMixedMobileNetV2 - cfLowRes.metricImageOnlyMobileNetV2] + [cfHighRes.metricMixedMobileNetV2 - cfHighRes.metricImageOnlyMobileNetV2])
         efficientNetB0Delta = np.concatenate([cfLowRes.metricMixedEfficientNetB0 - cfLowRes.metricImageOnlyEfficientNetB0] + [cfHighRes.metricMixedEfficientNetB0 - cfHighRes.metricImageOnlyEfficientNetB0])
@@ -507,6 +514,50 @@ class ModelEvaluation(object):
             yLabel = metric.capitalize() + " Delta",
             figSize = figSize,
             barWidth = barWidth,
+            savePath = savePath,
+            legendPosition = legendPosition,
+            labelOffset = labelOffset)
+    
+    def createMixedImageOnlyDeltaGroup(self, 
+                                       evaluations: List["ModelEvaluation"],
+                                       categoryLabels: List[str],
+                                       metric: str = "f1-score", 
+                                       figSize: Tuple = (7, 5), 
+                                       barWidth: float = 0.80,
+                                       legendPosition: str = "upper right",
+                                       labelOffset: float = 0.001,
+                                       savePath = None):
+
+        mobileNetV2Delta = np.empty(shape = (0))
+        efficientNetB0Delta = np.empty(shape = (0))
+        efficientNetB4Delta = np.empty(shape = (0))
+        resNet50V2Delta = np.empty(shape = (0))
+
+        for modelEvaluation in evaluations:
+            cfHighRes, cfLowRes = modelEvaluation.mixedImageOnlyDelta(super = True, metric = metric)
+
+            mobileNetV2Delta = np.concatenate((mobileNetV2Delta, np.concatenate([cfLowRes.metricMixedMobileNetV2 - cfLowRes.metricImageOnlyMobileNetV2] + [cfHighRes.metricMixedMobileNetV2 - cfHighRes.metricImageOnlyMobileNetV2])))
+            efficientNetB0Delta = np.concatenate((efficientNetB0Delta, np.concatenate([cfLowRes.metricMixedEfficientNetB0 - cfLowRes.metricImageOnlyEfficientNetB0] + [cfHighRes.metricMixedEfficientNetB0 - cfHighRes.metricImageOnlyEfficientNetB0])))
+            efficientNetB4Delta = np.concatenate((efficientNetB4Delta, np.concatenate([cfLowRes.metricMixedEfficientNetB4 - cfLowRes.metricImageOnlyEfficientNetB4] + [cfHighRes.metricMixedEfficientNetB4 - cfHighRes.metricImageOnlyEfficientNetB4])))
+            resNet50V2Delta = np.concatenate((resNet50V2Delta, np.concatenate([cfLowRes.metricMixedResNet50V2 - cfLowRes.metricImageOnlyResNet50V2] + [cfHighRes.metricMixedResNet50V2 - cfHighRes.metricImageOnlyResNet50V2])))
+
+            cfHighRes, cfLowRes = modelEvaluation.mixedImageOnlyDelta(super = False, metric = metric)
+
+            mobileNetV2Delta = np.concatenate((mobileNetV2Delta, np.concatenate([cfLowRes.metricMixedMobileNetV2 - cfLowRes.metricImageOnlyMobileNetV2] + [cfHighRes.metricMixedMobileNetV2 - cfHighRes.metricImageOnlyMobileNetV2])))
+            efficientNetB0Delta = np.concatenate((efficientNetB0Delta, np.concatenate([cfLowRes.metricMixedEfficientNetB0 - cfLowRes.metricImageOnlyEfficientNetB0] + [cfHighRes.metricMixedEfficientNetB0 - cfHighRes.metricImageOnlyEfficientNetB0])))
+            efficientNetB4Delta = np.concatenate((efficientNetB4Delta, np.concatenate([cfLowRes.metricMixedEfficientNetB4 - cfLowRes.metricImageOnlyEfficientNetB4] + [cfHighRes.metricMixedEfficientNetB4 - cfHighRes.metricImageOnlyEfficientNetB4])))
+            resNet50V2Delta = np.concatenate((resNet50V2Delta, np.concatenate([cfLowRes.metricMixedResNet50V2 - cfLowRes.metricImageOnlyResNet50V2] + [cfHighRes.metricMixedResNet50V2 - cfHighRes.metricImageOnlyResNet50V2])))
+        
+        createBarChart(
+            [[mobileNetV2Delta, efficientNetB0Delta, efficientNetB4Delta, resNet50V2Delta]], 
+            [["MobileNetV2", "EfficientNetB0", "EfficientNetB4", "ResNet50V2"]], 
+            categoryLabels = categoryLabels, 
+            showValues = False, 
+            title = "Mixed Model vs. Image Only " + metric.capitalize() + " Delta",
+            yLabel = metric.capitalize() + " Delta",
+            figSize = figSize,
+            barWidth = barWidth,
+            grid = True,
             savePath = savePath,
             legendPosition = legendPosition,
             labelOffset = labelOffset)
@@ -752,8 +803,9 @@ class ModelEvaluation(object):
                                         startFineTuningEpoch = 15,
                                         savePath = savePath)
         
-    def createExifTagDistributionChart(self, figSize: Tuple = (8, 5), barHeight: float = 0.7, savePath = None):
-        distribution = self.exifTagDistribution()
+    def createExifTagDistributionChart(self, customSet: pd.DataFrame = None, figSize: Tuple = (8, 5), barHeight: float = 0.7, savePath = None):
+        distribution = self.exifTagDistribution() if customSet is None else customSet
+        distribution = distribution.sort_values(by = 1, ascending = False, axis = 1)
         tags = distribution.columns.to_numpy()
         tagsCount = distribution.iloc[0].to_numpy()
 
@@ -768,7 +820,7 @@ class ModelEvaluation(object):
                                        showValues = True,
                                        sc = True,
                                        valueFormat = "{:.0f}",
-                                       title = self.basePath.stem +  " - Dataset EXIF-Tag Distribution",
+                                       title = ((self.basePath.stem + " - Dataset EXIF-Tag Distribution") if customSet is None else "EXIF-Tag Distribution"),
                                        xLimit = 105,
                                        labelPostFix = "%",
                                        labelOffset = 4,
@@ -790,7 +842,7 @@ class ModelEvaluation(object):
         if self.datasetPath == None:
             raise ValueError("no dataset path given for image examples")
         
-        gainedIds, _ = modelEvaluation.imageIds(highResolution = highResolution, super = super)
+        gainedIds, _ = self.imageIds(highResolution = highResolution, super = super)
 
         if super:
             labels = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_MOBILENET_V2 if highResolution else EvaluationTarget.SUPER_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.VALIDATION_LABELS]
@@ -819,8 +871,17 @@ class ModelEvaluation(object):
             
 
 if __name__ == '__main__':
-    modelEvaluation = ModelEvaluation(directoryPath = "/Users/ralflederer/Desktop/MovingStatic",
-                                      datasetDirectoryPath = "/Users/ralflederer/Desktop/res/moving_static")
+
+    evaluations = []
+
+    evaluations.append(ModelEvaluation(directoryPath = "/Users/ralflederer/Desktop/models/ObjectLandscape", 
+                                       datasetDirectoryPath = "/Users/ralflederer/Desktop/res/landscape_object_multilabel"))
+
+    evaluations.append(ModelEvaluation(directoryPath = "/Users/ralflederer/Desktop/models/MovingStatic", 
+                                       datasetDirectoryPath = "/Users/ralflederer/Desktop/res/moving_static"))
+    
+    evaluations.append(ModelEvaluation(directoryPath = "/Users/ralflederer/Desktop/models/IndoorOutdoor", 
+                                       datasetDirectoryPath = "/Users/ralflederer/Desktop/res/indoor_outdoor_multilabel"))
 
     savePath = "/Users/ralflederer/Desktop/test.png"
 
@@ -828,71 +889,109 @@ if __name__ == '__main__':
                                                             metric = "f1-score", 
                                                             customClasses = ["micro avg"], 
                                                             mixed = True) """
-    
-    """  # plot for mixed model vs image model performance - super
-    modelEvaluation.createMixedImageResolutionComparisonBarChart(super = True, 
-                                                                 metric = "f1-score", 
-                                                                 highResolution = False,
-                                                                 barWidth = 0.7,
-                                                                 figSize=(6, 5),
-                                                                 labelOffset = 0.025,
-                                                                 savePath = None)
+
+    # individual charts
+    index = 1
+
+    #print(evaluations[index].imageIds(super = False, highResolution = True, count = True))
+    """  
+    # plot for mixed model vs image model performance - super
+    evaluations[index].createMixedImageResolutionComparisonBarChart(super = True, 
+                                                                    metric = "f1-score", 
+                                                                    highResolution = False,
+                                                                    barWidth = 0.7,
+                                                                    figSize=(6, 5),
+                                                                    labelOffset = 0.025,
+                                                                    savePath = None)
     
     # plot for mixed model vs image model performance
-    modelEvaluation.createMixedImageResolutionComparisonBarChart(super = False, 
-                                                                 metric = "f1-score", 
-                                                                 highResolution = False,
-                                                                 barWidth = 0.8,
-                                                                 figSize=(18, 7), #28,9
-                                                                 labelOffset = 0.016,
-                                                                 savePath = None)
+    evaluations[index].createMixedImageResolutionComparisonBarChart(super = False, 
+                                                                    metric = "f1-score", 
+                                                                    highResolution = False,
+                                                                    barWidth = 0.8,
+                                                                    figSize=(18, 7), #28,9
+                                                                    labelOffset = 0.016,
+                                                                    savePath = None)
 
     # plot for delta (mixed image only)
-    modelEvaluation.createMixedImageOnlyDelta(super = True, savePath = None) 
-    modelEvaluation.createMixedImageOnlyDelta(super = False, savePath = None)
+    evaluations[index].createMixedImageOnlyDelta(super = True, savePath = None) 
+    evaluations[index].createMixedImageOnlyDelta(super = False, savePath = None)
 
     # plot for exif vs. best image only vs  best mixed model
-    modelEvaluation.createMixedImageExifComparison(super = True, savePath = None)
-    modelEvaluation.createMixedImageExifComparison(super = False, savePath = None)
+    evaluations[index].createMixedImageExifComparison(super = True, savePath = None)
+    evaluations[index].createMixedImageExifComparison(super = False, savePath = None)
 
     # plot for training time mixed model vs image only
-    modelEvaluation.createTrainingTimeMixedvsImageOnlyComparison(super = True, savePath = None)
-    modelEvaluation.createTrainingTimeMixedvsImageOnlyComparison(super = False, savePath = None)
+    evaluations[index].createTrainingTimeMixedvsImageOnlyComparison(super = True, savePath = None)
+    evaluations[index].createTrainingTimeMixedvsImageOnlyComparison(super = False, savePath = None)
 
     # plot for model parameter count comparison
-    modelEvaluation.createModelParameterCountComparison(savePath = None)
+    evaluations[index].createModelParameterCountComparison(savePath = None)
 
     # plot for exif tag feature importance (exif-only)
-    modelEvaluation.createEXIFFeatureImportanceChart(super = True, savePath = None)
-    modelEvaluation.createEXIFFeatureImportanceChart(super = False, savePath = None)
+    evaluations[index].createEXIFFeatureImportanceChart(super = True, savePath = None)
+    evaluations[index].createEXIFFeatureImportanceChart(super = False, savePath = None)
 
     # plots for training accuracy (exif only, image only, mixed) 
-    modelEvaluation.createTrainingComparisonPlot(super = True, highResolution = False)
-    modelEvaluation.createTrainingComparisonPlot(super = True, highResolution = True)
-    modelEvaluation.createTrainingComparisonPlot(super = False, highResolution = False)
-    modelEvaluation.createTrainingComparisonPlot(super = False, highResolution = True)
+    evaluations[index].createTrainingComparisonPlot(super = True, highResolution = False)
+    evaluations[index].createTrainingComparisonPlot(super = True, highResolution = True)
+    evaluations[index].createTrainingComparisonPlot(super = False, highResolution = False)
+    evaluations[index].createTrainingComparisonPlot(super = False, highResolution = True)
 
      # plots for training loss (exif only, image only, mixed) 
-    modelEvaluation.createTrainingComparisonPlot(super = True, highResolution = False, loss = True)
-    modelEvaluation.createTrainingComparisonPlot(super = True, highResolution = True, loss = True)
-    modelEvaluation.createTrainingComparisonPlot(super = False, highResolution = False, loss = True)
-    modelEvaluation.createTrainingComparisonPlot(super = False, highResolution = True, loss = True) 
+    evaluations[index].createTrainingComparisonPlot(super = True, highResolution = False, loss = True)
+    evaluations[index].createTrainingComparisonPlot(super = True, highResolution = True, loss = True)
+    evaluations[index].createTrainingComparisonPlot(super = False, highResolution = False, loss = True)
+    evaluations[index].createTrainingComparisonPlot(super = False, highResolution = True, loss = True) 
     
     # plot for exif tag distribution in the data set 
-    modelEvaluation.createExifTagDistributionChart(savePath = None) 
+    evaluations[index].createExifTagDistributionChart(savePath = None) """
     
-   
-    """
     # dataset-individual plots
 
-    # indoor-outdoor
-    #modelEvaluation.createClassesImagesOverviewChart(savePath = None)
-    #modelEvaluation.createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [7, 1, 2, 5, 11, 30, 38, 36, 25, 33], highResolution = True, savePath = None)
-    #modelEvaluation.createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [5, 6, 9, 12, 14, 34, 46, 53, 59, 21], highResolution = False, savePath = None)
+    """ # object-landscape
+    evaluations[0].createClassesImagesOverviewChart(index = 4, imagesPerRow = 5, figSize = (7, 3.5), savePath = None)
+    evaluations[0].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [0, 1, 2, 3, 4, 6, 8, 10, 13, 15], highResolution = False, figSize = (8.5, 4.5), savePath = None)
 
     # moving-static
-    #modelEvaluation.createClassesImagesOverviewChart(index = 63, imagesPerRow = 5, figSize = (7, 3.5), savePath = savePath)
-    #modelEvaluation.createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [1, 2, 5, 7, 9, 14, 17, 22, 24, 29], highResolution = True, savePath = None)
-    #modelEvaluation.createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [2, 3, 51, 11, 13, 14, 28, 33, 34, 38], highResolution = False, savePath = None) 
+    evaluations[1].createClassesImagesOverviewChart(index = 63, imagesPerRow = 5, figSize = (7, 3.5), savePath = savePath)
+    evaluations[1].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [1, 2, 5, 7, 9, 14, 17, 22, 24, 29], highResolution = True, savePath = None)
+    evaluations[1].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [2, 3, 51, 11, 13, 14, 28, 33, 34, 38], highResolution = False, savePath = None) 
+
+    # indoor-outdoor
+    evaluations[2].createClassesImagesOverviewChart(savePath = None)
+    evaluations[2].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [7, 1, 2, 5, 11, 30, 38, 36, 25, 33], highResolution = True, savePath = None)
+    evaluations[2].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [5, 6, 9, 12, 14, 34, 46, 53, 59, 21], highResolution = False, savePath = None) """
+
+
+    evaluations[index].createMixedImageResolutionComparisonBarChart(super = True, 
+                                                                    metric = "f1-score", 
+                                                                    highResolution = False,
+                                                                    barWidth = 0.8,
+                                                                    figSize=(18, 7), #28,9
+                                                                    labelOffset = 0.016,
+                                                                    savePath = None)
     
+    evaluations[index].createTrainingTimeMixedvsImageOnlyComparison(super = True, savePath = None)
+    # combined evaluations 
+
+    # EXIF-Tag distribution
+    combinedDistribution = None
+    for evaluation in evaluations:
+        exifTagDistribution = evaluation.exifTagDistribution()
+        if combinedDistribution is None:
+            combinedDistribution = exifTagDistribution
+        else:
+            combinedDistribution = combinedDistribution.add(exifTagDistribution, fill_value = 0)
+    evaluations[0].createExifTagDistributionChart(customSet = combinedDistribution, savePath = None)
+
+    # Image-Only vs. Mixed Delta (Super, Sub)
+    evaluations[index].createMixedImageOnlyDeltaGroup(evaluations = evaluations, 
+                                                      categoryLabels = ["Landscape-Object\nSuper 50x50px", "Landscape-Object\nSuper 150x150px", "Landscape-Object\nSub 50x50px", "Landscape-Object\nSub 150x150px", 
+                                                                        "Moving-Static\nSuper 50x50px", "Moving-Static\nSuper 150x150px", "Moving-Static\nSub 50x50px", "Moving-Static\nSub 150x150px", 
+                                                                        "Indoor-Outdoor\nSuper 50x50px", "Indoor-Outdoor\nSuper 150x150px", "Indoor-Outdoor\nSub 50x50px", "Indoor-Outdoor\nSub 150x150px"], 
+                                                      figSize = (20, 7), 
+                                                      barWidth = 0.7,
+                                                      savePath = None)
+
     plt.show()

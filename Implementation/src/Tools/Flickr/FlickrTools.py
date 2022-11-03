@@ -201,8 +201,8 @@ def shrinkDataset(imagesPerClass: int, directoryPath: str, destinationDirectoryP
     
 if __name__ == '__main__':
     shrinkDataset(imagesPerClass = 5000, 
-                  directoryPath = "/Users/ralflederer/Desktop/landscape_object_multilabel", 
-                  destinationDirectoryPath = "/Users/ralflederer/Desktop/landscape_object_multilabel_shrinked")
+                  directoryPath = "/Users/ralflederer/Desktop/indoor", 
+                  destinationDirectoryPath = "/Users/ralflederer/Desktop/indoor_shrinked")
 
     """ reArangeMIRFlickr25Dataset(
         annotationDirectoryPath = "/Users/ralflederer/Downloads/mirflickr25k_annotations_v080", 

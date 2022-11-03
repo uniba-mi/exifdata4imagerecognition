@@ -12,7 +12,7 @@ class MLPTrainingTests(unittest.TestCase):
         #dataSetPaths = { TestTrainingConstants.datasetFilePath : ExifImageTrainingDataFormats.Flickr,
         #                 TestTrainingConstants.mirFlickrRelevantFilePath : ExifImageTrainingDataFormats.MirFlickr }
 
-        dataSetPaths = { TestTrainingConstants.movingStaticFilePath : ExifImageTrainingDataFormats.Flickr }
+        dataSetPaths = { TestTrainingConstants.indoorOutdoorFilePath : ExifImageTrainingDataFormats.Flickr }
 
         dataProvider = ExifImageProvider(dataSetsPaths = dataSetPaths,
                                         cachePath = TestTrainingConstants.cacheStoragePath,
@@ -20,15 +20,15 @@ class MLPTrainingTests(unittest.TestCase):
                                         testSize = 0.2,
                                         validationSize = 0.1,
                                         batchSize = 128,
-                                        useSuperConcepts = True,
+                                        useSuperConcepts = False,
                                         exifOnly = True,
                                         seed = 131)
         
         # create training task
-        trainingTask = TrainingTask(classifier = MLPClassifier(name = "MovingStillExifOnlySuper"), 
+        trainingTask = TrainingTask(classifier = MLPClassifier(name = "IndoorOutdoorSub"), 
                                     storagePath = TestTrainingConstants.modelDirectory, 
                                     provider = dataProvider)
-        trainingTask.run(epochs = 300, earlyStoppingPatience = 50, optimize = "loss")
+        trainingTask.run(epochs = 500, earlyStoppingPatience = 50, optimize = "loss")
 
         # create permutation task to assess the feature importance of individual exif features
         permutationTask = ExifPermutationTask(permutations = 1, storagePath = TestTrainingConstants.modelDirectory)

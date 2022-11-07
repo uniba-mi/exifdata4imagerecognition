@@ -13,6 +13,7 @@ def createBarChart(data: List,
                    seriesLabels: List[str], 
                    categoryLabels: List[str] = None, 
                    showValues: bool = False, 
+                   showNegativeValues: bool = False,
                    valueFormat: str = "{}", 
                    title: str = None, 
                    yLabel: str = None,
@@ -22,6 +23,7 @@ def createBarChart(data: List,
                    barWidth: float = 0.88,
                    labelOffset: float = 0.014,
                    labelPrefix: str = "",
+                   labelPostfix: str = "",
                    colors = [["steelblue", "darkolivegreen", "darkgoldenrod", "orangered"], 
                              ["skyblue", "darkseagreen", "goldenrod", "coral"],
                              ["steelblue", "darkolivegreen", "darkgoldenrod", "orangered"], 
@@ -73,10 +75,10 @@ def createBarChart(data: List,
                 
                 if drawLabel:
                     w, h = bar.get_width(), bar.get_height()
-                    if h > 0.0000:
+                    if h > 0.0000 or showNegativeValues:
                         plt.text(bar.get_x() + w / 2, 
                                 bar.get_y() + h - labelOffset,
-                                labelPrefix + valueFormat.format(h), 
+                                labelPrefix + valueFormat.format(h) + labelPostfix, 
                                 ha = "center", 
                                 va = "center",
                                 fontsize = 9)

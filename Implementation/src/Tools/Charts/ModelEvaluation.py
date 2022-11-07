@@ -337,6 +337,50 @@ class ModelEvaluation(object):
                 imagePaths = [image for image in imagePath.glob("*") if image.is_file()]
                 images.append((dataDir.stem, imagePaths[index]))  
         return images
+    
+    def trainingTimes(self, super: bool = False):
+        if super:
+            trainingTimeIO50 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                         self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                         self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                         self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_50_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
+
+            trainingTimeMixed50 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_50_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                            self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_50_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                            self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_50_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                            self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_50_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
+        
+            trainingTimeIO150 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                          self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                          self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                          self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
+
+            trainingTimeMixed150 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                             self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                             self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                             self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
+        else:
+            trainingTimeIO50 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                         self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                         self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                         self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
+
+            trainingTimeMixed50 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                            self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                            self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                            self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
+        
+            trainingTimeIO150 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                          self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                          self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                          self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
+
+            trainingTimeMixed150 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
+                                             self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
+                                             self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
+                                             self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
+
+        return trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150
 
     def getClassificationReport(self, 
                                 super: bool = False, 
@@ -548,6 +592,19 @@ class ModelEvaluation(object):
             efficientNetB4Delta = np.concatenate((efficientNetB4Delta, np.concatenate([cfLowRes.metricMixedEfficientNetB4 - cfLowRes.metricImageOnlyEfficientNetB4] + [cfHighRes.metricMixedEfficientNetB4 - cfHighRes.metricImageOnlyEfficientNetB4])))
             resNet50V2Delta = np.concatenate((resNet50V2Delta, np.concatenate([cfLowRes.metricMixedResNet50V2 - cfLowRes.metricImageOnlyResNet50V2] + [cfHighRes.metricMixedResNet50V2 - cfHighRes.metricImageOnlyResNet50V2])))
         
+
+        summedMobileNetV2DeltaLowRes = sum([x for ind, x in enumerate(mobileNetV2Delta) if (ind + 2) % 2 == 0]) / len(evaluations)
+        summedMobileNetV2DeltaHighRes = sum([x for ind, x in enumerate(mobileNetV2Delta) if (ind + 2) % 2 == 1]) / len(evaluations)
+        summedEfficientNetB0DeltaLowRes = sum([x for ind, x in enumerate(efficientNetB0Delta) if (ind + 2) % 2 == 0]) / len(evaluations)
+        summedEfficientNetB0DeltaHighRes = sum([x for ind, x in enumerate(efficientNetB0Delta) if (ind + 2) % 2 == 1]) / len(evaluations)
+        summedEfficientNetB4DeltaLowRes = sum([x for ind, x in enumerate(efficientNetB4Delta) if (ind + 2) % 2 == 0]) / len(evaluations)
+        summedEfficientNetB4DeltaHighRes = sum([x for ind, x in enumerate(efficientNetB4Delta) if (ind + 2) % 2 == 1]) / len(evaluations)
+        summedResNet50V2DeltaLowRes = sum([x for ind, x in enumerate(resNet50V2Delta) if (ind + 2) % 2 == 0]) / len(evaluations)
+        summedResNet50V2DeltaHighRes = sum([x for ind, x in enumerate(resNet50V2Delta) if (ind + 2) % 2 == 1]) / len(evaluations)
+
+        totalDeltaLow = [summedMobileNetV2DeltaLowRes, summedEfficientNetB0DeltaLowRes, summedEfficientNetB4DeltaLowRes, summedResNet50V2DeltaLowRes]
+        totalDeltaHigh = [summedMobileNetV2DeltaHighRes, summedEfficientNetB0DeltaHighRes, summedEfficientNetB4DeltaHighRes, summedResNet50V2DeltaHighRes]
+
         createBarChart(
             [[mobileNetV2Delta, efficientNetB0Delta, efficientNetB4Delta, resNet50V2Delta]], 
             [["MobileNetV2", "EfficientNetB0", "EfficientNetB4", "ResNet50V2"]], 
@@ -556,6 +613,20 @@ class ModelEvaluation(object):
             title = "Mixed Model vs. Image Only " + metric.capitalize() + " Delta",
             yLabel = metric.capitalize() + " Delta",
             figSize = figSize,
+            barWidth = barWidth,
+            grid = True,
+            savePath = savePath,
+            legendPosition = legendPosition,
+            labelOffset = labelOffset)
+        
+        createBarChart(
+            [[totalDeltaLow, totalDeltaHigh]], 
+            [["Low-Res", "High-Res"]], 
+            categoryLabels = ["MobileNetV2", "EfficientNetB0", "EfficientNetB4", "ResNet50V2"], 
+            showValues = False, 
+            title = "Mixed Model Total Average " + metric.capitalize() + " Gain",
+            yLabel = metric.capitalize() + " Gain",
+            figSize = (9, 4),
             barWidth = barWidth,
             grid = True,
             savePath = savePath,
@@ -600,72 +671,74 @@ class ModelEvaluation(object):
             barWidth = barWidth,
             grid = True,
             labelOffset = labelOffset)
+
+    def createTrainingTimeMixedvsImageOnlyComparisonGrouped(self,
+                                                            evaluations: List["ModelEvaluation"],
+                                                            super: bool = False,
+                                                            figSize: Tuple = (7, 5),
+                                                            barWidth: float = 0.65,
+                                                            savePath = None):
+        totalsIO50 = np.zeros(shape = (4))
+        totalsMixed50 = np.zeros(shape = (4))
+        totalsIO150 = np.zeros(shape = (4))
+        totalsMixed150 = np.zeros(shape = (4))
+
+        for modelEvaluation in evaluations:
+            trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150 = modelEvaluation.trainingTimes(super = super)
+
+            totalsIO50 = np.add(totalsIO50, trainingTimeIO50)
+            totalsMixed50 = np.add(totalsMixed50, trainingTimeMixed50)
+
+            sum50IO = np.sum(trainingTimeIO50)
+            sum50Mixed = np.sum(trainingTimeMixed50)
+            totalDif50 = sum50Mixed - sum50IO
+            frac50 = 1 - (sum50Mixed / sum50IO)
+
+            #print("sum:50 IO " + str(sum50IO))
+            #print("sum:50 Mixed " + str(sum50Mixed))
+            #print("total_dif:50 " + str(totalDif50))
+            #print("frac:50 " + str(frac50))
+
+            totalsIO150 = np.add(totalsIO150, trainingTimeIO150)
+            totalsMixed150 = np.add(totalsMixed150, trainingTimeMixed150)
+        
+            sum150IO = np.sum(trainingTimeIO150)
+            sum150Mixed = np.sum(trainingTimeMixed150)
+            totalDif150 = sum150Mixed - sum150IO
+            frac150 = 1 - (sum150Mixed / sum150IO)
+
+            #print("sum:150 IO " + str(sum150IO))
+            #print("sum:150 Mixed " + str(sum150Mixed))
+            #print("total_dif:150 " + str(totalDif150))
+            #print("frac:150 " + str(frac150))
+       
+        fracs50 = (1.0 - np.divide(totalsMixed50, totalsIO50)) * -100
+        fracs150 = (1.0 - np.divide(totalsMixed150, totalsIO150)) * -100
+
+        createBarChart(
+            [[fracs50, fracs150]], 
+            [["50x50px", "150x150px"]], 
+            categoryLabels = ["MobileNetV2", "EfficientNetB0", "EfficientNetB4", "ResNet50V2"], 
+            showValues = True,
+            showNegativeValues = True,
+            valueFormat = "{:.1f}",
+            labelOffset = -0.4,
+            labelPostfix = "%",
+            title = "Super" if super else "",
+            yLabel = "Average Training Time Reduction in %\n(Mixed vs. Image-Only)",
+            figSize = figSize,
+            savePath = savePath,
+            legendPosition = "upper right",
+            barWidth = barWidth,
+            grid = True)
     
     def createTrainingTimeMixedvsImageOnlyComparison(self, 
                                                     super: bool = False,
-                                                    figSize: Tuple = (7, 5),
+                                                    figSize: Tuple = (7, 6),
                                                     barWidth: float = 0.9,
                                                     savePath = None):
-        if super:
-            trainingTimeIO50 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
-                                         self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
-                                         self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
-                                         self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_50_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
-
-            trainingTimeMixed50 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_50_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
-                                            self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_50_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
-                                            self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_50_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
-                                            self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_50_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
-        
-            trainingTimeIO150 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
-                                          self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
-                                          self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
-                                          self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
-
-            trainingTimeMixed150 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
-                                             self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
-                                             self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
-                                             self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
-        else:
-            trainingTimeIO50 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
-                                         self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
-                                         self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
-                                         self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
-
-            trainingTimeMixed50 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
-                                            self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
-                                            self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
-                                            self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
-        
-            trainingTimeIO150 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
-                                          self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
-                                          self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
-                                          self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
-
-            trainingTimeMixed150 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
-                                             self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
-                                             self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
-                                             self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
-
-
-        if super:
-            print("super")
-        sum50IO = np.sum(trainingTimeIO50)
-        sum50Mixed = np.sum(trainingTimeMixed50)
-        print("sum:50 IO " + str(sum50IO))
-        print("sum:50 Mixed " + str(sum50Mixed))
-        print("total_dif:50 " + str(sum50Mixed - sum50IO))
-        print("frac:50 " + str(1 - (sum50Mixed / sum50IO)))
-        
-        sum150IO = np.sum(trainingTimeIO150)
-        sum150Mixed = np.sum(trainingTimeMixed150)
-        print("sum:150 IO " + str(sum150IO))
-        print("sum:150 Mixed " + str(sum150Mixed))
-        print("total_dif:150 " + str(sum150Mixed - sum150IO))
-        print("frac:150 " + str(1 - (sum150Mixed / sum150IO)))
-       
-        print("...")
-
+    
+        trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150 = self.trainingTimes(super = super)
         createBarChart(
             [[trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150]], 
             [["Image-Only 50x50px", "Mixed 50x50px", "Image-Only 150x150px", "Mixed 150x150px"]], 
@@ -963,8 +1036,7 @@ if __name__ == '__main__':
     evaluations[2].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [7, 1, 2, 5, 11, 30, 38, 36, 25, 33], highResolution = True, savePath = None)
     evaluations[2].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [5, 6, 9, 12, 14, 34, 46, 53, 59, 21], highResolution = False, savePath = None) """
 
-
-    evaluations[index].createMixedImageResolutionComparisonBarChart(super = True, 
+    evaluations[index].createMixedImageResolutionComparisonBarChart(super = False, 
                                                                     metric = "f1-score", 
                                                                     highResolution = False,
                                                                     barWidth = 0.8,
@@ -972,7 +1044,6 @@ if __name__ == '__main__':
                                                                     labelOffset = 0.016,
                                                                     savePath = None)
     
-    evaluations[index].createTrainingTimeMixedvsImageOnlyComparison(super = True, savePath = None)
     # combined evaluations 
 
     # EXIF-Tag distribution
@@ -985,6 +1056,11 @@ if __name__ == '__main__':
             combinedDistribution = combinedDistribution.add(exifTagDistribution, fill_value = 0)
     evaluations[0].createExifTagDistributionChart(customSet = combinedDistribution, savePath = None)
 
+    # Trining Time Comparison
+    evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, super = True)
+    evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, super = False)
+
+
     # Image-Only vs. Mixed Delta (Super, Sub)
     evaluations[index].createMixedImageOnlyDeltaGroup(evaluations = evaluations, 
                                                       categoryLabels = ["Landscape-Object\nSuper 50x50px", "Landscape-Object\nSuper 150x150px", "Landscape-Object\nSub 50x50px", "Landscape-Object\nSub 150x150px", 
@@ -993,5 +1069,8 @@ if __name__ == '__main__':
                                                       figSize = (20, 7), 
                                                       barWidth = 0.7,
                                                       savePath = None)
+    
+    
+    
 
     plt.show()

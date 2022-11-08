@@ -592,15 +592,14 @@ class ModelEvaluation(object):
             efficientNetB4Delta = np.concatenate((efficientNetB4Delta, np.concatenate([cfLowRes.metricMixedEfficientNetB4 - cfLowRes.metricImageOnlyEfficientNetB4] + [cfHighRes.metricMixedEfficientNetB4 - cfHighRes.metricImageOnlyEfficientNetB4])))
             resNet50V2Delta = np.concatenate((resNet50V2Delta, np.concatenate([cfLowRes.metricMixedResNet50V2 - cfLowRes.metricImageOnlyResNet50V2] + [cfHighRes.metricMixedResNet50V2 - cfHighRes.metricImageOnlyResNet50V2])))
         
-
-        summedMobileNetV2DeltaLowRes = sum([x for ind, x in enumerate(mobileNetV2Delta) if (ind + 2) % 2 == 0]) / len(evaluations)
-        summedMobileNetV2DeltaHighRes = sum([x for ind, x in enumerate(mobileNetV2Delta) if (ind + 2) % 2 == 1]) / len(evaluations)
-        summedEfficientNetB0DeltaLowRes = sum([x for ind, x in enumerate(efficientNetB0Delta) if (ind + 2) % 2 == 0]) / len(evaluations)
-        summedEfficientNetB0DeltaHighRes = sum([x for ind, x in enumerate(efficientNetB0Delta) if (ind + 2) % 2 == 1]) / len(evaluations)
-        summedEfficientNetB4DeltaLowRes = sum([x for ind, x in enumerate(efficientNetB4Delta) if (ind + 2) % 2 == 0]) / len(evaluations)
-        summedEfficientNetB4DeltaHighRes = sum([x for ind, x in enumerate(efficientNetB4Delta) if (ind + 2) % 2 == 1]) / len(evaluations)
-        summedResNet50V2DeltaLowRes = sum([x for ind, x in enumerate(resNet50V2Delta) if (ind + 2) % 2 == 0]) / len(evaluations)
-        summedResNet50V2DeltaHighRes = sum([x for ind, x in enumerate(resNet50V2Delta) if (ind + 2) % 2 == 1]) / len(evaluations)
+        summedMobileNetV2DeltaLowRes = sum([x for ind, x in enumerate(mobileNetV2Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * 2)
+        summedMobileNetV2DeltaHighRes = sum([x for ind, x in enumerate(mobileNetV2Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * 2)
+        summedEfficientNetB0DeltaLowRes = sum([x for ind, x in enumerate(efficientNetB0Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * 2)
+        summedEfficientNetB0DeltaHighRes = sum([x for ind, x in enumerate(efficientNetB0Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * 2)
+        summedEfficientNetB4DeltaLowRes = sum([x for ind, x in enumerate(efficientNetB4Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * 2)
+        summedEfficientNetB4DeltaHighRes = sum([x for ind, x in enumerate(efficientNetB4Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * 2)
+        summedResNet50V2DeltaLowRes = sum([x for ind, x in enumerate(resNet50V2Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * 2)
+        summedResNet50V2DeltaHighRes = sum([x for ind, x in enumerate(resNet50V2Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * 2)
 
         totalDeltaLow = [summedMobileNetV2DeltaLowRes, summedEfficientNetB0DeltaLowRes, summedEfficientNetB4DeltaLowRes, summedResNet50V2DeltaLowRes]
         totalDeltaHigh = [summedMobileNetV2DeltaHighRes, summedEfficientNetB0DeltaHighRes, summedEfficientNetB4DeltaHighRes, summedResNet50V2DeltaHighRes]
@@ -621,17 +620,35 @@ class ModelEvaluation(object):
         
         createBarChart(
             [[totalDeltaLow, totalDeltaHigh]], 
-            [["Low-Res", "High-Res"]], 
+            [["50x50px", "150x150px"]], 
             categoryLabels = ["MobileNetV2", "EfficientNetB0", "EfficientNetB4", "ResNet50V2"], 
-            showValues = False, 
+            showValues = True, 
+            valueFormat = "{:.3f}",
+            labelPrefix = "+",
             title = "Mixed Model Total Average " + metric.capitalize() + " Gain",
             yLabel = metric.capitalize() + " Gain",
-            figSize = (9, 4),
+            figSize = (8.5, 5),
             barWidth = barWidth,
             grid = True,
             savePath = savePath,
             legendPosition = legendPosition,
-            labelOffset = labelOffset)
+            labelOffset = -0.001)
+        
+        createBarChart(
+            [[[sum(totalDeltaLow) / len(totalDeltaLow)], [sum(totalDeltaHigh) / len(totalDeltaHigh)]]], 
+            [["50x50px", "150x150px"]], 
+            categoryLabels = [""], 
+            showValues = True, 
+            valueFormat = "{:.3f}",
+            labelPrefix = "+",
+            title = "Mixed Model Aggregated Total Average " + metric.capitalize() + " Gain",
+            yLabel = metric.capitalize() + " Gain",
+            figSize = (6, 5),
+            barWidth = 0.5,
+            grid = True,
+            savePath = savePath,
+            legendPosition = legendPosition,
+            labelOffset = -0.001)
     
     def createMixedImageExifComparison(self, 
                                   super: bool = False, 
@@ -675,6 +692,8 @@ class ModelEvaluation(object):
     def createTrainingTimeMixedvsImageOnlyComparisonGrouped(self,
                                                             evaluations: List["ModelEvaluation"],
                                                             super: bool = False,
+                                                            combineSuperSub: bool = False,
+                                                            separateCnns: bool = True,
                                                             figSize: Tuple = (7, 5),
                                                             barWidth: float = 0.65,
                                                             savePath = None):
@@ -683,52 +702,62 @@ class ModelEvaluation(object):
         totalsIO150 = np.zeros(shape = (4))
         totalsMixed150 = np.zeros(shape = (4))
 
-        for modelEvaluation in evaluations:
-            trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150 = modelEvaluation.trainingTimes(super = super)
+        targets = [super]
 
-            totalsIO50 = np.add(totalsIO50, trainingTimeIO50)
-            totalsMixed50 = np.add(totalsMixed50, trainingTimeMixed50)
-
-            sum50IO = np.sum(trainingTimeIO50)
-            sum50Mixed = np.sum(trainingTimeMixed50)
-            totalDif50 = sum50Mixed - sum50IO
-            frac50 = 1 - (sum50Mixed / sum50IO)
-
-            #print("sum:50 IO " + str(sum50IO))
-            #print("sum:50 Mixed " + str(sum50Mixed))
-            #print("total_dif:50 " + str(totalDif50))
-            #print("frac:50 " + str(frac50))
-
-            totalsIO150 = np.add(totalsIO150, trainingTimeIO150)
-            totalsMixed150 = np.add(totalsMixed150, trainingTimeMixed150)
+        if combineSuperSub:
+            targets = [True, False] # targets for super and sub together
         
-            sum150IO = np.sum(trainingTimeIO150)
-            sum150Mixed = np.sum(trainingTimeMixed150)
-            totalDif150 = sum150Mixed - sum150IO
-            frac150 = 1 - (sum150Mixed / sum150IO)
+        for target in targets:
+            for modelEvaluation in evaluations:
+                trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150 = modelEvaluation.trainingTimes(super = target)
 
-            #print("sum:150 IO " + str(sum150IO))
-            #print("sum:150 Mixed " + str(sum150Mixed))
-            #print("total_dif:150 " + str(totalDif150))
-            #print("frac:150 " + str(frac150))
+                totalsIO50 = np.add(totalsIO50, trainingTimeIO50)
+                totalsMixed50 = np.add(totalsMixed50, trainingTimeMixed50)
+
+                sum50IO = np.sum(trainingTimeIO50)
+                sum50Mixed = np.sum(trainingTimeMixed50)
+                totalDif50 = sum50Mixed - sum50IO
+                frac50 = 1 - (sum50Mixed / sum50IO)
+
+                #print("sum:50 IO " + str(sum50IO))
+                #print("sum:50 Mixed " + str(sum50Mixed))
+                #print("total_dif:50 " + str(totalDif50))
+                #print("frac:50 " + str(frac50))
+
+                totalsIO150 = np.add(totalsIO150, trainingTimeIO150)
+                totalsMixed150 = np.add(totalsMixed150, trainingTimeMixed150)
+        
+                sum150IO = np.sum(trainingTimeIO150)
+                sum150Mixed = np.sum(trainingTimeMixed150)
+                totalDif150 = sum150Mixed - sum150IO
+                frac150 = 1 - (sum150Mixed / sum150IO)
+
+                #print("sum:150 IO " + str(sum150IO))
+                #print("sum:150 Mixed " + str(sum150Mixed))
+                #print("total_dif:150 " + str(totalDif150))
+                #print("frac:150 " + str(frac150))
        
         fracs50 = (1.0 - np.divide(totalsMixed50, totalsIO50)) * -100
         fracs150 = (1.0 - np.divide(totalsMixed150, totalsIO150)) * -100
 
+        if not separateCnns:
+            fracs50 = [sum(fracs50) / len(fracs50)]
+            fracs150 = [sum(fracs150) / len(fracs150)]
+
         createBarChart(
             [[fracs50, fracs150]], 
             [["50x50px", "150x150px"]], 
-            categoryLabels = ["MobileNetV2", "EfficientNetB0", "EfficientNetB4", "ResNet50V2"], 
+            categoryLabels = None if not separateCnns else ["MobileNetV2", "EfficientNetB0", "EfficientNetB4", "ResNet50V2"], 
             showValues = True,
             showNegativeValues = True,
             valueFormat = "{:.1f}",
             labelOffset = -0.4,
             labelPostfix = "%",
-            title = "Super" if super else "",
+            title = "Total" if combineSuperSub else "Super" if super else "",
             yLabel = "Average Training Time Reduction in %\n(Mixed vs. Image-Only)",
             figSize = figSize,
             savePath = savePath,
-            legendPosition = "upper right",
+            legendPosition = "lower right",
             barWidth = barWidth,
             grid = True)
     
@@ -739,6 +768,9 @@ class ModelEvaluation(object):
                                                     savePath = None):
     
         trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150 = self.trainingTimes(super = super)
+
+        #print(np.divide(trainingTimeMixed50, trainingTimeIO50))
+        
         createBarChart(
             [[trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150]], 
             [["Image-Only 50x50px", "Mixed 50x50px", "Image-Only 150x150px", "Mixed 150x150px"]], 
@@ -966,6 +998,9 @@ if __name__ == '__main__':
     # individual charts
     index = 1
 
+    evaluations[index].createMixedImageOnlyDelta(super = False, savePath = None)
+    evaluations[index].createTrainingTimeMixedvsImageOnlyComparison(super = False, savePath = None)
+
     #print(evaluations[index].imageIds(super = False, highResolution = True, count = True))
     """  
     # plot for mixed model vs image model performance - super
@@ -1059,6 +1094,8 @@ if __name__ == '__main__':
     # Trining Time Comparison
     evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, super = True)
     evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, super = False)
+    #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True)
+    evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = False)
 
 
     # Image-Only vs. Mixed Delta (Super, Sub)

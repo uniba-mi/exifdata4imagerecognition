@@ -1,6 +1,6 @@
 # Master Thesis Project - Ralf Lederer
 
-In addition to photo data, many digital cameras and smartphones capture EXIF metadata, which contain information about lighting conditions and the camera parameters used when a photo was captured. While most semantic image recognition approaches only use pixel data for classification decisions, this work aims to examine whether EXIF data can improve image classification performed by convolutional neural networks (CNNs). We compare the classification performance and training time of fusion models that use both image data and EXIF metadata for image classification in contrast to models that use only image data. The results show that the classification accuracy of the created fusion models could be increased by an average of 5.3% for images with a resolution of 50x50 pixels and by an average of 1.2% for images with a resolution of 150x150 pixels, while the training time could be reduced by an average of 10.6% and 6%, respectively.
+In addition to photo data, many digital cameras and smartphones capture EXIF metadata, which contain information about lighting conditions and the camera parameters used when a photo was captured. While most semantic image recognition approaches only use pixel data for classification decisions, this work aims to examine whether EXIF data can improve image classification performed by convolutional neural networks (CNNs). We compare the classification performance and training time of fusion models that use both image data and EXIF metadata for image classification in contrast to models that use only image data. The results show that the classification accuracy of the created fusion models could be increased by an average of 2.7% for images with a resolution of 50x50 pixels and by an average of 0.6% for images with a resolution of 150x150 pixels, while the training time could be reduced by an average of 10.6% and 6%, respectively.
 
 # Technical Documentation
 
@@ -319,3 +319,11 @@ train-mixed-landscsape-object:
           devices:
             - capabilities: [gpu] 
 ```
+
+## Training Concepts
+
+Tbd...
+
+## Overall Results
+
+tbd...

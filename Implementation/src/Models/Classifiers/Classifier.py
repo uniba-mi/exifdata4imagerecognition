@@ -8,13 +8,11 @@ from keras.layers import BatchNormalization
 def fineTuningLearningRateScheduler(startEpoch, epoch, lr):
     # for transfer learning we use a big learning rate for the initial epochs and then lower the learning-rate
     if epoch < startEpoch + 5:
-        return 5e-5 #1e-3 
+        return 5e-5
     elif epoch >= startEpoch + 5 and epoch < startEpoch + 10:
-        return 1e-5 #1e-4
-    #elif epoch >= startEpoch + 10 and epoch < startEpoch + 15:
-    #    return 1e-5
+        return 1e-5
     else:
-        return lr * 1 / (1 + 0.01 * 1)
+        return lr * (1.0 / 1.01)
 
 def top_2_accuracy(y_true, y_pred):
     return top_k_categorical_accuracy(y_true, y_pred, k = 2)

@@ -7,6 +7,7 @@ from Models.Classifiers.CNN import CNNClassifier, validModelNames, modelNameToMo
 from Models.Classifiers.MixedModel import MixedModel
 from Models.Training.Generators.BatchGeneratorProvider import ExifImageProvider
 from Models.Training.Tasks.TrainingTask import TrainingTask
+from Models.Training.Tasks.ExifImageMixedTrainingTask import ExifImageMixedTrainingTask
 from Models.Training.Tasks.PermutationTask import ExifPermutationTask
 from Tools.GUI.ArgsHelper import argForParam, paramSet, setParam
 
@@ -27,6 +28,7 @@ PARAM_TEST_SIZE = "-testsize"
 PARAM_VAL_SIZE = "-valsize"
 PARAM_OPTIMIZATION_CRITERIA = "-optimize"
 PARAM_ALL = "-all" # flag if exif / image / mixded shall be learned all together
+PARAM_PRE_TRAIN = "-pretrain" # param for specifying whether the MLP shall be pre-trained when creating a mixed model
 
 # params only relevant for cnn training
 PARAM_IMAGE_ONLY = "-io"
@@ -65,6 +67,7 @@ def printUsage():
     print("\t \t{tformat}: data format of the training data, comma-separated for multiple zip-files [flickr, mirflickr], default = flickr".format(tformat = PARAM_TRAINING_DATA_FORMAT))
     print("\t \t{optimize}: optimization criteria [accuracy, loss], default = loss".format(optimize = PARAM_OPTIMIZATION_CRITERIA))
     print("\t \t{all}: if set, all, exif, image and mixed models will be created".format(all = PARAM_ALL))
+    print("\t \t{pretrain}: if set, the mlp (exif classifier) will be pre-trained when creating a mixed model".format(pretrain = PARAM_PRE_TRAIN))
 
     print(" ")
     print("\tparameters for cnn training (optional when exif only is set):")
@@ -114,6 +117,7 @@ def main(args):
             trainingDataFormats = argForParam(args, PARAM_TRAINING_DATA_FORMAT, "flickr")
             optimizationCriteria = argForParam(args, PARAM_OPTIMIZATION_CRITERIA, "loss")
             permutations = int(argForParam(args, PARAM_EXIF_PERMUTATIONS, 50))
+            preTrain = paramSet(args, PARAM_PRE_TRAIN)
             
             # create dictionariy of { zipFilePath : dataformat }, either mulitple ones or single one
             zipFilePaths = {}
@@ -194,16 +198,26 @@ def main(args):
                     )                    
             else:
                 for modelName in standardModelNames() if baseModelName == "all" else [baseModelName]:
-                    tasks.append(
-                        TrainingTask(classifier = MixedModel(name = name + "_" + modelName, 
+                    if preTrain:
+                        tasks.append(
+                            ExifImageMixedTrainingTask(storagePath = modelOutputPath, 
+                                                       provider = dataProvider, 
+                                                       modelName = name + "_" + modelName, 
+                                                       cnnModelFunction = modelNameToModelFunction(modelName = modelName),
+                                                       fineTuneLayersCount = fineTuneLayers,
+                                                       fineTuneEpochsCount = fineTuneEpochs)
+                        )
+                    else:
+                        tasks.append(
+                            TrainingTask(classifier = MixedModel(name = name + "_" + modelName, 
                                                       classifier1 = CNNClassifier(name = "CNN", modelFunction = modelNameToModelFunction(modelName = modelName)), 
                                                       classifier2 = MLPClassifier(name = "MLP"), 
                                                       fineTuneLayersCount = fineTuneLayers, 
                                                       fineTuneEpochs = fineTuneEpochs), 
                                     storagePath = modelOutputPath, 
                                     provider = dataProvider)
-                    )
-
+                        )
+                    
             # run training tasks
             tensorflow.get_logger().setLevel("ERROR")
             for task in tasks:

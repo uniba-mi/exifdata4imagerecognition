@@ -220,8 +220,12 @@ class TrainingTask(object):
 
     def __init__(self, classifier: Classifier, storagePath: str, provider: BatchGeneratorProvider, disableEvaluationAxisLabels: bool = False):
         self.classifier = classifier
-        self.modelStoragePath = Path(storagePath).joinpath(classifier.name)
-        self.logStoragePath = self.modelStoragePath.joinpath("tensorboard_log")
+        if not storagePath == None:
+            self.modelStoragePath = Path(storagePath).joinpath(classifier.name)
+            self.logStoragePath = self.modelStoragePath.joinpath("tensorboard_log")
+        else:
+            self.modelStoragePath = None
+            self.logStoragePath = None
         self.dataProvider = provider
         self.disableEvaluationAxisLabels = disableEvaluationAxisLabels
 
@@ -231,10 +235,11 @@ class TrainingTask(object):
             print("starting training task for " + self.classifier.name + " ...")
 
         # create output directory for the model / evaluation files (delete directory if it is already there)
-        if self.modelStoragePath.exists():
-            shutil.rmtree(self.modelStoragePath)
-        self.modelStoragePath.mkdir(parents = True, exist_ok = True)
-        self.logStoragePath.mkdir(parents = False, exist_ok = True)
+        if not self.modelStoragePath == None:
+            if self.modelStoragePath.exists():
+                shutil.rmtree(self.modelStoragePath)
+            self.modelStoragePath.mkdir(parents = True, exist_ok = True)
+            self.logStoragePath.mkdir(parents = False, exist_ok = True)
 
         # create data generators and apply shapes to the model builder
         trainGenerator, testGenerator, valGenerator = self.dataProvider.createGenerators()
@@ -256,6 +261,12 @@ class TrainingTask(object):
                                           verbose = verbose)
         # caluclate duration in seconds                             
         duration = round(time.time() - start, 3)
+
+        # we return if we don't want to store and evaluate the model
+        if self.modelStoragePath == None:
+            if verbose > 0:
+                print("training task finished for " + self.classifier.name)
+            return
 
         if verbose > 0:
             print("finished model training, took " + str(duration) + " seconds ...")

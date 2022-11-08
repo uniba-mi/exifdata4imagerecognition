@@ -57,7 +57,3 @@ class MixedModel(FineTuneClassifier):
 
         self.clf1 = classifier1
         self.clf2 = classifier2
-
-        if self.clf1.outputShape != self.clf2.outputShape:
-            raise ValueError("the output shapes of both classifiers of a mixed model must be equal.")
-                

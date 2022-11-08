@@ -3,7 +3,7 @@ from Models.Training.Generators.BatchGenerators import BatchGenerator
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.optimizers import Adam, Nadam
-from keras.regularizers import l2
+from keras.regularizers import l2, l1
 from keras.models import Model
 from scikeras.wrappers import KerasClassifier
 from sklearn.model_selection import GridSearchCV
@@ -14,7 +14,7 @@ def createModel(inputSize: int, outputSize: int, optimizer, dropoutRate: float, 
     """ Creates a model according to the given input parameters. """
 
     model = Sequential()
-    model.add(Dense(256, input_dim = inputSize, activation = "relu", activity_regularizer = l2(alpha)))
+    model.add(Dense(256, input_dim = inputSize, activation = "relu", activity_regularizer = l1(0.0001)))
     model.add(Dense(128, activation = "relu", activity_regularizer = l2(alpha)))
     model.add(Dense(64, activation = "relu", activity_regularizer = l2(alpha)))
     model.add(Dense(32, activation = "relu", activity_regularizer = l2(alpha)))
@@ -43,8 +43,14 @@ class MLPClassifier(Classifier):
         super().__init__(inputShape = inputShape, 
                         outputShape = outputShape, 
                         name = name, 
-                        modelCreationFunction = createTunedModel,
+                        modelCreationFunction = self.createOrReturnModel, #createTunedModel,
                         multiLabel = multiLabel)
+    
+    def createOrReturnModel(self, inputSize: int, outputSize: int, multiLabel: bool = False) -> Model:
+        if self.model == None:
+            return createTunedModel(inputSize = inputSize, outputSize = outputSize, multiLabel = multiLabel)
+        else:
+            return self.model
 
     def findHyperParameters(self, dataGenerator: BatchGenerator, verbose: int = 1) -> Tuple:
         """ Creates and trains multiple mlp models with the basic architecture using different hyper 

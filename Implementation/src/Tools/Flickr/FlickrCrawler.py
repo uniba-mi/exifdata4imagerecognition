@@ -262,8 +262,34 @@ class FlickrCrawler(object):
                                       photosPerPage = photosPerPage)
         else:
             raise CrawlerError("no photos found for the search term: " + searchTerm)
-
-
+    
+    def checkLicense(self, photoId: str) -> str:
+        """ Downloads the type of licence and visibility associated with a photo and returns it.
+         { "id": 0, "name": "All Rights Reserved", "url": "" },
+         { "id": 4, "name": "Attribution License", "url": "https:\/\/creativecommons.org\/licenses\/by\/2.0\/" },
+         { "id": 6, "name": "Attribution-NoDerivs License", "url": "https:\/\/creativecommons.org\/licenses\/by-nd\/2.0\/" },
+         { "id": 3, "name": "Attribution-NonCommercial-NoDerivs License", "url": "https:\/\/creativecommons.org\/licenses\/by-nc-nd\/2.0\/" },
+         { "id": 2, "name": "Attribution-NonCommercial License", "url": "https:\/\/creativecommons.org\/licenses\/by-nc\/2.0\/" },
+         { "id": 1, "name": "Attribution-NonCommercial-ShareAlike License", "url": "https:\/\/creativecommons.org\/licenses\/by-nc-sa\/2.0\/" },
+         { "id": 5, "name": "Attribution-ShareAlike License", "url": "https:\/\/creativecommons.org\/licenses\/by-sa\/2.0\/" },
+         { "id": 7, "name": "No known copyright restrictions", "url": "https:\/\/www.flickr.com\/commons\/usage\/" },
+         { "id": 8, "name": "United States Government Work", "url": "http:\/\/www.usa.gov\/copyright.shtml" },
+         { "id": 9, "name": "Public Domain Dedication (CC0)", "url": "https:\/\/creativecommons.org\/publicdomain\/zero\/1.0\/" },
+         { "id": 10, "name": "Public Domain Mark", "url": "https:\/\/creativecommons.org\/publicdomain\/mark\/1.0\/" }
+        """
+        if self.apiKey is None:
+            raise RuntimeError("no api key was provided to the crawler, photo information cannot be retrieved.")
+        url = FlickrUrlBuilder.buildFlickrPhotoInfoUrl(photoId = photoId, apiKey = self.apiKey)
+        try:                                              
+            content = str(self.downloader.download(url = url), self.encoding)
+            jsonContent = json.loads(content)
+            if "photo" in jsonContent and "license" in jsonContent["photo"] and "visibility" in jsonContent["photo"]:
+                return int(jsonContent["photo"]["license"]), int(jsonContent["photo"]["visibility"]["ispublic"])
+            else: 
+                raise ValueError("the photo with the given Id does not contain any licence information")
+        except DownloadError as exception:
+            raise CrawlerError("error while downloading photo information url", cause = exception)
+        
 class GroupCrawlResult(object):
     """ A group crawl result provides the result of a Flickr group crawling process. It provides the metadata of the crawled images,
     but not the images themselves. The metadata (image ids, server, secret) can be used to download the corresponding images. """
@@ -416,6 +442,14 @@ class FlickrUrlBuilder(object):
                     searchTerm = searchTerm, page = str(page), perPage = str(perPage))
         if not apiKey is None:
             url += "&api_key={apiKey}".format(apiKey = apiKey)
+        return url 
+    
+    @staticmethod
+    def buildFlickrPhotoInfoUrl(photoId: str, apiKey: str = None) -> str:
+        "Builds a Flickr url that retrieves the information of the photo with the given ID."
+        url = "https://www.flickr.com/services/rest/?method=flickr.photos.getInfo" \
+                "&api_key={apiKey}&photo_id={photoId}&format=json&nojsoncallback=1".format(
+                    apiKey = apiKey, photoId = photoId)
         return url 
     
     @staticmethod

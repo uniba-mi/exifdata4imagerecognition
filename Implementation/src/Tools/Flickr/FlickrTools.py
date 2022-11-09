@@ -57,17 +57,21 @@ def toFlickrBase58Url(photoId: str) -> str:
     enc = alphabet[photoId] + enc
     return "flic.kr/p/{base58}".format(base58 = enc) 
 
-def readMIProjectImageMetadata(directoryPath: str, serverDummy: str) -> list:
-    """ Reads the image file names of the given directory into a metadata dictionary, such that it can be fed into a Flickr crawler object. 
-    Since in the MI project the server was not encoded into the filename, it must be filled with a dummy value. """
-    imageMetadata = []
-    imagePaths = PathHelpers.matchingFilePaths(folderPath = directoryPath, extension = "jpg")
-    for path in imagePaths:
-        parts = Path(path).name.split("_")
-        if len(parts) > 1:
-            imageMetadata.append({ FlickrCodingKeys.IMAGE_ID.value: parts[0], 
-                                   FlickrCodingKeys.SECRET.value: parts[1],
-                                   FlickrCodingKeys.SERVER.value:  serverDummy })
+def readImageMetadata(directoryPath: str, serverDummy: str) -> list:
+    """ Reads the image file names of the given directory into a metadata dictionary, such that it can be fed into a Flickr crawler object. """
+    datasetPath = Path(directoryPath)
+    if datasetPath.exists() and datasetPath.is_dir():
+        imagePaths = [file for file in datasetPath.rglob("*.jpg") if file.is_file()]
+        print("found " + str(len(imagePaths)) + " images")
+        imageMetadata = []
+        for path in imagePaths:
+            parts = Path(path).name.split("_")
+            if len(parts) > 1:
+                imageMetadata.append({ FlickrCodingKeys.IMAGE_ID.value: parts[0], 
+                                       FlickrCodingKeys.SECRET.value: parts[1],
+                                       FlickrCodingKeys.SERVER.value: serverDummy if len(parts) < 4 else parts[2] })
+    else:
+        raise ValueError("not dataset at given location")
     return imageMetadata
 
 def reArangeMIRFlickr25Dataset(annotationDirectoryPath: str, 
@@ -198,34 +202,4 @@ def shrinkDataset(imagesPerClass: int, directoryPath: str, destinationDirectoryP
                         raise ValueError("no exif file found for image with id: " + imageId)
     else:
         raise ValueError("no dataset directory found at: " + directoryPath)
-    
-if __name__ == '__main__':
-    shrinkDataset(imagesPerClass = 5000, 
-                  directoryPath = "/Users/ralflederer/Desktop/indoor", 
-                  destinationDirectoryPath = "/Users/ralflederer/Desktop/indoor_shrinked")
-
-    """ reArangeMIRFlickr25Dataset(
-        annotationDirectoryPath = "/Users/ralflederer/Downloads/mirflickr25k_annotations_v080", 
-        imageDirectoryPath = "/Users/ralflederer/Downloads/mirflickr",
-        exifDirectoryPath = "/Users/ralflederer/Downloads/mirflickr/meta/exif",
-        destinationDirectoryPath = "/Users/ralflederer/Desktop/mirflickr_rearanged",
-        relevantOnly = False)
-
-    indorClasses = ["indoor", "indoor,bathroom", "indoor,bedroom", "indoor,corridor", "indoor,kitchen", "indoor,office"]
-    outdoorClasses = ["outdoor", "outdoor,beach", "outdoor,forest", "outdoor,mountain", "outdoor,river", "outdoor,urban"] 
-
-    # write metadata files for old mi project to be able to re-crawl the data
-    metadataPath = Path("resources/mi_metadata/")
-    metadataPath.mkdir(parents = True, exist_ok = True)
-    for indoorClass in indorClasses:
-        path = "resources/mi_indoor_outdoor_multilabel/indoor/{className}/images".format(className = indoorClass)
-        metadata = readMIProjectImageMetadata(path, "1234")
-        with open(metadataPath.joinpath(indoorClass + ".json"), "w") as file:
-            json.dump(metadata, file)
-
-    for outdoorClass in outdoorClasses:
-        path = "resources/mi_indoor_outdoor_multilabel/outdoor/{className}/images".format(className = outdoorClass)
-        metadata = readMIProjectImageMetadata(path, "1234")
-        with open(metadataPath.joinpath(outdoorClass + ".json"), "w") as file:
-            json.dump(metadata, file) """
-       
+        

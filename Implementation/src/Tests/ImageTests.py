@@ -3,10 +3,9 @@ import unittest
 
 class ImagefDataTests(unittest.TestCase):
 
-    # Note: To successfully all the image tests, the mi indoor / outdoor data set must be extracted within the resource folder
-
+    # Note: To successfully all the image tests, indoor / outdoor data set must be extracted within the resource folder
     def testImageDataProvidesCorrectInformation(self):
-        path = "resources/mi_indoor_outdoor_multilabel/indoor/indoor,bathroom/images/9531426769_01562a4e91_q.jpg"
+        path = "resources/indoor_outdoor_multilabel/indoor/indoor,bathroom/images/9531426769_01562a4e91_q.jpg"
         imageTest = Image(path, id="9531426769")
 
         self.assertTrue(imageTest.path.exists())

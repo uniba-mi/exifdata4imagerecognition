@@ -17,9 +17,8 @@ from DomainModel.Image import Image
 
 class GeneratorTests(unittest.TestCase):
 
-    # Note: To successfully run all generator tests, the mi indoor / outdoor data set must be extracted within the resource folder
-
-    imageFolderPath = "resources/mi_indoor_outdoor_multilabel/indoor/indoor,bathroom/images/"
+    # Note: To successfully run all generator tests, the indoor / outdoor data set must be extracted within the resource folder
+    imageFolderPath = "resources/indoor_outdoor_multilabel/indoor/indoor,bathroom/images/"
 
     @classmethod
     def setUpClass(self):

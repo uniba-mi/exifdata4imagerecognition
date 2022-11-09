@@ -29,28 +29,11 @@ class MLPTrainingTests(unittest.TestCase):
                                         imageSize = (150, 150),
                                         seed = 131)
         
-        mlp = MLPClassifier(name = "MLP")
-
         # create training task
-        trainingTask = TrainingTask(classifier = mlp, 
+        trainingTask = TrainingTask(classifier = MLPClassifier(name = "MLP"), 
                                     storagePath = None,
                                     provider = dataProvider)
-        trainingTask.run(epochs = 1, earlyStoppingPatience = 50, optimize = "loss")
-
-        # create training task for mixed model
-        dataProvider.batchSize = 32
-        dataProvider.exifOnly = False
-
-        task = TrainingTask(classifier = MixedModel(name = "MixedIndoorOutdoor", 
-                                                      classifier1 = CNNClassifier(name = "CNN", modelFunction = EfficientNetB0), 
-                                                      classifier2 = mlp, 
-                                                      fineTuneLayersCount = 10, 
-                                                      fineTuneEpochs = 1), 
-                            storagePath = TestTrainingConstants.modelDirectory, 
-                            provider = dataProvider)
-
-        task.run(epochs = 2, earlyStoppingPatience = 10, optimize = "loss")
-
+        trainingTask.run(epochs = 300, earlyStoppingPatience = 50, optimize = "loss")
 
 if __name__ == '__main__':
     unittest.main()

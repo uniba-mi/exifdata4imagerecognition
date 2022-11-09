@@ -18,9 +18,8 @@ from Transformers.Preprocessing.DataFramePreProcessor import TabularDataFramePre
 from Transformers.Transformer import CompositeTransformer
 from Tests.Training.TestTrainingConstants import TestTrainingConstants
 
-# Note: To successfully run all data source tests, the mi indoor / outdoor data set must be present within the resource folder
-
-datasetFilepath = TestTrainingConstants.miIndoorOutdoorFilePath
+# Note: To successfully run all data source tests, the indoor / outdoor data set must be present within the resource folder
+datasetFilepath = TestTrainingConstants.indoorOutdoorFilePath
 
 class DatasetFileTests(unittest.TestCase):
 

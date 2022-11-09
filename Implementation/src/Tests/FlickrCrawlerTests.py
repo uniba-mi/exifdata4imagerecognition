@@ -8,7 +8,7 @@ class FlickrCrawlerTests(unittest.TestCase):
     crawler = FlickrCrawler(apiKey = "66462c38164102ed0e48a3dea4b5a12d")
     apiKey = crawler.apiKey
     flickrGroupId = "997802@N23"
-    metadataDirectory = Path("resources/metadata/test")
+    metadataDirectory = Path("resources/test_metadata/test")
     photoAndExifDirectory = Path("resources/test")
 
     def testBuildFlickrImageUrl(self):
@@ -175,7 +175,11 @@ class FlickrCrawlerTests(unittest.TestCase):
         self.assertEqual(validIds, result.crawledPhotoIds)
         shutil.rmtree(self.photoAndExifDirectory)
         self.assertFalse(self.photoAndExifDirectory.exists())
-
+    
+    def testLicenceCheckForMetadata(self):
+        license, visibility = self.crawler.checkLicense(photoId = "52208725281")
+        self.assertEqual(license, 0)
+        self.assertEqual(visibility, 1)
 
 if __name__ == '__main__':
     unittest.main()

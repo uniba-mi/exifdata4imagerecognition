@@ -305,12 +305,12 @@ class ModelEvaluation(object):
     def mixedImageOnlyDelta(self, super: bool = False, metric: str = "f1-score"):
         cfHighRes = self.getClassificationReport(super = super, 
                                                  metric = metric, 
-                                                 customClasses = ["micro avg"],
+                                                 customClasses = ["macro avg"],
                                                  highResolution = True)
         
         cfLowRes = self.getClassificationReport(super = super, 
                                                 metric = metric, 
-                                                customClasses = ["micro avg"],
+                                                customClasses = ["macro avg"],
                                                 highResolution = False)
         return cfHighRes, cfLowRes
 
@@ -660,12 +660,12 @@ class ModelEvaluation(object):
         
         cfHighRes = self.getClassificationReport(super = super, 
                                                  metric = metric, 
-                                                 customClasses = ["micro avg"], 
+                                                 customClasses = ["macro avg"], 
                                                  highResolution = True)
         
         cfLowRes = self.getClassificationReport(super = super, 
                                                 metric = metric, 
-                                                customClasses = ["micro avg"], 
+                                                customClasses = ["macro avg"], 
                                                 highResolution = False)
         
         scoresHigh = np.concatenate([cfHighRes.metricExifOnly] + 
@@ -992,7 +992,7 @@ if __name__ == '__main__':
 
     """ modelEvaluation.createImageResolutionComparisonBarChart(super = False, 
                                                             metric = "f1-score", 
-                                                            customClasses = ["micro avg"], 
+                                                            customClasses = ["macro avg"], 
                                                             mixed = True) """
 
     # individual charts

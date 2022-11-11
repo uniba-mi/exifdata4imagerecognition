@@ -338,8 +338,10 @@ class ModelEvaluation(object):
                 images.append((dataDir.stem, imagePaths[index]))  
         return images
     
-    def trainingTimes(self, super: bool = False):
-        if super:
+    def trainingTimes(self, super: bool = False, exif: bool = False):
+        if not super:
+            if exif:
+                return np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_EXIF_ONLY][EvaluationFiles.TRAINING_TIME]])
             trainingTimeIO50 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
                                          self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
                                          self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
@@ -360,6 +362,8 @@ class ModelEvaluation(object):
                                              self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
                                              self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_RESNET_50V2][EvaluationFiles.TRAINING_TIME]])
         else:
+            if exif:
+                return np.array([self.evaluationTargetFiles[EvaluationTarget.SUPER_EXIF_ONLY][EvaluationFiles.TRAINING_TIME]])
             trainingTimeIO50 = np.array([self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.TRAINING_TIME],
                                          self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B0][EvaluationFiles.TRAINING_TIME],
                                          self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B4][EvaluationFiles.TRAINING_TIME],
@@ -570,6 +574,7 @@ class ModelEvaluation(object):
                                        barWidth: float = 0.80,
                                        legendPosition: str = "upper right",
                                        labelOffset: float = 0.001,
+                                       yLimit: float = None,
                                        savePath = None):
 
         mobileNetV2Delta = np.empty(shape = (0))
@@ -609,11 +614,12 @@ class ModelEvaluation(object):
             [["MobileNetV2", "EfficientNetB0", "EfficientNetB4", "ResNet50V2"]], 
             categoryLabels = categoryLabels, 
             showValues = False, 
-            title = "Mixed Model vs. Image Only " + metric.capitalize() + " Delta",
-            yLabel = metric.capitalize() + " Delta",
+            title = "", #"Mixed Model vs. Image Only " + metric.capitalize() + " Delta",
+            yLabel = "Δ $" + "F1_{M}$",
             figSize = figSize,
             barWidth = barWidth,
             grid = True,
+            yLimit = yLimit,
             savePath = savePath,
             legendPosition = legendPosition,
             labelOffset = labelOffset)
@@ -630,7 +636,7 @@ class ModelEvaluation(object):
             figSize = (8.5, 5),
             barWidth = barWidth,
             grid = True,
-            savePath = savePath,
+            savePath = None,
             legendPosition = legendPosition,
             labelOffset = -0.001)
         
@@ -646,7 +652,7 @@ class ModelEvaluation(object):
             figSize = (6, 5),
             barWidth = 0.5,
             grid = True,
-            savePath = savePath,
+            savePath = None,
             legendPosition = legendPosition,
             labelOffset = -0.001)
     
@@ -694,23 +700,26 @@ class ModelEvaluation(object):
                                                             super: bool = False,
                                                             combineSuperSub: bool = False,
                                                             separateCnns: bool = True,
-                                                            figSize: Tuple = (7, 5),
-                                                            barWidth: float = 0.65,
+                                                            figSize: Tuple = (6, 5),
+                                                            barWidth: float = 0.8,
                                                             savePath = None):
         totalsIO50 = np.zeros(shape = (4))
         totalsMixed50 = np.zeros(shape = (4))
         totalsIO150 = np.zeros(shape = (4))
         totalsMixed150 = np.zeros(shape = (4))
+        totalExif = np.zeros(shape = (1))
 
         targets = [super]
 
         if combineSuperSub:
             targets = [True, False] # targets for super and sub together
         
-        for target in targets:
-            for modelEvaluation in evaluations:
+        for modelEvaluation in evaluations:
+            for target in targets:
                 trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150 = modelEvaluation.trainingTimes(super = target)
+                exifTime = modelEvaluation.trainingTimes(super = target, exif = True)
 
+                totalExif = np.add(totalExif, exifTime)
                 totalsIO50 = np.add(totalsIO50, trainingTimeIO50)
                 totalsMixed50 = np.add(totalsMixed50, trainingTimeMixed50)
 
@@ -736,13 +745,22 @@ class ModelEvaluation(object):
                 #print("sum:150 Mixed " + str(sum150Mixed))
                 #print("total_dif:150 " + str(totalDif150))
                 #print("frac:150 " + str(frac150))
-       
-        fracs50 = (1.0 - np.divide(totalsMixed50, totalsIO50)) * -100
-        fracs150 = (1.0 - np.divide(totalsMixed150, totalsIO150)) * -100
 
-        if not separateCnns:
-            fracs50 = [sum(fracs50) / len(fracs50)]
-            fracs150 = [sum(fracs150) / len(fracs150)]
+        #dem = len(evaluations) * (2 if combineSuperSub else 1)
+        #averageIOTime = (sum(totalsIO150)) / len(totalsIO150) / (dem * 2)
+        #averageMixedTime = (sum(totalsMixed150)) / len(totalsMixed150) / (dem * 2)
+        #averageExifTime = sum(totalExif) / (dem * 2)
+        #averageTrainingTime = (averageIOTime + averageMixedTime) / 2.0
+        #print(averageIOTime)
+        #print(averageMixedTime)
+        #print(averageExifTime)
+
+        if separateCnns:
+            fracs50 = (1.0 - np.divide(totalsMixed50, totalsIO50)) * -100
+            fracs150 = (1.0 - np.divide(totalsMixed150, totalsIO150)) * -100
+        else:
+            fracs50 = [(1.0 - (sum(totalsMixed50) / sum(totalsIO50))) * -100]
+            fracs150 = [(1.0 - (sum(totalsMixed150) / sum(totalsIO150))) * -100]
 
         createBarChart(
             [[fracs50, fracs150]], 
@@ -751,10 +769,10 @@ class ModelEvaluation(object):
             showValues = True,
             showNegativeValues = True,
             valueFormat = "{:.1f}",
-            labelOffset = -0.4,
+            labelOffset = 0.6, #-0.4,
             labelPostfix = "%",
-            title = "Total" if combineSuperSub else "Super" if super else "",
-            yLabel = "Average Training Time Reduction in %\n(Mixed vs. Image-Only)",
+            title = "" if combineSuperSub else "Super" if super else "",
+            yLabel = "Δ Average Training Time in %", # \n(Mixed vs. Image-Only)",
             figSize = figSize,
             savePath = savePath,
             legendPosition = "lower right",
@@ -768,9 +786,12 @@ class ModelEvaluation(object):
                                                     savePath = None):
     
         trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150 = self.trainingTimes(super = super)
-
-        #print(np.divide(trainingTimeMixed50, trainingTimeIO50))
         
+        #print("50x50:")
+        #print(np.round(np.subtract(np.ones(shape = (4)), np.divide(trainingTimeMixed50, trainingTimeIO50)), 3) * -100)
+        #print("150x150:")
+        #print(np.round(np.subtract(np.ones(shape = (4)), np.divide(trainingTimeMixed150, trainingTimeIO150)), 3) * -100)
+
         createBarChart(
             [[trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150]], 
             [["Image-Only 50x50px", "Mixed 50x50px", "Image-Only 150x150px", "Mixed 150x150px"]], 
@@ -996,10 +1017,7 @@ if __name__ == '__main__':
                                                             mixed = True) """
 
     # individual charts
-    index = 1
-
-    evaluations[index].createMixedImageOnlyDelta(super = False, savePath = None)
-    evaluations[index].createTrainingTimeMixedvsImageOnlyComparison(super = False, savePath = None)
+    index = 2
 
     #print(evaluations[index].imageIds(super = False, highResolution = True, count = True))
     """  
@@ -1070,14 +1088,6 @@ if __name__ == '__main__':
     evaluations[2].createClassesImagesOverviewChart(savePath = None)
     evaluations[2].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [7, 1, 2, 5, 11, 30, 38, 36, 25, 33], highResolution = True, savePath = None)
     evaluations[2].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [5, 6, 9, 12, 14, 34, 46, 53, 59, 21], highResolution = False, savePath = None) """
-
-    evaluations[index].createMixedImageResolutionComparisonBarChart(super = False, 
-                                                                    metric = "f1-score", 
-                                                                    highResolution = False,
-                                                                    barWidth = 0.8,
-                                                                    figSize=(18, 7), #28,9
-                                                                    labelOffset = 0.016,
-                                                                    savePath = None)
     
     # combined evaluations 
 
@@ -1092,22 +1102,24 @@ if __name__ == '__main__':
     evaluations[0].createExifTagDistributionChart(customSet = combinedDistribution, savePath = None)
 
     # Trining Time Comparison
-    evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, super = True)
-    evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, super = False)
-    #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True)
-    evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = False)
+    #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, super = True)
+    #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, super = False)
+    #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, savePath = None)
+    #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = False)
 
+    evaluations[index].createMixedImageOnlyDelta(super = True, savePath = None) 
+    evaluations[index].createMixedImageOnlyDelta(super = False, savePath = None)
 
     # Image-Only vs. Mixed Delta (Super, Sub)
     evaluations[index].createMixedImageOnlyDeltaGroup(evaluations = evaluations, 
                                                       categoryLabels = ["Landscape-Object\nSuper 50x50px", "Landscape-Object\nSuper 150x150px", "Landscape-Object\nSub 50x50px", "Landscape-Object\nSub 150x150px", 
                                                                         "Moving-Static\nSuper 50x50px", "Moving-Static\nSuper 150x150px", "Moving-Static\nSub 50x50px", "Moving-Static\nSub 150x150px", 
                                                                         "Indoor-Outdoor\nSuper 50x50px", "Indoor-Outdoor\nSuper 150x150px", "Indoor-Outdoor\nSub 50x50px", "Indoor-Outdoor\nSub 150x150px"], 
-                                                      figSize = (20, 7), 
+                                                      figSize = (20, 9), 
                                                       barWidth = 0.7,
+                                                      yLimit = 0.05,
                                                       savePath = None)
-    
-    
-    
 
+    evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = False)
+                                 
     plt.show()

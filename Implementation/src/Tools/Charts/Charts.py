@@ -22,6 +22,7 @@ def createBarChart(data: List,
                    figSize: Tuple = (14.5, 8),
                    barWidth: float = 0.88,
                    labelOffset: float = 0.014,
+                   yLimit: float = None,
                    labelPrefix: str = "",
                    labelPostfix: str = "",
                    colors = [["steelblue", "darkolivegreen", "darkgoldenrod", "orangered"], 
@@ -43,15 +44,21 @@ def createBarChart(data: List,
                        color = colors[outerIndex][innerIndex] if colors is not None else None, 
                        width = barWidth / len(subData)))
 
+    #font = {'fontname':'Times New Roman'}
+
     if categoryLabels:
         indexList = list(range(1, len(data[0][0]) + 1))
-        plt.xticks([(x - (barWidth / len(data[0]) * 2.0)) + ((len(data[0]) / 2.0) - 0.5) * (barWidth / len(data[0])) for x in indexList], categoryLabels)
+        plt.xticks([(x - (barWidth / len(data[0]) * 2.0)) + ((len(data[0]) / 2.0) - 0.5) * (barWidth / len(data[0])) for x in indexList], categoryLabels) #fontsize = 18, rotation = 60) 
+
+    #params = {'mathtext.default': 'it',
+    #          'font.size': 18 }          
+    #plt.rcParams.update(params)
 
     if title:
         plt.title(title)
 
     if yLabel:
-        plt.ylabel(yLabel)
+        plt.ylabel(yLabel) #fontsize = 18)
 
     if seriesLabels[0][0] != "":
         plt.legend(loc = legendPosition, ncol = 2)
@@ -62,6 +69,11 @@ def createBarChart(data: List,
 
     if grid:
         plt.grid(color = "gray", linestyle = '--', linewidth = 0.5, which = "both")
+    
+    if yLimit != None:
+        ax.set_ylim([ax.get_ylim()[0], yLimit])
+    
+    #plt.yticks(fontsize = 18)
 
     if showValues:
         bars = []

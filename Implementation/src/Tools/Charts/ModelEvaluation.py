@@ -566,6 +566,74 @@ class ModelEvaluation(object):
             legendPosition = legendPosition,
             labelOffset = labelOffset)
     
+
+    def createMixedImageOnlyAbsolutesGroup(self, 
+                                           evaluations: List["ModelEvaluation"],
+                                           categoryLabels: List[str],
+                                           metric: str = "f1-score", 
+                                           figSize: Tuple = (7, 5), 
+                                           barWidth: float = 0.80,
+                                           legendPosition: str = "lower left",
+                                           labelOffset: float = 0.001,
+                                           yLimit: float = None,
+                                           savePath = None):
+    
+        exifOnly = np.empty(shape = (0))
+        mobileNetV2ImageOnly = np.empty(shape = (0))
+        efficientNetB0ImageOnly = np.empty(shape = (0))
+        efficientNetB4ImageOnly = np.empty(shape = (0))
+        resNet50V2ImageOnly = np.empty(shape = (0))
+
+        mobileNetV2Mixed = np.empty(shape = (0))
+        efficientNetB0Mixed = np.empty(shape = (0))
+        efficientNetB4IMixed = np.empty(shape = (0))
+        resNet50V2Mixed = np.empty(shape = (0))
+
+        for modelEvaluation in evaluations:
+            cfHighRes, cfLowRes = modelEvaluation.mixedImageOnlyDelta(super = True, metric = metric)
+
+            exifOnly = np.concatenate((exifOnly, np.concatenate([cfLowRes.metricExifOnly] + [cfLowRes.metricExifOnly])))
+            mobileNetV2ImageOnly = np.concatenate((mobileNetV2ImageOnly, np.concatenate([cfLowRes.metricImageOnlyMobileNetV2] + [cfHighRes.metricImageOnlyMobileNetV2])))
+            mobileNetV2Mixed = np.concatenate((mobileNetV2Mixed, np.concatenate([cfLowRes.metricMixedMobileNetV2] + [cfHighRes.metricMixedMobileNetV2])))
+            efficientNetB0ImageOnly = np.concatenate((efficientNetB0ImageOnly, np.concatenate([cfLowRes.metricImageOnlyEfficientNetB0] + [cfHighRes.metricImageOnlyEfficientNetB0])))
+            efficientNetB0Mixed = np.concatenate((efficientNetB0Mixed, np.concatenate([cfLowRes.metricMixedEfficientNetB0] + [cfHighRes.metricMixedEfficientNetB0])))
+            efficientNetB4ImageOnly = np.concatenate((efficientNetB4ImageOnly, np.concatenate([cfLowRes.metricImageOnlyEfficientNetB4] + [cfHighRes.metricImageOnlyEfficientNetB4])))
+            efficientNetB4IMixed = np.concatenate((efficientNetB4IMixed, np.concatenate([cfLowRes.metricMixedEfficientNetB4] + [cfHighRes.metricMixedEfficientNetB4])))
+            resNet50V2ImageOnly = np.concatenate((resNet50V2ImageOnly, np.concatenate([cfLowRes.metricImageOnlyResNet50V2] + [cfHighRes.metricImageOnlyResNet50V2])))
+            resNet50V2Mixed = np.concatenate((resNet50V2Mixed, np.concatenate([cfLowRes.metricMixedResNet50V2] + [cfHighRes.metricMixedResNet50V2])))
+
+            cfHighRes, cfLowRes = modelEvaluation.mixedImageOnlyDelta(super = False, metric = metric)
+
+            exifOnly = np.concatenate((exifOnly, np.concatenate([cfLowRes.metricExifOnly] + [cfLowRes.metricExifOnly])))
+            mobileNetV2ImageOnly = np.concatenate((mobileNetV2ImageOnly, np.concatenate([cfLowRes.metricImageOnlyMobileNetV2] + [cfHighRes.metricImageOnlyMobileNetV2])))
+            mobileNetV2Mixed = np.concatenate((mobileNetV2Mixed, np.concatenate([cfLowRes.metricMixedMobileNetV2] + [cfHighRes.metricMixedMobileNetV2])))
+            efficientNetB0ImageOnly = np.concatenate((efficientNetB0ImageOnly, np.concatenate([cfLowRes.metricImageOnlyEfficientNetB0] + [cfHighRes.metricImageOnlyEfficientNetB0])))
+            efficientNetB0Mixed = np.concatenate((efficientNetB0Mixed, np.concatenate([cfLowRes.metricMixedEfficientNetB0] + [cfHighRes.metricMixedEfficientNetB0])))
+            efficientNetB4ImageOnly = np.concatenate((efficientNetB4ImageOnly, np.concatenate([cfLowRes.metricImageOnlyEfficientNetB4] + [cfHighRes.metricImageOnlyEfficientNetB4])))
+            efficientNetB4IMixed = np.concatenate((efficientNetB4IMixed, np.concatenate([cfLowRes.metricMixedEfficientNetB4] + [cfHighRes.metricMixedEfficientNetB4])))
+            resNet50V2ImageOnly = np.concatenate((resNet50V2ImageOnly, np.concatenate([cfLowRes.metricImageOnlyResNet50V2] + [cfHighRes.metricImageOnlyResNet50V2])))
+            resNet50V2Mixed = np.concatenate((resNet50V2Mixed, np.concatenate([cfLowRes.metricMixedResNet50V2] + [cfHighRes.metricMixedResNet50V2])))
+
+        createBarChart(
+            [[mobileNetV2Mixed, efficientNetB0Mixed, efficientNetB4IMixed, resNet50V2Mixed],
+             [mobileNetV2ImageOnly, efficientNetB0ImageOnly, efficientNetB4ImageOnly, resNet50V2ImageOnly]], 
+            [["MobileNetV2 Fusion", "EfficientNetB0 Fusion", "EfficientNetB4 Fusion", "ResNet50V2 Fusion"],
+             ["MobileNetV2 Image-Only", "EfficientNetB0 Image-Only", "EfficientNetB4 Image-Only", "ResNet50V2 Image-Only"]], 
+            categoryLabels = categoryLabels, 
+            showValues = False, 
+            title = "", #"Mixed Model vs. Image Only " + metric.capitalize(),
+            yLabel = "$" + "F1_{M}$",
+            figSize = figSize,
+            barWidth = barWidth,
+            grid = True,
+            yLabelFormatter = ticker.FuncFormatter(lambda x, pos: '{0:.2f}'.format(x)),
+            valueFormat = "{:.3f}",
+            yLimit = yLimit,
+            savePath = savePath,
+            legendPosition = legendPosition,
+            additionalLines = exifOnly,
+            labelOffset = labelOffset)
+    
     def createMixedImageOnlyDeltaGroup(self, 
                                        evaluations: List["ModelEvaluation"],
                                        categoryLabels: List[str],
@@ -746,14 +814,15 @@ class ModelEvaluation(object):
                 #print("total_dif:150 " + str(totalDif150))
                 #print("frac:150 " + str(frac150))
 
-        #dem = len(evaluations) * (2 if combineSuperSub else 1)
-        #averageIOTime = (sum(totalsIO150)) / len(totalsIO150) / (dem * 2)
-        #averageMixedTime = (sum(totalsMixed150)) / len(totalsMixed150) / (dem * 2)
-        #averageExifTime = sum(totalExif) / (dem * 2)
-        #averageTrainingTime = (averageIOTime + averageMixedTime) / 2.0
-        #print(averageIOTime)
-        #print(averageMixedTime)
-        #print(averageExifTime)
+        dem = len(evaluations) * (2 if combineSuperSub else 1)
+        averageIOTime = (sum(totalsIO150) + sum(totalsIO50)) / len(totalsIO150) / (dem * 2)
+        averageMixedTime = (sum(totalsMixed150) + sum(totalsMixed50)) / len(totalsMixed150) / (dem * 2)
+        averageExifTime = sum(totalExif) / (dem * 2)
+        averageTrainingTime = (averageIOTime + averageMixedTime) / 2.0
+        print(averageIOTime)
+        print(averageMixedTime)
+        print(averageTrainingTime)
+        print(averageExifTime)
 
         if separateCnns:
             fracs50 = (1.0 - np.divide(totalsMixed50, totalsIO50)) * -100
@@ -787,10 +856,10 @@ class ModelEvaluation(object):
     
         trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150 = self.trainingTimes(super = super)
         
-        #print("50x50:")
-        #print(np.round(np.subtract(np.ones(shape = (4)), np.divide(trainingTimeMixed50, trainingTimeIO50)), 3) * -100)
-        #print("150x150:")
-        #print(np.round(np.subtract(np.ones(shape = (4)), np.divide(trainingTimeMixed150, trainingTimeIO150)), 3) * -100)
+        print("50x50:")
+        print(np.round(np.subtract(np.ones(shape = (4)), np.divide(trainingTimeMixed50, trainingTimeIO50)), 3) * -100)
+        print("150x150:")
+        print(np.round(np.subtract(np.ones(shape = (4)), np.divide(trainingTimeMixed150, trainingTimeIO150)), 3) * -100)
 
         createBarChart(
             [[trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150]], 
@@ -814,7 +883,7 @@ class ModelEvaluation(object):
                            self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B0][EvaluationFiles.MODEL_PARAMS],
                            self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B4][EvaluationFiles.MODEL_PARAMS],
                            self.evaluationTargetFiles[EvaluationTarget.SUB_MIXED_150_RESNET_50V2][EvaluationFiles.MODEL_PARAMS]])
-        scale_y = 1e7
+        scale_y = 1e6
         labelFormatter = ticker.FuncFormatter(lambda x, pos: '{0:g}M'.format(x/scale_y))
         createSingleBarChart(params,
                              seriesLabels = [],
@@ -964,6 +1033,7 @@ class ModelEvaluation(object):
                                                                         highResolution: bool = True, 
                                                                         figSize: Tuple = (7, 4),
                                                                         imageIndex: List = None,
+                                                                        imageIds: List = None,
                                                                         savePath = None):
         if self.datasetPath == None:
             raise ValueError("no dataset path given for image examples")
@@ -979,16 +1049,18 @@ class ModelEvaluation(object):
         imagePaths = [image for image in self.datasetPath.glob("**/*.jpg") if image.is_file()]
         gainedIds = list(gainedIds)
 
-        if imageIndex == None:
-            imageIndex = range(0, min(len(gainedIds), 20))
+        #if imageIndex == None:
+        imageIndex = range(0, min(len(gainedIds), 20))
 
         for index in imageIndex:
-            id = gainedIds[index]
-            imagePath = [image for image in imagePaths if str(id) in image.stem][0]
-            loc = labels[labels["id"] == id]
-            trueLabels = loc["true_name"].item().replace("[", "").replace("]", "").replace("'", "")
-            predictedLabels = loc["predicted_name"].item().replace("[", "").replace("]", "").replace("'", "")
-            images.append(("true: " + trueLabels + "\npredicted: " + predictedLabels, imagePath))
+                id = gainedIds[index]
+                print(id)
+                imagePath = [image for image in imagePaths if str(id) in image.stem][0]
+                loc = labels[labels["id"] == id]
+                trueLabels = loc["true_name"].item().replace("[", "").replace("]", "").replace("'", "")
+                predictedLabels = loc["predicted_name"].item().replace("[", "").replace("]", "").replace("'", "")
+                images.append(("true: " + trueLabels + "\npredicted: " + predictedLabels, imagePath))
+            
             
         createImageOverviewChart(images, 
                                 figSize = figSize, 
@@ -1075,19 +1147,19 @@ if __name__ == '__main__':
     
     # dataset-individual plots
 
-    """ # object-landscape
-    evaluations[0].createClassesImagesOverviewChart(index = 4, imagesPerRow = 5, figSize = (7, 3.5), savePath = None)
-    evaluations[0].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [0, 1, 2, 3, 4, 6, 8, 10, 13, 15], highResolution = False, figSize = (8.5, 4.5), savePath = None)
+    # object-landscape
+    #evaluations[0].createClassesImagesOverviewChart(index = 4, imagesPerRow = 5, figSize = (7, 3.5), savePath = None)
+    #evaluations[0].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [0, 1, 2, 3, 4, 6, 8, 10, 13, 15], highResolution = False, figSize = (8.5, 4.5), savePath = None)
 
     # moving-static
-    evaluations[1].createClassesImagesOverviewChart(index = 63, imagesPerRow = 5, figSize = (7, 3.5), savePath = savePath)
-    evaluations[1].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [1, 2, 5, 7, 9, 14, 17, 22, 24, 29], highResolution = True, savePath = None)
-    evaluations[1].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [2, 3, 51, 11, 13, 14, 28, 33, 34, 38], highResolution = False, savePath = None) 
+    #evaluations[1].createClassesImagesOverviewChart(index = 63, imagesPerRow = 5, figSize = (7, 3.5), savePath = savePath)
+    #evaluations[1].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [1, 2, 5, 7, 9, 14, 17, 22, 24, 29], highResolution = True, savePath = None)
+    #evaluations[1].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [2, 3, 51, 11, 13, 14, 28, 33, 34, 38], highResolution = False, savePath = None) 
 
     # indoor-outdoor
-    evaluations[2].createClassesImagesOverviewChart(savePath = None)
-    evaluations[2].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [7, 1, 2, 5, 11, 30, 38, 36, 25, 33], highResolution = True, savePath = None)
-    evaluations[2].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [5, 6, 9, 12, 14, 34, 46, 53, 59, 21], highResolution = False, savePath = None) """
+    #evaluations[2].createClassesImagesOverviewChart(savePath = None)
+    #evaluations[2].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [10, 1, 2, 5, 11, 30, 38, 36, 25, 33, 34], highResolution = True, savePath = None)
+    #evaluations[2].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [5, 6, 9, 12, 14, 34, 46, 53, 59, 21], highResolution = False, savePath = None)
     
     # combined evaluations 
 
@@ -1099,7 +1171,7 @@ if __name__ == '__main__':
             combinedDistribution = exifTagDistribution
         else:
             combinedDistribution = combinedDistribution.add(exifTagDistribution, fill_value = 0)
-    evaluations[0].createExifTagDistributionChart(customSet = combinedDistribution, savePath = None)
+    #evaluations[0].createExifTagDistributionChart(customSet = combinedDistribution, savePath = None)
 
     # Trining Time Comparison
     #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, super = True)
@@ -1107,19 +1179,34 @@ if __name__ == '__main__':
     #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, savePath = None)
     #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = False)
 
-    evaluations[index].createMixedImageOnlyDelta(super = True, savePath = None) 
-    evaluations[index].createMixedImageOnlyDelta(super = False, savePath = None)
+    #evaluations[index].createMixedImageOnlyDelta(super = True, savePath = None) 
+    #evaluations[index].createMixedImageOnlyDelta(super = False, savePath = None)
 
     # Image-Only vs. Mixed Delta (Super, Sub)
-    evaluations[index].createMixedImageOnlyDeltaGroup(evaluations = evaluations, 
+    """ evaluations[index].createMixedImageOnlyDeltaGroup(evaluations = evaluations, 
                                                       categoryLabels = ["Landscape-Object\nSuper 50x50px", "Landscape-Object\nSuper 150x150px", "Landscape-Object\nSub 50x50px", "Landscape-Object\nSub 150x150px", 
                                                                         "Moving-Static\nSuper 50x50px", "Moving-Static\nSuper 150x150px", "Moving-Static\nSub 50x50px", "Moving-Static\nSub 150x150px", 
                                                                         "Indoor-Outdoor\nSuper 50x50px", "Indoor-Outdoor\nSuper 150x150px", "Indoor-Outdoor\nSub 50x50px", "Indoor-Outdoor\nSub 150x150px"], 
                                                       figSize = (20, 9), 
                                                       barWidth = 0.7,
                                                       yLimit = 0.05,
-                                                      savePath = None)
+                                                      savePath = None) """
 
-    evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = False)
-                                 
+
+    """ evaluations[index].createMixedImageOnlyAbsolutesGroup(evaluations = evaluations, 
+                                                          categoryLabels = ["Landscape-Object\nSuper 50x50px", "Landscape-Object\nSuper 150x150px", "Landscape-Object\nSub 50x50px", "Landscape-Object\nSub 150x150px", 
+                                                                        "Moving-Static\nSuper 50x50px", "Moving-Static\nSuper 150x150px", "Moving-Static\nSub 50x50px", "Moving-Static\nSub 150x150px", 
+                                                                        "Indoor-Outdoor\nSuper 50x50px", "Indoor-Outdoor\nSuper 150x150px", "Indoor-Outdoor\nSub 50x50px", "Indoor-Outdoor\nSub 150x150px"], 
+                                                          figSize = (20, 9), 
+                                                          barWidth = 0.6,
+                                                          yLimit = 1.001,
+                                                          savePath = None) """                                  
+
+    #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = False)
+    #evaluations[index].createTrainingTimeMixedvsImageOnlyComparison(super = False, savePath = None)
+    #evaluations[index].createModelParameterCountComparison(savePath = None)
+
+    evaluations[1].createEXIFFeatureImportanceChart(super = False, savePath = None)
+
     plt.show()
+

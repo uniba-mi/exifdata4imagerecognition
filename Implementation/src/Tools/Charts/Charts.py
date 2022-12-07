@@ -8,6 +8,7 @@ import numpy as np
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.lines import Line2D
 import matplotlib.image as mpimg
+from collections import OrderedDict
 
 def createBarChart(data: List, 
                    seriesLabels: List[str], 
@@ -20,6 +21,7 @@ def createBarChart(data: List,
                    grid: bool = False,
                    legendPosition: str = "lower left",
                    figSize: Tuple = (14.5, 8),
+                   yLabelFormatter: ticker.FuncFormatter = None,
                    barWidth: float = 0.88,
                    labelOffset: float = 0.014,
                    yLimit: float = None,
@@ -27,8 +29,9 @@ def createBarChart(data: List,
                    labelPostfix: str = "",
                    colors = [["steelblue", "darkolivegreen", "darkgoldenrod", "orangered"], 
                              ["skyblue", "darkseagreen", "goldenrod", "coral"],
-                             ["steelblue", "darkolivegreen", "darkgoldenrod", "orangered"], 
+                             ["skyblue", "darkseagreen", "goldenrod", "coral"], 
                              ["skyblue", "darkseagreen", "goldenrod", "coral"]],
+                   additionalLines: List[float] = None,
                    savePath: Path = None):
 
     axes = []
@@ -41,39 +44,61 @@ def createBarChart(data: List,
                        rowData, 
                        label = seriesLabels[outerIndex][innerIndex], 
                        edgecolor = "black",
-                       color = colors[outerIndex][innerIndex] if colors is not None else None, 
+                       linewidth = 1.0,
+                       alpha = 0.75 if outerIndex == 1 else 1.0,
+                       color = (colors[outerIndex][innerIndex] if colors is not None else None), 
                        width = barWidth / len(subData)))
 
     #font = {'fontname':'Times New Roman'}
 
     if categoryLabels:
         indexList = list(range(1, len(data[0][0]) + 1))
-        plt.xticks([(x - (barWidth / len(data[0]) * 2.0)) + ((len(data[0]) / 2.0) - 0.5) * (barWidth / len(data[0])) for x in indexList], categoryLabels) #fontsize = 18, rotation = 60) 
-
-    #params = {'mathtext.default': 'it',
-    #          'font.size': 18 }          
-    #plt.rcParams.update(params)
+        plt.xticks([(x - (barWidth / len(data[0]) * 2.0)) + ((len(data[0]) / 2.0) - 0.5) * (barWidth / len(data[0])) for x in indexList], categoryLabels,     fontsize = 18, rotation = 60) 
+    # prod
+    params = {'mathtext.default': 'it',
+              'font.size': 18 }          
+    plt.rcParams.update(params)
+    # prod
 
     if title:
         plt.title(title)
 
     if yLabel:
-        plt.ylabel(yLabel) #fontsize = 18)
-
+        plt.ylabel(yLabel,      fontsize = 18)
+    
     if seriesLabels[0][0] != "":
-        plt.legend(loc = legendPosition, ncol = 2)
+        handles, labels = plt.gca().get_legend_handles_labels()
+        if not additionalLines is None:
+            line = Line2D([0], [0], label = "EXIF-Only", color = "dimgrey", linestyle = "solid")
+            handles.extend([line])
+        #duplicatesRemovedLabels = OrderedDict(zip(labels, handles))
+        plt.legend(handles = handles, loc = legendPosition, ncol = 3 if not additionalLines is None else 2)
     
     ax = plt.gca()
     for spine in ax.spines:
         ax.spines[spine].set_visible(False)
 
+    if not additionalLines is None:
+        count = 1
+        centers = [(x - (barWidth / len(data[0]) * 2.0)) + ((len(data[0]) / 2.0) - 0.5) * (barWidth / len(data[0])) for x in indexList]
+        for val in additionalLines:
+            ax.plot([centers[count - 1] - (len(data[0]) / 2.0) * (barWidth / len(data[0])), centers[count - 1] + (len(data[0]) / 2.0) * (barWidth / len(data[0]))], [val, val],
+                    linestyle = "solid", linewidth = 2, color = "dimgrey")
+            count += 1
+
     if grid:
         plt.grid(color = "gray", linestyle = '--', linewidth = 0.5, which = "both")
     
+    if yLabelFormatter != None:
+        if yLimit != None:
+            ax.yaxis.set_ticks(np.arange(ax.get_ylim()[0], yLimit, 0.05))
+        ax.yaxis.set_major_formatter(yLabelFormatter)
+
     if yLimit != None:
-        ax.set_ylim([ax.get_ylim()[0], yLimit])
+        ax.set_ylim([0.3, yLimit]) #ax.get_ylim()[0]
     
-    #plt.yticks(fontsize = 18)
+    # prod
+    plt.yticks(fontsize = 18)
 
     if showValues:
         bars = []

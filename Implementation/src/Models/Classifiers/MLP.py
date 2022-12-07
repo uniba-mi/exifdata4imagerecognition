@@ -14,7 +14,7 @@ def createModel(inputSize: int, outputSize: int, optimizer, dropoutRate: float, 
     """ Creates a model according to the given input parameters. """
 
     model = Sequential()
-    model.add(Dense(256, input_dim = inputSize, activation = "relu", activity_regularizer = l1(0.0001)))
+    model.add(Dense(256, input_dim = inputSize, activation = "relu", activity_regularizer = l2(alpha)))
     model.add(Dense(128, activation = "relu", activity_regularizer = l2(alpha)))
     model.add(Dense(64, activation = "relu", activity_regularizer = l2(alpha)))
     model.add(Dense(32, activation = "relu", activity_regularizer = l2(alpha)))

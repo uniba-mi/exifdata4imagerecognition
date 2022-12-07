@@ -263,7 +263,7 @@ class FlickrCrawler(object):
         else:
             raise CrawlerError("no photos found for the search term: " + searchTerm)
     
-    def checkLicense(self, photoId: str) -> str:
+    def checkLicense(self, photoId: str) -> tuple:
         """ Downloads the type of licence and visibility associated with a photo and returns it.
          { "id": 0, "name": "All Rights Reserved", "url": "" },
          { "id": 4, "name": "Attribution License", "url": "https:\/\/creativecommons.org\/licenses\/by\/2.0\/" },

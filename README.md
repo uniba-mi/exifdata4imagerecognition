@@ -10,7 +10,8 @@ The programming language of the project is [Python](https://www.python.org/), ve
 
 - [TensorFlow 2.9.2](https://pypi.org/project/tensorflow/2.9.2/)
 - [Keras 2.9.0](https://pypi.org/project/keras/2.9.0/)
-- [SciPi 1.8.1](https://scipy.org/)
+- [Numpy 1.22.4](https://pypi.org/project/numpy/1.22.4/)
+- [SciPi 1.8.1](https://pypi.org/project/scipy/1.8.1/)
 - [Pandas 1.4.2](https://pypi.org/project/pandas/1.4.2/)
 - [Pillow 9.1.1](https://pypi.org/project/Pillow/9.1.1/)
 - [AIOHTTP 3.8.1](https://pypi.org/project/aiohttp/3.8.1/)

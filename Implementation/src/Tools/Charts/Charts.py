@@ -95,7 +95,7 @@ def createBarChart(data: List,
         ax.yaxis.set_major_formatter(yLabelFormatter)
 
     if yLimit != None:
-        ax.set_ylim([0.3, yLimit]) #ax.get_ylim()[0]
+        ax.set_ylim([0.2, yLimit]) #ax.get_ylim()[0]
     
     # prod
     plt.yticks(fontsize = 18)
@@ -325,7 +325,7 @@ def createTrainingAccuracyLossChart(dataFrames: List[pd.DataFrame],
                    Line2D([0], [0], color = "orange", lw = 2)]
     
     legendLabels = ["training set " + (dataIndexKey if dataIndexKey == "loss" else "accuracy"), 
-                    "test set " + (dataIndexKey if dataIndexKey == "loss" else "accuracy"), 
+                    "validation set " + (dataIndexKey if dataIndexKey == "loss" else "accuracy"), 
                     "target epoch",
                     "start fine-tuning"]
     

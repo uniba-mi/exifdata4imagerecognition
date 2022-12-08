@@ -98,7 +98,7 @@ def createEvaluationFiles(dataGenerator: BatchGenerator, model: Model, name: str
                 writer.writerow([identifier.tolist()])
 
     # create classification report
-    classificationReport = classification_report(predictionResult.trueY, predictionResult.predictionYRounded, digits = 3, output_dict = True, target_names = classNames) 
+    classificationReport = classification_report(predictionResult.trueY, predictionResult.predictionYRounded, digits = 3, output_dict = True, target_names = classNames, zero_division = 0) 
     reportDataFrame = pd.DataFrame(data = classificationReport).transpose().round(3)
     reportDataFrame.to_csv(storagePath.joinpath(name + "_classification_report.csv"))
 

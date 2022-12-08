@@ -22,7 +22,7 @@ class MLPTrainingTests(unittest.TestCase):
                                         batchSize = 128,
                                         useSuperConcepts = False,
                                         exifOnly = True,
-                                        seed = 131)
+                                        seed = 46)
         
         # create training task
         trainingTask = TrainingTask(classifier = MLPClassifier(name = "IndoorOutdoorSub"), 

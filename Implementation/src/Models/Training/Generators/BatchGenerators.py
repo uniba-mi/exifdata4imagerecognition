@@ -124,8 +124,13 @@ class BatchGenerator(ABC, Sequence):
         trueY = self.trueLabels(len(predictionY))
         trueYMax = np.argmax(trueY, axis = 1)
 
-        # round prediction (this is setting the top k probabilities to 1.0 and all other to 0.0)
-        predictionYRounded = predictionYTopK(trueY, predictionY)
+        if multiLabel:
+            # round with threshold for each label individually
+            threshold = 0.5
+            predictionYRounded = np.where(predictionY >= threshold, 1, 0)
+        else:
+            # round prediction (this is setting the top k probabilities to 1.0 and all other to 0.0) k = 1 
+            predictionYRounded = predictionYTopK(trueY, predictionY)
 
         return BatchGeneratorClassificationResult(predictionY, predictionYMax, predictionYRounded, trueY, trueYMax, duration)
 

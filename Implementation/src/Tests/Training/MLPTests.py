@@ -12,7 +12,7 @@ class MLPTrainingTests(unittest.TestCase):
         #dataSetPaths = { TestTrainingConstants.datasetFilePath : ExifImageTrainingDataFormats.Flickr,
         #                 TestTrainingConstants.mirFlickrRelevantFilePath : ExifImageTrainingDataFormats.MirFlickr }
 
-        dataSetPaths = { TestTrainingConstants.indoorOutdoorFilePath : ExifImageTrainingDataFormats.Flickr }
+        dataSetPaths = { TestTrainingConstants.movingStaticFilePath : ExifImageTrainingDataFormats.Flickr }
 
         dataProvider = ExifImageProvider(dataSetsPaths = dataSetPaths,
                                         cachePath = TestTrainingConstants.cacheStoragePath,
@@ -25,7 +25,7 @@ class MLPTrainingTests(unittest.TestCase):
                                         seed = 46)
         
         # create training task
-        trainingTask = TrainingTask(classifier = MLPClassifier(name = "IndoorOutdoorSub"), 
+        trainingTask = TrainingTask(classifier = MLPClassifier(name = "MovingStatic"), 
                                     storagePath = TestTrainingConstants.modelDirectory, 
                                     provider = dataProvider)
         trainingTask.run(epochs = 500, earlyStoppingPatience = 50, optimize = "loss")

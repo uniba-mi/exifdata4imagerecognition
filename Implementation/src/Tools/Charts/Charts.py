@@ -58,6 +58,7 @@ def createBarChart(data: List,
     params = {'mathtext.default': 'it',
               'font.size': 18 }          
     plt.rcParams.update(params)
+    print(plt.rcParams['font.family'])
     # prod
 
     if title:
@@ -69,9 +70,13 @@ def createBarChart(data: List,
     if seriesLabels[0][0] != "":
         handles, labels = plt.gca().get_legend_handles_labels()
         if not additionalLines is None:
-            line = Line2D([0], [0], label = "EXIF-Only", color = "dimgrey", linestyle = "solid")
+            line = Line2D([0], [0], label = "EXIF-Only", color = "black", linestyle = "solid")
+            dummyLine = Line2D([0], [0], label = "", color = "w", alpha = 0)
+            handles.extend([dummyLine])
+            handles.extend([dummyLine])
+            handles.extend([dummyLine])
             handles.extend([line])
-        #duplicatesRemovedLabels = OrderedDict(zip(labels, handles))
+        duplicatesRemovedLabels = OrderedDict(zip(labels, handles))
         plt.legend(handles = handles, loc = legendPosition, ncol = 3 if not additionalLines is None else 2)
     
     ax = plt.gca()
@@ -83,7 +88,7 @@ def createBarChart(data: List,
         centers = [(x - (barWidth / len(data[0]) * 2.0)) + ((len(data[0]) / 2.0) - 0.5) * (barWidth / len(data[0])) for x in indexList]
         for val in additionalLines:
             ax.plot([centers[count - 1] - (len(data[0]) / 2.0) * (barWidth / len(data[0])), centers[count - 1] + (len(data[0]) / 2.0) * (barWidth / len(data[0]))], [val, val],
-                    linestyle = "solid", linewidth = 2, color = "dimgrey")
+                    linestyle = "solid", linewidth = 2, color = "black")
             count += 1
 
     if grid:

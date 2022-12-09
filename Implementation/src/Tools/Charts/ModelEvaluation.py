@@ -893,7 +893,7 @@ class ModelEvaluation(object):
                                                             super: bool = False,
                                                             combineSuperSub: bool = False,
                                                             separateCnns: bool = True,
-                                                            figSize: Tuple = (6, 5),
+                                                            figSize: Tuple = (6, 3.0), #5.0
                                                             barWidth: float = 0.8,
                                                             savePath = None):
         totalsIO50 = np.zeros(shape = (4))
@@ -963,7 +963,7 @@ class ModelEvaluation(object):
             showValues = True,
             showNegativeValues = True,
             valueFormat = "{:.1f}",
-            labelOffset = 0.6, #-0.4,
+            labelOffset = 0.9, #-0.4,
             labelPostfix = "%",
             title = "" if combineSuperSub else "Super" if super else "",
             yLabel = "Δ Average Training Time in %", # \n(Mixed vs. Image-Only)",
@@ -1404,14 +1404,14 @@ if __name__ == '__main__':
                                                       savePath = None) """
 
 
-    evaluations[index].createMixedImageOnlyAbsolutesGroup(evaluations = evaluations, 
+    """ evaluations[index].createMixedImageOnlyAbsolutesGroup(evaluations = evaluations, 
                                                           categoryLabels = ["Landscape-Object\nSuper 50x50px", "Landscape-Object\nSuper 150x150px", "Landscape-Object\nSub 50x50px", "Landscape-Object\nSub 150x150px", 
                                                                         "Moving-Static\nSuper 50x50px", "Moving-Static\nSuper 150x150px", "Moving-Static\nSub 50x50px", "Moving-Static\nSub 150x150px", 
                                                                         "Indoor-Outdoor\nSuper 50x50px", "Indoor-Outdoor\nSuper 150x150px", "Indoor-Outdoor\nSub 50x50px", "Indoor-Outdoor\nSub 150x150px"], 
                                                           figSize = (20, 9), 
                                                           barWidth = 0.6,
                                                           yLimit = 1.001,
-                                                          savePath = savePath)                                  
+                                                          savePath = savePath) """                                  
 
     #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = False)
     #evaluations[index].createTrainingTimeMixedvsImageOnlyComparison(super = False, savePath = None)
@@ -1419,8 +1419,10 @@ if __name__ == '__main__':
 
     #evaluations[0].createConfusionMatrix(EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B0, argMaxOnly = True)
 
+    #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = True, savePath = savePath)
+
     """ cfBasePath = "/Users/ralflederer/Desktop/cf/"
-    argMaxOnly = False
+    argMaxOnly = True
     addNotPredictedClass = False
     for evaluation in evaluations:
         evaluation.createConfusionMatrix(EvaluationTarget.SUB_EXIF_ONLY, argMaxOnly = argMaxOnly, addNotPredictedClass = addNotPredictedClass, savePath = cfBasePath + evaluation.name + "_exif.png")
@@ -1429,4 +1431,4 @@ if __name__ == '__main__':
         evaluation.createConfusionMatrix(EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B0, argMaxOnly = argMaxOnly, addNotPredictedClass = addNotPredictedClass, savePath = cfBasePath + evaluation.name + "_io_high.png")
         evaluation.createConfusionMatrix(EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B0, argMaxOnly = argMaxOnly, addNotPredictedClass = addNotPredictedClass, savePath = cfBasePath + evaluation.name + "_mixed_high.png") """
 
-    #plt.show()
+    plt.show()

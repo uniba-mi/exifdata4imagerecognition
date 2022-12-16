@@ -53,19 +53,19 @@ def createBarChart(data: List,
 
     if categoryLabels:
         indexList = list(range(1, len(data[0][0]) + 1))
-        plt.xticks([(x - (barWidth / len(data[0]) * 2.0)) + ((len(data[0]) / 2.0) - 0.5) * (barWidth / len(data[0])) for x in indexList], categoryLabels,     fontsize = 18, rotation = 60) 
+        plt.xticks([(x - (barWidth / len(data[0]) * 2.0)) + ((len(data[0]) / 2.0) - 0.5) * (barWidth / len(data[0])) for x in indexList], categoryLabels)#,     fontsize = 18, rotation = 60) 
     # prod
-    params = {'mathtext.default': 'it',
-              'font.size': 18 }          
-    plt.rcParams.update(params)
-    print(plt.rcParams['font.family'])
+    #params = {'mathtext.default': 'it',
+    #          'font.size': 18 }          
+    #plt.rcParams.update(params)
+    #print(plt.rcParams['font.family'])
     # prod
 
     if title:
         plt.title(title)
 
     if yLabel:
-        plt.ylabel(yLabel,      fontsize = 18)
+        plt.ylabel(yLabel),      #fontsize = 18)
     
     if seriesLabels[0][0] != "":
         handles, labels = plt.gca().get_legend_handles_labels()
@@ -103,7 +103,7 @@ def createBarChart(data: List,
         ax.set_ylim([0.2, yLimit]) #ax.get_ylim()[0]
     
     # prod
-    plt.yticks(fontsize = 18)
+    #plt.yticks(fontsize = 18)
 
     if showValues:
         bars = []

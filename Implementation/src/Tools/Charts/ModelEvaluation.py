@@ -893,7 +893,7 @@ class ModelEvaluation(object):
                                                             super: bool = False,
                                                             combineSuperSub: bool = False,
                                                             separateCnns: bool = True,
-                                                            figSize: Tuple = (6, 3.0), #5.0
+                                                            figSize: Tuple = (6, 2.8), #5.0
                                                             barWidth: float = 0.8,
                                                             savePath = None):
         totalsIO50 = np.zeros(shape = (4))
@@ -902,13 +902,25 @@ class ModelEvaluation(object):
         totalsMixed150 = np.zeros(shape = (4))
         totalExif = np.zeros(shape = (1))
 
+        fracs50MobileNetV2 = list()
+        fracs50EfficientNetB0 = list()
+        fracs50EfficientNetB4 = list()
+        fracs50ResNet50V2 = list()
+
+        fracs150MobileNetV2 = list()
+        fracs150EfficientNetB0 = list()
+        fracs150EfficientNetB4 = list()
+        fracs150ResNet50V2 = list()
+
         targets = [super]
 
         if combineSuperSub:
             targets = [True, False] # targets for super and sub together
         
+        loops = 0
         for modelEvaluation in evaluations:
             for target in targets:
+                loops += 1
                 trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150 = modelEvaluation.trainingTimes(super = target)
                 exifTime = modelEvaluation.trainingTimes(super = target, exif = True)
 
@@ -918,8 +930,12 @@ class ModelEvaluation(object):
 
                 sum50IO = np.sum(trainingTimeIO50)
                 sum50Mixed = np.sum(trainingTimeMixed50)
-                totalDif50 = sum50Mixed - sum50IO
-                frac50 = 1 - (sum50Mixed / sum50IO)
+                frac50 = 1.0 - np.divide(trainingTimeMixed50, trainingTimeIO50)
+
+                fracs50MobileNetV2.append(frac50[0])
+                fracs50EfficientNetB0.append(frac50[1])
+                fracs50EfficientNetB4.append(frac50[2])
+                fracs50ResNet50V2.append(frac50[3])
 
                 #print("sum:50 IO " + str(sum50IO))
                 #print("sum:50 Mixed " + str(sum50Mixed))
@@ -931,30 +947,47 @@ class ModelEvaluation(object):
         
                 sum150IO = np.sum(trainingTimeIO150)
                 sum150Mixed = np.sum(trainingTimeMixed150)
-                totalDif150 = sum150Mixed - sum150IO
-                frac150 = 1 - (sum150Mixed / sum150IO)
+                frac150 = 1.0 - np.divide(trainingTimeMixed150, trainingTimeIO150)
+
+                fracs150MobileNetV2.append(frac150[0])
+                fracs150EfficientNetB0.append(frac150[1])
+                fracs150EfficientNetB4.append(frac150[2])
+                fracs150ResNet50V2.append(frac150[3])
 
                 #print("sum:150 IO " + str(sum150IO))
                 #print("sum:150 Mixed " + str(sum150Mixed))
                 #print("total_dif:150 " + str(totalDif150))
                 #print("frac:150 " + str(frac150))
 
-        dem = len(evaluations) * (2 if combineSuperSub else 1)
-        averageIOTime = (sum(totalsIO150) + sum(totalsIO50)) / len(totalsIO150) / (dem * 2)
-        averageMixedTime = (sum(totalsMixed150) + sum(totalsMixed50)) / len(totalsMixed150) / (dem * 2)
-        averageExifTime = sum(totalExif) / (dem * 2)
-        averageTrainingTime = (averageIOTime + averageMixedTime) / 2.0
-        print(averageIOTime)
-        print(averageMixedTime)
-        print(averageTrainingTime)
-        print(averageExifTime)
+        
+        avg50 = [np.sum(fracs50MobileNetV2) / len(fracs50MobileNetV2), np.sum(fracs50EfficientNetB0) / len(fracs50EfficientNetB0), np.sum(fracs50EfficientNetB4) / len(fracs50EfficientNetB4), np.sum(fracs50ResNet50V2) / len(fracs50ResNet50V2)]
+        avg150 = [np.sum(fracs150MobileNetV2) / len(fracs150MobileNetV2), np.sum(fracs150EfficientNetB0) / len(fracs150EfficientNetB0), np.sum(fracs150EfficientNetB4) / len(fracs150EfficientNetB4), np.sum(fracs150ResNet50V2) / len(fracs150ResNet50V2)]
+        allAvgs = avg50 + avg150
+
+        averageIOTime50 = (sum(totalsIO50) / len(totalsIO50)) / loops
+        averageIOTime150 = (sum(totalsIO150) / len(totalsIO150)) / loops
+        averageMixed50Time = (sum(totalsMixed50) / len(totalsMixed50)) / loops
+        averageMixed150Time = (sum(totalsMixed150) / len(totalsMixed150)) / loops
+        averageExifTime = sum(totalExif) / loops
+
+        print(averageIOTime50 / 60)
+        print(averageIOTime150 / 60)
+        print(averageMixed50Time / 60)
+        print(averageMixed150Time / 60)
+        print(averageExifTime / 60)
 
         if separateCnns:
             fracs50 = (1.0 - np.divide(totalsMixed50, totalsIO50)) * -100
             fracs150 = (1.0 - np.divide(totalsMixed150, totalsIO150)) * -100
+
+            fracs50 = [x * -100 for x in avg50]
+            fracs150 = [x * -100 for x in avg150]
         else:
             fracs50 = [(1.0 - (sum(totalsMixed50) / sum(totalsIO50))) * -100]
             fracs150 = [(1.0 - (sum(totalsMixed150) / sum(totalsIO150))) * -100]
+
+            fracs50 = [(sum(avg50) / len(avg50)) * -100]
+            fracs150 = [(sum(avg150) / len(avg150)) * -100]
 
         createBarChart(
             [[fracs50, fracs150]], 
@@ -1382,7 +1415,7 @@ if __name__ == '__main__':
             combinedDistribution = exifTagDistribution
         else:
             combinedDistribution = combinedDistribution.add(exifTagDistribution, fill_value = 0)
-    #evaluations[0].createExifTagDistributionChart(customSet = combinedDistribution, savePath = None)
+    evaluations[0].createExifTagDistributionChart(customSet = combinedDistribution, savePath = savePath)
 
     # Trining Time Comparison
     #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, super = True)
@@ -1400,7 +1433,7 @@ if __name__ == '__main__':
                                                                         "Indoor-Outdoor\nSuper 50x50px", "Indoor-Outdoor\nSuper 150x150px", "Indoor-Outdoor\nSub 50x50px", "Indoor-Outdoor\nSub 150x150px"], 
                                                       figSize = (20, 9), 
                                                       barWidth = 0.7,
-                                                      yLimit = 0.05,
+                                                      #yLimit = 0.05,
                                                       savePath = None) """
 
 
@@ -1414,12 +1447,11 @@ if __name__ == '__main__':
                                                           savePath = savePath) """                                  
 
     #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = False)
-    #evaluations[index].createTrainingTimeMixedvsImageOnlyComparison(super = False, savePath = None)
+    #evaluations[2].createTrainingTimeMixedvsImageOnlyComparison(super = True, savePath = None)
     #evaluations[index].createModelParameterCountComparison(savePath = None)
 
     #evaluations[0].createConfusionMatrix(EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B0, argMaxOnly = True)
-
-    #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = True, savePath = savePath)
+    #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = False, savePath = savePath)
 
     """ cfBasePath = "/Users/ralflederer/Desktop/cf/"
     argMaxOnly = True

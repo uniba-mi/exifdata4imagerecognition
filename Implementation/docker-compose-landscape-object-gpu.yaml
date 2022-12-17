@@ -20,14 +20,14 @@ volumes:
     driver_opts:
       o: bind
       type: none
-      device: /home/user79/thesis/resources #/Users/ralflederer/Documents/Studium/Master/Masterarbeit/Implementation/resources
+      device: /home/user79/thesis/resources
   
   ma-lederer-models:
     driver: local
     driver_opts:
       o: bind
       type: none
-      device: /home/user79/thesis/models #/Users/ralflederer/Documents/Studium/Master/Masterarbeit/Implementation/models
+      device: /home/user79/thesis/models
 
 #################################
 # 🆃🆁🅰🅸🅽🅸🅽🅶 🆃🅰🆂🅺🆂 - 🅻🅰🅽🅳🆂🅲🅰🅿🅴 🅾🅱🅹🅴🅲🆃

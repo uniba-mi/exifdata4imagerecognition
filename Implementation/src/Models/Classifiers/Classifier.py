@@ -49,7 +49,7 @@ class Classifier(object):
         self.lastEarlyStoppingPatience = 0
 
     def train(self, trainDataGenerator: BatchGenerator, 
-                    testDataGenerator: BatchGenerator, 
+                    validationDataGenerator: BatchGenerator, 
                     epochs: int,
                     earlyStoppingPatience: int = 0,
                     optimize: str = "accuracy",
@@ -101,7 +101,7 @@ class Classifier(object):
             callbacks.append(TensorBoard(log_dir = logDir))
 
         history = self.model.fit(trainDataGenerator,
-                                 validation_data = testDataGenerator,
+                                 validation_data = validationDataGenerator,
                                  epochs = epochs,
                                  initial_epoch = startEpoch,
                                  callbacks = callbacks,
@@ -140,7 +140,7 @@ class FineTuneClassifier(Classifier):
         self.fineTuneEpochs = fineTuneEpochs
 
     def train(self, trainDataGenerator: BatchGenerator, 
-                    testDataGenerator: BatchGenerator, 
+                    validationDataGenerator: BatchGenerator, 
                     epochs: int,
                     earlyStoppingPatience: int = 10,
                     optimize: str = "accuracy",
@@ -154,7 +154,7 @@ class FineTuneClassifier(Classifier):
 
         # first we train the initial epochs (with most model params locked), before we do the fine-tuning of the model
         history = super().train(trainDataGenerator = trainDataGenerator, 
-                                testDataGenerator = testDataGenerator,
+                                validationDataGenerator = validationDataGenerator,
                                 epochs = epochs - self.fineTuneEpochs,
                                 optimize = optimize,
                                 startEpoch = startEpoch,
@@ -212,7 +212,7 @@ class FineTuneClassifier(Classifier):
 
             # for fine-tune training we use a learning-rate scheduler
             historyFineTuning =  super().train(trainDataGenerator = trainDataGenerator, 
-                                               testDataGenerator = testDataGenerator,
+                                               validationDataGenerator = validationDataGenerator,
                                                epochs = self.fineTuneEpochs,
                                                earlyStoppingPatience = earlyStoppingPatience,
                                                optimize = optimize,

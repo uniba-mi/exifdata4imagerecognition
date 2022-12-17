@@ -63,13 +63,17 @@ def readImageMetadata(directoryPath: str, serverDummy: str) -> list:
     if datasetPath.exists() and datasetPath.is_dir():
         imagePaths = [file for file in datasetPath.rglob("*.jpg") if file.is_file()]
         print("found " + str(len(imagePaths)) + " images")
-        imageMetadata = []
+        imageMetadata = {}
         for path in imagePaths:
-            parts = Path(path).name.split("_")
+            p = Path(path)
+            parts = p.name.split("_")
+            conceptName = p.parent.parent.stem
             if len(parts) > 1:
-                imageMetadata.append({ FlickrCodingKeys.IMAGE_ID.value: parts[0], 
-                                       FlickrCodingKeys.SECRET.value: parts[1],
-                                       FlickrCodingKeys.SERVER.value: serverDummy if len(parts) < 4 else parts[2] })
+                if not conceptName in imageMetadata.keys():
+                    imageMetadata[conceptName] = []
+                imageMetadata[conceptName].append({ FlickrCodingKeys.IMAGE_ID.value: parts[0], 
+                                                    FlickrCodingKeys.SECRET.value: parts[1],
+                                                    FlickrCodingKeys.SERVER.value: serverDummy if len(parts) < 4 else parts[2] })
     else:
         raise ValueError("not dataset at given location")
     return imageMetadata
@@ -202,4 +206,3 @@ def shrinkDataset(imagesPerClass: int, directoryPath: str, destinationDirectoryP
                         raise ValueError("no exif file found for image with id: " + imageId)
     else:
         raise ValueError("no dataset directory found at: " + directoryPath)
-        

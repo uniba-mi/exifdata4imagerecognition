@@ -58,8 +58,8 @@ class ExifImageProvider(BatchGeneratorProvider):
     def __init__(self, dataSetsPaths: Dict[str, ExifImageTrainingDataFormats],
                        cachePath: str, 
                        trainSize: float,
-                       testSize: float,
                        validationSize: float,
+                       testSize: float,
                        batchSize: int = 32,
                        imageSize: Tuple = (150, 150),
                        useSuperConcepts: bool = False,
@@ -216,12 +216,16 @@ class ExifImageProvider(BatchGeneratorProvider):
         # split in train / test / val set
         splitter = DataFrameTrainingSplitter(targetLabel = "Target_Encoded", 
                                              trainRatio = self.trainSize,
+                                             validationRatio = self.validationSize,
                                              testRatio = self.testSize,
-                                             validationRatio = self.validationSize, 
                                              seed = self.seed,
                                              dropColumns = ["ImagePath"] if self.exifOnly else [])
         
-        trainX, trainY, testX, testY, valX, valY = splitter.transform(data = dataFrame)
+        trainX, trainY, valX, valY, testX, testY = splitter.transform(data = dataFrame)
+
+        print(len(trainX))
+        print(len(valX))
+        print(len(testX))
 
         # replace the id columns from the dataframes and store them separately
         idTrain = trainX["id"]
@@ -240,18 +244,19 @@ class ExifImageProvider(BatchGeneratorProvider):
         if self.exifOnly:
             self.inputShape = trainX.shape[1]
             self.cachedGenerators = (EXIFGenerator(trainX, trainY, idTrain, batchSize = self.batchSize),
-                                     EXIFGenerator(testX, testY, idTest, batchSize = self.batchSize) if not testX is None and not testY is None else None,
-                                     EXIFGenerator(valX, valY, idVal, batchSize = self.batchSize) if not valX is None and not valY is None else None)
+                                     EXIFGenerator(valX, valY, idVal, batchSize = self.batchSize) if not valX is None and not valY is None else None,
+                                     EXIFGenerator(testX, testY, idTest, batchSize = self.batchSize) if not testX is None and not testY is None else None)
             return self.cachedGenerators
         elif self.imageOnly:
             self.inputShape = (self.imageSize[0], self.imageSize[1], 3)
             self.cachedGenerators = (ImageGenerator(trainX, trainY, idTrain, imagePathColumn = "ImagePath", imageSize = self.imageSize, batchSize = self.batchSize),
-                                     ImageGenerator(testX, testY, idTest, imagePathColumn = "ImagePath", imageSize = self.imageSize, batchSize = self.batchSize) if not testX is None and not testY is None else None,
-                                     ImageGenerator(valX, valY, idVal, imagePathColumn = "ImagePath", imageSize = self.imageSize, batchSize = self.batchSize) if not valX is None and not valY is None else None)
+                                     ImageGenerator(valX, valY, idVal, imagePathColumn = "ImagePath", imageSize = self.imageSize, batchSize = self.batchSize) if not valX is None and not valY is None else None,
+                                     ImageGenerator(testX, testY, idTest, imagePathColumn = "ImagePath", imageSize = self.imageSize, batchSize = self.batchSize) if not testX is None and not testY is None else None)
+                                     
             return self.cachedGenerators
         else:
             self.inputShape = ((self.imageSize[0], self.imageSize[1], 3), trainX.shape[1] - 1)
             self.cachedGenerators = (EXIFImageGenerator(trainX, trainY, idTrain, imagePathColumn = "ImagePath", imageSize = self.imageSize, batchSize = self.batchSize),
-                                     EXIFImageGenerator(testX, testY, idTest, imagePathColumn = "ImagePath", imageSize = self.imageSize, batchSize = self.batchSize) if not testX is None and not testY is None else None,
-                                     EXIFImageGenerator(valX, valY, idVal, imagePathColumn = "ImagePath", imageSize = self.imageSize, batchSize = self.batchSize) if not valX is None and not valY is None else None)
+                                     EXIFImageGenerator(valX, valY, idVal, imagePathColumn = "ImagePath", imageSize = self.imageSize, batchSize = self.batchSize) if not valX is None and not valY is None else None,
+                                     EXIFImageGenerator(testX, testY, idTest, imagePathColumn = "ImagePath", imageSize = self.imageSize, batchSize = self.batchSize) if not testX is None and not testY is None else None)
             return self.cachedGenerators

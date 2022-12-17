@@ -94,8 +94,7 @@ class EvaluationFiles(Enum):
     CLASS_NAMES = "class_names.txt"
     TRAINING_HISTORY = "training_history.csv"
     TRAINING_TIME = "training_time.txt"
-    VALIDATION_MISSCLASSIFIED_IDS = "validation_misclassified_ids.csv"
-    VALIDATION_FEATURE_IMPORTANCE = "validation_feature_importance.csv"
+    TEST_FEATURE_IMPORTANCE = "test_feature_importance.csv"
     MODEL_PARAMS = "model_parameters.txt"
     VALIDATION_LABELS = "validation_labels.csv"
     TEST_LABELS = "test_labels.csv"
@@ -104,12 +103,10 @@ class EvaluationFiles(Enum):
     def read(self, path: Path) -> Any:
         if self == EvaluationFiles.CLASS_NAMES:
             return pd.read_csv(path).columns.to_numpy().tolist()
-        elif self == EvaluationFiles.VALIDATION_FEATURE_IMPORTANCE:
+        elif self == EvaluationFiles.TEST_FEATURE_IMPORTANCE:
             return pd.read_csv(path, header = None, index_col = 0).transpose()
         elif self == EvaluationFiles.TRAINING_TIME:
             return float(pd.read_csv(path).columns.to_numpy()[0])
-        elif self == EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS:
-            return [elem[0] for elem in pd.read_csv(path, header = None).to_numpy().tolist()]
         elif self == EvaluationFiles.TRAINING_HISTORY:
             return pd.read_csv(path, index_col = 0).transpose()
         elif any([self == EvaluationFiles.VALIDATION_LABELS,
@@ -212,23 +209,23 @@ class ModelEvaluation(object):
     def imageIds(self, super: bool = True, highResolution: bool = True, count: bool = False):
         """ Returns image IDs of images correctly classified by mixed models but incorrectly by image only classifiers. """
         if highResolution:
-            idsImageOnlyMobileNetV2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_MOBILENET_V2 if super else EvaluationTarget.SUB_IMAGEONLY_150_MOBILENET_V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsImageOnlyEfficientNetB0 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B0 if super else EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B0][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsImageOnlyEfficientNetB4 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B4 if super else EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B4][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsImageOnlyResNet50V2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_RESNET_50V2 if super else EvaluationTarget.SUB_IMAGEONLY_150_RESNET_50V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedMobileNetV2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_MOBILENET_V2 if super else EvaluationTarget.SUB_MIXED_150_MOBILENET_V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedEfficientNetB0 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B0 if super else EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B0][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedEfficientNetB4 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B4 if super else EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B4][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedResNet50V2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_150_RESNET_50V2 if super else EvaluationTarget.SUB_MIXED_150_RESNET_50V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsImageOnlyMobileNetV2 = self.createClassificationReport(EvaluationTarget.SUPER_IMAGEONLY_150_MOBILENET_V2 if super else EvaluationTarget.SUB_IMAGEONLY_150_MOBILENET_V2, super = super, returnWrongIds = True)
+            idsImageOnlyEfficientNetB0 = self.createClassificationReport(EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B0 if super else EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B0, super = super, returnWrongIds = True)
+            idsImageOnlyEfficientNetB4 = self.createClassificationReport(EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B4 if super else EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B4, super = super, returnWrongIds = True)
+            idsImageOnlyResNet50V2 = self.createClassificationReport(EvaluationTarget.SUPER_IMAGEONLY_150_RESNET_50V2 if super else EvaluationTarget.SUB_IMAGEONLY_150_RESNET_50V2, super = super, returnWrongIds = True)
+            idsMixedMobileNetV2 = self.createClassificationReport(EvaluationTarget.SUPER_MIXED_150_MOBILENET_V2 if super else EvaluationTarget.SUB_MIXED_150_MOBILENET_V2, super = super, returnWrongIds = True)
+            idsMixedEfficientNetB0 = self.createClassificationReport(EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B0 if super else EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B0, super = super, returnWrongIds = True)
+            idsMixedEfficientNetB4 = self.createClassificationReport(EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B4 if super else EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B4, super = super, returnWrongIds = True)
+            idsMixedResNet50V2 = self.createClassificationReport(EvaluationTarget.SUPER_MIXED_150_RESNET_50V2 if super else EvaluationTarget.SUB_MIXED_150_RESNET_50V2, super = super, returnWrongIds = True)
         else:
-            idsImageOnlyMobileNetV2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_MOBILENET_V2 if super else EvaluationTarget.SUB_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsImageOnlyEfficientNetB0 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B0 if super else EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B0][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsImageOnlyEfficientNetB4 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B4 if super else EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B4][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsImageOnlyResNet50V2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_RESNET_50V2 if super else EvaluationTarget.SUB_IMAGEONLY_50_RESNET_50V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedMobileNetV2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_MOBILENET_V2 if super else EvaluationTarget.SUB_MIXED_50_MOBILENET_V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedEfficientNetB0 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B0 if super else EvaluationTarget.SUB_MIXED_50_EFFICIENTNET_B0][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedEfficientNetB4 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B4 if super else EvaluationTarget.SUB_MIXED_50_EFFICIENTNET_B4][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
-            idsMixedResNet50V2 = self.evaluationTargetFiles[EvaluationTarget.SUPER_MIXED_50_RESNET_50V2 if super else EvaluationTarget.SUB_MIXED_50_RESNET_50V2][EvaluationFiles.VALIDATION_MISSCLASSIFIED_IDS]
+            idsImageOnlyMobileNetV2 = self.createClassificationReport(EvaluationTarget.SUPER_IMAGEONLY_50_MOBILENET_V2 if super else EvaluationTarget.SUB_IMAGEONLY_50_MOBILENET_V2, super = super, returnWrongIds = True)
+            idsImageOnlyEfficientNetB0 = self.createClassificationReport(EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B0 if super else EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B0, super = super, returnWrongIds = True)
+            idsImageOnlyEfficientNetB4 = self.createClassificationReport(EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B4 if super else EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B4, super = super, returnWrongIds = True)
+            idsImageOnlyResNet50V2 = self.createClassificationReport(EvaluationTarget.SUPER_IMAGEONLY_50_RESNET_50V2 if super else EvaluationTarget.SUB_IMAGEONLY_50_RESNET_50V2, super = super, returnWrongIds = True)
+            idsMixedMobileNetV2 = self.createClassificationReport(EvaluationTarget.SUPER_MIXED_50_MOBILENET_V2 if super else EvaluationTarget.SUB_MIXED_50_MOBILENET_V2, super = super, returnWrongIds = True)
+            idsMixedEfficientNetB0 = self.createClassificationReport(EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B0 if super else EvaluationTarget.SUB_MIXED_50_EFFICIENTNET_B0, super = super, returnWrongIds = True)
+            idsMixedEfficientNetB4 = self.createClassificationReport(EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B4 if super else EvaluationTarget.SUB_MIXED_50_EFFICIENTNET_B4, super = super, returnWrongIds = True)
+            idsMixedResNet50V2 = self.createClassificationReport(EvaluationTarget.SUPER_MIXED_50_RESNET_50V2 if super else EvaluationTarget.SUB_MIXED_50_RESNET_50V2, super = super, returnWrongIds = True)
 
         if count:
             return [len(idsMixedMobileNetV2) - len(idsImageOnlyMobileNetV2), len(idsMixedEfficientNetB0) - len(idsImageOnlyEfficientNetB0), len(idsMixedEfficientNetB4) - len(idsImageOnlyEfficientNetB4), len(idsMixedResNet50V2) - len(idsImageOnlyResNet50V2)]
@@ -318,7 +315,7 @@ class ModelEvaluation(object):
             evaluationFilePath = targetDirectory.joinpath(evaluationFile.value)
             if evaluationFilePath.exists() and evaluationFilePath.is_file():
                 evaluationFilePaths[evaluationFile] = evaluationFile.read(path = evaluationFilePath)
-            elif evaluationFile != EvaluationFiles.VALIDATION_FEATURE_IMPORTANCE:
+            elif evaluationFile != EvaluationFiles.TEST_FEATURE_IMPORTANCE:
                 raise ValueError("Missing evaluation file: " + evaluationFile.value + " for target " + target.name)
         return evaluationFilePaths
     
@@ -347,10 +344,11 @@ class ModelEvaluation(object):
                                                 highResolution = False)
         return cfHighRes, cfLowRes
 
+    # mark: delete
     def individualClassSupport(self):
-        valClassificationReport = self.getClassificationReport(metric = "support", reportType = EvaluationFiles.VALIDATION_CLASSIFICATION_REPORT)
-        testClassificationReport = self.getClassificationReport(metric = "support", reportType = EvaluationFiles.TEST_CLASSIFICATION_REPORT)
-        trainingClassificationReport = self.getClassificationReport(metric = "support", reportType = EvaluationFiles.TRAINING_CLASSIFICATION_REPORT)
+        valClassificationReport = self.getClassificationReport(metric = "support")
+        testClassificationReport = self.getClassificationReport(metric = "support")
+        trainingClassificationReport = self.getClassificationReport(metric = "support")
 
         support = np.add(valClassificationReport.metricExifOnly, testClassificationReport.metricExifOnly)
         support = np.add(support, trainingClassificationReport.metricExifOnly)
@@ -474,17 +472,20 @@ class ModelEvaluation(object):
 
     def createClassificationReport(self, 
                                    evaluationTarget: EvaluationTarget, 
-                                   labelFile: EvaluationFiles = EvaluationFiles.VALIDATION_LABELS, 
+                                   labelFile: EvaluationFiles = EvaluationFiles.TEST_LABELS, 
                                    super: bool = False, 
-                                   threshold: float = 0.5):
+                                   threshold: float = 0.5,
+                                   returnWrongIds: bool = False):
         """ Creates a classification report for the given target and label file. """
         labels = self.evaluationTargetFiles[evaluationTarget][labelFile]
         classNames = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_MOBILENET_V2 if super else EvaluationTarget.SUB_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.CLASS_NAMES]
 
         trueY = []
         predictedY = []
+        wrongIds = []
 
         for index, row in labels.iterrows():
+            imageId = row["id"]
             classProbabilities = [float(x) for x in row["predicted_prob"].replace("[", "").replace("]", "").replace("\n", "").split(" ") if x != ""]
             classLabels = [int(x) for x in row["true"].replace("[", "").replace("]", "").replace("\n", "").replace(".", "").split(" ") if x != ""]
 
@@ -492,11 +493,21 @@ class ModelEvaluation(object):
                 raise ValueError("number of true labels don't match number of predicted labels")
 
             if super:
-                predictedY.append([1 if i == np.argmax(classProbabilities) else 0 for i,c in enumerate(classProbabilities)])
+                roundedPred = [1 if i == np.argmax(classProbabilities) else 0 for i,c in enumerate(classProbabilities)]
+                predictedY.append(roundedPred)
             else:
-                predictedY.append([1 if i >= threshold else 0 for i in classProbabilities])
+                roundedPred = [1 if i >= threshold else 0 for i in classProbabilities]
+                predictedY.append(roundedPred)
 
             trueY.append(classLabels)
+
+            if returnWrongIds:
+                if roundedPred != classLabels:
+                    # a wrong classification
+                    wrongIds.append(imageId)
+        
+        if returnWrongIds:
+            return wrongIds
 
         cr = classification_report(trueY, predictedY, target_names = classNames, digits = 3, output_dict = True, zero_division = 0)
         df = pd.DataFrame(data = cr).round(3)
@@ -512,9 +523,9 @@ class ModelEvaluation(object):
         if reportType == 0:
             labelFile = EvaluationFiles.TRAINING_LABELS
         elif reportType == 1:
-            labelFile = EvaluationFiles.TEST_LABELS
-        else:
             labelFile = EvaluationFiles.VALIDATION_LABELS
+        else:
+            labelFile = EvaluationFiles.TEST_LABELS
         
         if not customClasses == None:
             classNames = customClasses
@@ -757,6 +768,7 @@ class ModelEvaluation(object):
             savePath = savePath,
             legendPosition = legendPosition,
             additionalLines = exifOnly,
+            bigFont = True,
             labelOffset = labelOffset)
     
     def createMixedImageOnlyDeltaGroup(self, 
@@ -814,6 +826,7 @@ class ModelEvaluation(object):
             grid = True,
             yLimit = yLimit,
             savePath = savePath,
+            bigFont = True,
             legendPosition = legendPosition,
             labelOffset = labelOffset)
         
@@ -1070,9 +1083,9 @@ class ModelEvaluation(object):
         
     def createEXIFFeatureImportanceChart(self, super: bool = False, figSize: Tuple = (8, 5), barHeight: float = 0.7, savePath = None):
         if super:
-            featureImportanceDf = self.evaluationTargetFiles[EvaluationTarget.SUPER_EXIF_ONLY][EvaluationFiles.VALIDATION_FEATURE_IMPORTANCE]
+            featureImportanceDf = self.evaluationTargetFiles[EvaluationTarget.SUPER_EXIF_ONLY][EvaluationFiles.TEST_FEATURE_IMPORTANCE]
         else:
-            featureImportanceDf = self.evaluationTargetFiles[EvaluationTarget.SUB_EXIF_ONLY][EvaluationFiles.VALIDATION_FEATURE_IMPORTANCE]
+            featureImportanceDf = self.evaluationTargetFiles[EvaluationTarget.SUB_EXIF_ONLY][EvaluationFiles.TEST_FEATURE_IMPORTANCE]
 
         featureImportanceDf = featureImportanceDf.reindex(sorted(featureImportanceDf.columns), axis = 1)
         features = featureImportanceDf.columns.to_numpy()
@@ -1182,8 +1195,8 @@ class ModelEvaluation(object):
                                 imagesPerRow = imagesPerRow,
                                 savePath = savePath)
     
+    # only for super-concepts
     def createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(self, 
-                                                                        super: bool = True,
                                                                         highResolution: bool = True, 
                                                                         figSize: Tuple = (7, 4),
                                                                         imageIndex: List = None,
@@ -1192,19 +1205,16 @@ class ModelEvaluation(object):
         if self.datasetPath == None:
             raise ValueError("no dataset path given for image examples")
         
-        gainedIds, _ = self.imageIds(highResolution = highResolution, super = super)
-
-        if super:
-            labels = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_MOBILENET_V2 if highResolution else EvaluationTarget.SUPER_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.VALIDATION_LABELS]
-        else:
-            labels = self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_MOBILENET_V2 if highResolution else EvaluationTarget.SUB_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.VALIDATION_LABELS]
+        gainedIds, _ = self.imageIds(highResolution = highResolution, super = True)
+        labels = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_150_MOBILENET_V2 if highResolution else EvaluationTarget.SUPER_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.TEST_LABELS]
 
         images = []
         imagePaths = [image for image in self.datasetPath.glob("**/*.jpg") if image.is_file()]
         gainedIds = list(gainedIds)
 
-        if imageIndex == None:
-            imageIndex = range(0, min(len(gainedIds), 20))
+        #if imageIndex == None:
+        
+        imageIndex = range(0, min(len(gainedIds), 20))
 
         for index in imageIndex:
                 id = gainedIds[index]
@@ -1222,7 +1232,7 @@ class ModelEvaluation(object):
                                 savePath = savePath)
 
     def createConfusionMatrix(self, evaluationTarget: EvaluationTarget, threshold: int = 0.5, argMaxOnly: bool = True, addNotPredictedClass: bool = False, savePath = None):
-        labels = self.evaluationTargetFiles[evaluationTarget][EvaluationFiles.VALIDATION_LABELS]
+        labels = self.evaluationTargetFiles[evaluationTarget][EvaluationFiles.TEST_LABELS]
         superClassNames = self.getFiles(fileType = EvaluationFiles.CLASS_NAMES, super = True).fileExifOnly
         classNames = self.getFiles(fileType = EvaluationFiles.CLASS_NAMES, super = False).fileExifOnly
         subOnlyClassNames = [x for x in classNames if x not in superClassNames]
@@ -1242,6 +1252,7 @@ class ModelEvaluation(object):
             predictedClassIndex = [1 if i >= threshold else 0 for i in classProbabilities]
             predictedClassNames = set([classNames[i] for i in range(len(predictedClassIndex)) if predictedClassIndex[i] == 1])
 
+
             # we only consider insances with assigned sub-label
             if len(trueClassNames) == 2:
                 # determine true label index of sub-concepet label
@@ -1259,12 +1270,13 @@ class ModelEvaluation(object):
                         falseLabels = list(predictedClassNames.difference(trueClassNames))
                         if len(falseLabels) > 0:
                             # decision how to treat different cases
-                            # we add the sub-label class as predicted value if there is exaclty one sub-class present in false labels, else we use class other
+                            # we add the sub-label class as predicted value if there is exaclty one sub-class present in false labels, else we use a separate class
                             isSubConcepts = [(lambda x: x not in superClassNames)(x) for x in falseLabels]
                             if isSubConcepts.count(True) == 1:
                                 subClassIndex = next(i for i,c in enumerate(isSubConcepts) if c == True)
                                 subClass = falseLabels[subClassIndex]
                                 predictedY.append(classNames.index(subClass))
+                                print(subOnlyLabel + ", was predicted as: " + subClass + " [id: " + str(imageId) + "]")
                             else:
                                 predictedY.append(otherIndex)
                         else:
@@ -1290,7 +1302,7 @@ class ModelEvaluation(object):
                         trueY.append(trueLabelIndex)
                         predictedY.append(otherIndex)
 
-        displayLabels = subOnlyClassNames + ["other"]
+        displayLabels = subOnlyClassNames + ["wrong prediction"]
         if not argMaxOnly and addNotPredictedClass:
             displayLabels.append("not predicted")
 
@@ -1388,6 +1400,14 @@ if __name__ == '__main__':
     
     # plot for exif tag distribution in the data set 
     evaluations[index].createExifTagDistributionChart(savePath = None) """
+
+    """  # create p-r graph
+    createPrecisionRecallGraph(predictionResult.trueY, 
+                               predictionResult.predictionY, 
+                               classes = classNames, 
+                               storagePath = storagePath, 
+                               name = name,
+                               multilabel = multiLabel) """
     
     # dataset-individual plots
 
@@ -1408,14 +1428,14 @@ if __name__ == '__main__':
     # combined evaluations 
 
     # EXIF-Tag distribution
-    combinedDistribution = None
+    """ combinedDistribution = None
     for evaluation in evaluations:
         exifTagDistribution = evaluation.exifTagDistribution()
         if combinedDistribution is None:
             combinedDistribution = exifTagDistribution
         else:
             combinedDistribution = combinedDistribution.add(exifTagDistribution, fill_value = 0)
-    evaluations[0].createExifTagDistributionChart(customSet = combinedDistribution, savePath = savePath)
+    evaluations[0].createExifTagDistributionChart(customSet = combinedDistribution, savePath = savePath) """
 
     # Trining Time Comparison
     #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, super = True)
@@ -1427,31 +1447,30 @@ if __name__ == '__main__':
     #evaluations[index].createMixedImageOnlyDelta(super = False, savePath = None)
 
     # Image-Only vs. Mixed Delta (Super, Sub)
-    """ evaluations[index].createMixedImageOnlyDeltaGroup(evaluations = evaluations, 
+    evaluations[index].createMixedImageOnlyDeltaGroup(evaluations = evaluations, 
                                                       categoryLabels = ["Landscape-Object\nSuper 50x50px", "Landscape-Object\nSuper 150x150px", "Landscape-Object\nSub 50x50px", "Landscape-Object\nSub 150x150px", 
                                                                         "Moving-Static\nSuper 50x50px", "Moving-Static\nSuper 150x150px", "Moving-Static\nSub 50x50px", "Moving-Static\nSub 150x150px", 
                                                                         "Indoor-Outdoor\nSuper 50x50px", "Indoor-Outdoor\nSuper 150x150px", "Indoor-Outdoor\nSub 50x50px", "Indoor-Outdoor\nSub 150x150px"], 
                                                       figSize = (20, 9), 
                                                       barWidth = 0.7,
-                                                      #yLimit = 0.05,
-                                                      savePath = None) """
+                                                      savePath = savePath)
 
 
-    """ evaluations[index].createMixedImageOnlyAbsolutesGroup(evaluations = evaluations, 
+    evaluations[index].createMixedImageOnlyAbsolutesGroup(evaluations = evaluations, 
                                                           categoryLabels = ["Landscape-Object\nSuper 50x50px", "Landscape-Object\nSuper 150x150px", "Landscape-Object\nSub 50x50px", "Landscape-Object\nSub 150x150px", 
-                                                                        "Moving-Static\nSuper 50x50px", "Moving-Static\nSuper 150x150px", "Moving-Static\nSub 50x50px", "Moving-Static\nSub 150x150px", 
-                                                                        "Indoor-Outdoor\nSuper 50x50px", "Indoor-Outdoor\nSuper 150x150px", "Indoor-Outdoor\nSub 50x50px", "Indoor-Outdoor\nSub 150x150px"], 
+                                                                            "Moving-Static\nSuper 50x50px", "Moving-Static\nSuper 150x150px", "Moving-Static\nSub 50x50px", "Moving-Static\nSub 150x150px", 
+                                                                            "Indoor-Outdoor\nSuper 50x50px", "Indoor-Outdoor\nSuper 150x150px", "Indoor-Outdoor\nSub 50x50px", "Indoor-Outdoor\nSub 150x150px"], 
                                                           figSize = (20, 9), 
                                                           barWidth = 0.6,
                                                           yLimit = 1.001,
-                                                          savePath = savePath) """                                  
+                                                          savePath = None)                         
 
     #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = False)
     #evaluations[2].createTrainingTimeMixedvsImageOnlyComparison(super = True, savePath = None)
     #evaluations[index].createModelParameterCountComparison(savePath = None)
 
-    #evaluations[0].createConfusionMatrix(EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B0, argMaxOnly = True)
-    #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = False, savePath = savePath)
+    #evaluations[0].createConfusionMatrix(EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B0, argMaxOnly = False, addNotPredictedClass = True)
+    #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = False, savePath = None)
 
     """ cfBasePath = "/Users/ralflederer/Desktop/cf/"
     argMaxOnly = True

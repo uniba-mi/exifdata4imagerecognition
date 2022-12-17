@@ -303,29 +303,29 @@ class ExifImageDataSourceTests(unittest.TestCase):
         dataFrameTransformer = ExiImageDataSourceToDataFrameTransformer(targetLabel = "Target")
         dataFrame = dataFrameTransformer.transform(data = self.dataSource)
 
-        trainX, trainY, testX, testY, valX, valY = DataFrameTrainingSplitter(targetLabel = "Target", 
+        trainX, trainY, valX, valY, testX, testY = DataFrameTrainingSplitter(targetLabel = "Target", 
                                                                              trainRatio = 0.5, 
-                                                                             testRatio = 0.25, 
-                                                                             validationRatio = 0.25,
+                                                                             validationRatio = 0.25, 
+                                                                             testRatio = 0.25,
                                                                              stratify = False).transform(data = dataFrame)
         self.assertEqual(2, len(trainX))
-        self.assertEqual(2, len(trainY))            
+        self.assertEqual(2, len(trainY))   
+        self.assertEqual(1, len(valX))  
+        self.assertEqual(1, len(valY))         
         self.assertEqual(1, len(testX))
         self.assertEqual(1, len(testY))             
-        self.assertEqual(1, len(valX))  
-        self.assertEqual(1, len(valY))
 
-        trainX, trainY, testX, testY, valX, valY = DataFrameTrainingSplitter(targetLabel = "Target", 
+        trainX, trainY, valX, valY, testX, testY = DataFrameTrainingSplitter(targetLabel = "Target", 
                                                                              trainRatio = 0.25, 
-                                                                             testRatio = 0.25, 
-                                                                             validationRatio = 0.5,
+                                                                             validationRatio = 0.25, 
+                                                                             testRatio = 0.5,
                                                                              stratify = False).transform(data = dataFrame)                                                       
         self.assertEqual(1, len(trainX))
         self.assertEqual(1, len(trainY))            
-        self.assertEqual(1, len(testX))
-        self.assertEqual(1, len(testY))             
-        self.assertEqual(2, len(valX))  
-        self.assertEqual(2, len(valY))
+        self.assertEqual(1, len(valX))  
+        self.assertEqual(1, len(valY))
+        self.assertEqual(2, len(testX))
+        self.assertEqual(2, len(testY))   
     
     def testDataFrameLabelEncoderWithSingleLabels(self):
         encoder = DataFrameLabelEncoder(targetLabel = "Target", encodedLabel = "Target_Encoded")

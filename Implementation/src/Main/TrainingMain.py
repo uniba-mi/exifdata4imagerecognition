@@ -109,8 +109,8 @@ def main(args):
             filterConcepts = argForParam(args, PARAM_FILTER_CONCEPTS)
             filterConcepts = filterConcepts.split(",") if not filterConcepts == None else []
             trainSize = float(argForParam(args, PARAM_TRAIN_SIZE, 0.7))
-            testSize = float(argForParam(args, PARAM_TEST_SIZE, 0.2))
-            valSize = float(argForParam(args, PARAM_VAL_SIZE, 0.1))
+            valSize = float(argForParam(args, PARAM_VAL_SIZE, 0.2))
+            testSize = float(argForParam(args, PARAM_TEST_SIZE, 0.1))
             seed = int(argForParam(args, PARAM_SEED, 131))
             imageOnly = paramSet(args, PARAM_IMAGE_ONLY)
             exifOnly = paramSet(args, PARAM_EXIF_ONLY)
@@ -167,8 +167,8 @@ def main(args):
             dataProvider = ExifImageProvider(dataSetsPaths = zipFilePaths,
                                              cachePath = cacheDirectoryPath,
                                              trainSize = trainSize,
-                                             testSize = testSize,
                                              validationSize = valSize,
+                                             testSize = testSize,
                                              batchSize = batchSize,
                                              imageSize = imageSize if not exifOnly else None,
                                              useSuperConcepts = useSuperConcepts,

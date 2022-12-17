@@ -9,6 +9,8 @@ from matplotlib.ticker import FormatStrFormatter
 from matplotlib.lines import Line2D
 import matplotlib.image as mpimg
 from collections import OrderedDict
+from sklearn.metrics import PrecisionRecallDisplay, average_precision_score, precision_recall_curve
+from itertools import cycle
 
 def createBarChart(data: List, 
                    seriesLabels: List[str], 
@@ -32,6 +34,7 @@ def createBarChart(data: List,
                              ["skyblue", "darkseagreen", "goldenrod", "coral"], 
                              ["skyblue", "darkseagreen", "goldenrod", "coral"]],
                    additionalLines: List[float] = None,
+                   bigFont: bool = False,
                    savePath: Path = None):
 
     axes = []
@@ -53,19 +56,24 @@ def createBarChart(data: List,
 
     if categoryLabels:
         indexList = list(range(1, len(data[0][0]) + 1))
-        plt.xticks([(x - (barWidth / len(data[0]) * 2.0)) + ((len(data[0]) / 2.0) - 0.5) * (barWidth / len(data[0])) for x in indexList], categoryLabels)#,     fontsize = 18, rotation = 60) 
-    # prod
-    #params = {'mathtext.default': 'it',
-    #          'font.size': 18 }          
-    #plt.rcParams.update(params)
-    #print(plt.rcParams['font.family'])
-    # prod
+        labelPos = [(x - (barWidth / len(data[0]) * 2.0)) + ((len(data[0]) / 2.0) - 0.5) * (barWidth / len(data[0])) for x in indexList]
+        if bigFont:
+            plt.xticks(labelPos, categoryLabels, fontsize = 18, rotation = 60) 
+        else:
+            plt.xticks(labelPos, categoryLabels)
+    
+    if bigFont:
+        params = {'mathtext.default': 'it', 'font.size': 18 }          
+        plt.rcParams.update(params)
 
     if title:
         plt.title(title)
 
     if yLabel:
-        plt.ylabel(yLabel),      #fontsize = 18)
+        if bigFont:
+            plt.ylabel(yLabel, fontsize = 18)
+        else:
+            plt.ylabel(yLabel)
     
     if seriesLabels[0][0] != "":
         handles, labels = plt.gca().get_legend_handles_labels()
@@ -102,8 +110,8 @@ def createBarChart(data: List,
     if yLimit != None:
         ax.set_ylim([0.2, yLimit]) #ax.get_ylim()[0]
     
-    # prod
-    #plt.yticks(fontsize = 18)
+    if bigFont:
+        plt.yticks(fontsize = 18)
 
     if showValues:
         bars = []
@@ -378,3 +386,56 @@ def createImageOverviewChart(images: List[Tuple], figSize: Tuple = (9, 6), image
 
     if savePath != None:
         plt.savefig(savePath, dpi = 300, transparent = True)
+
+def createPrecisionRecallGraph(yTrue, yPred, classes: List[str], storagePath: Path, name: str, multilabel: bool):
+    """ creates a precision-recall graph for the given true / predicted labels, using the given class names.
+    Adapted from: https://scikit-learn.org/stable/auto_examples/model_selection/plot_precision_recall.html"""
+
+    precision = dict()
+    recall = dict()
+    average_precision = dict()
+    thresholds = dict()
+    for i in range(len(classes)):
+        precision[i], recall[i], thresholds[i] = precision_recall_curve(yTrue[:, i], yPred[:, i])
+        average_precision[i] = average_precision_score(yTrue[:, i], yPred[:, i])
+
+    precision["micro"], recall["micro"], thresholds["micro"] = precision_recall_curve(yTrue.ravel(), yPred.ravel())   
+    f1 = (2 * precision["micro"] * recall["micro"]) / (precision["micro"] + recall["micro"])
+    average_precision["micro"] = average_precision_score(yTrue, yPred, average="micro")
+
+    # setup plot details
+    colors = cycle(["navy", "turquoise", "darkorange", "cornflowerblue", "teal", "cyan", "green", "blue", "yellow", "brown", "purple", "olive", "gray", "indigo"])
+    _, ax = plt.subplots(figsize = (7, 8))
+    f_scores = np.linspace(0.1, 0.8, num = 7)
+    labels = []
+    for f_score in f_scores:
+        x = np.linspace(0.01, 1)
+        y = f_score * x / (2 * x - f_score)
+        (l,) = plt.plot(x[y >= 0], y[y >= 0], color = "gray", alpha = 0.2)
+        plt.annotate("f1={0:0.1f}".format(f_score), xy = (0.9, y[45] + 0.02))
+
+    display = PrecisionRecallDisplay(recall = recall["micro"], 
+                                     precision = precision["micro"], 
+                                     average_precision = average_precision["micro"])
+    bestF1Index = np.argmax(f1)
+    bestF1 = f1[bestF1Index]
+    display.plot(ax = ax, name="average", color="gold")
+    plt.scatter(recall["micro"][bestF1Index], precision["micro"][bestF1Index], marker = "x", color=  "red", zorder = 10)
+    ax.annotate(f"f1={bestF1:.2f}", (recall["micro"][bestF1Index], precision["micro"][bestF1Index] + 0.02), zorder = 11, weight = "bold")
+
+    if multilabel:
+        for i, color in zip(range(len(classes)), colors):
+            display = PrecisionRecallDisplay(recall = recall[i],
+                                         precision = precision[i],
+                                         average_precision = average_precision[i])
+            display.plot(ax = ax, name=f"{classes[i]}", color=color)
+
+    # add the legend (iso-f1)
+    handles, labels = display.ax_.get_legend_handles_labels()
+    handles.extend([l])
+
+    # add the legend and the axes
+    ax.set_xlim([0.0, 1.0])
+    ax.set_ylim([0.0, 1.05])
+    ax.legend(handles = handles, labels = labels, loc = "upper left", bbox_to_anchor = (1.02, 1))
+    display.figure_.savefig(storagePath.joinpath(name + "_precision_recall_graph_single.png"), dpi = 300, bbox_inches = "tight")

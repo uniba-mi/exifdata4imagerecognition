@@ -16,15 +16,15 @@ class CNNTrainingTests(unittest.TestCase):
         #dataSetPaths = { TestTrainingConstants.datasetFilePath : ExifImageTrainingDataFormats.Flickr,
         #                 TestTrainingConstants.mirDatasetFilePath : ExifImageTrainingDataFormats.MirFlickr }
 
-        dataSetPaths = { TestTrainingConstants.indoorOutdoorFilePath : ExifImageTrainingDataFormats.Flickr }
+        dataSetPaths = { TestTrainingConstants.landscapesObjectsFilePath : ExifImageTrainingDataFormats.Flickr }
 
         dataProvider = ExifImageProvider(dataSetsPaths = dataSetPaths,
                                         cachePath = TestTrainingConstants.cacheStoragePath,
                                         trainSize = 0.7,
-                                        testSize = 0.29,
-                                        validationSize = 0.01,
+                                        validationSize = 0.29,
+                                        testSize = 0.01,
                                         batchSize = 32,
-                                        useSuperConcepts = True,
+                                        useSuperConcepts = False,
                                         imageSize = (150, 150),
                                         imageOnly = True,
                                         seed = 131)

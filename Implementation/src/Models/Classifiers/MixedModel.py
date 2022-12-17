@@ -11,7 +11,7 @@ def createMixedModel(inputShape: Tuple, outputShape: Tuple, clf1: Classifier, cl
     firstModel = clf1.modelCreationFunction(inputShape[0], outputShape, multiLabel)
     secondModel = clf2.modelCreationFunction(inputShape[1], outputShape, multiLabel)
 
-    # add to additional dense layers after each model output
+    # add additional dense layers after each model output
     outputLayer1 = Dense(50, activation = "relu")(firstModel.layers[-2].output)
     outputLayer2 = Dense(50, activation = "relu")(secondModel.layers[-2].output)
 

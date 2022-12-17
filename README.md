@@ -23,7 +23,7 @@ Macro F1-scores of fusion models and baseline models for each problem scenario a
 
 **F1-Delta**:
 
-Macro F1-score delta of fusion models compared to image only models
+Macro F1-score delta of fusion models compared to image only models (reached on the test set)
 
 <img src="Evaluation/f1-delta.png" alt="f1-delta" width="1200"/>
 
@@ -32,7 +32,7 @@ Macro F1-score delta of fusion models compared to image only models
 
 Total average training time delta of fusion models compared to baseline models
 
-<img src="Evaluation/training_time.png" alt="training-time" width="800"/>
+<img src="Evaluation/training_time.png" alt="training-time" width="300"/>
 
 # Technical Documentation
 
@@ -185,7 +185,9 @@ A fusion model combines a CNN used for classification based on image data and a 
 
 **Fusion Model - Architecture**:
 
-<img src="Evaluation/architecture.png" alt="fusion-architecture" width="400"/>
+<img src="Evaluation/architecture.png" alt="fusion-architecture" width="300"/>
+
+GAP = Global Average Pooling, BN = Batch Normalization, DO = Dropout, FC = Fully-Connected 
 
 The training process of the different models can be carried out using the application in **[TrainingMain.py](/Implementation/src/Main/TrainingMain.py)** which can be started by executing the following command:
 

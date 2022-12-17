@@ -13,6 +13,11 @@ Each image is assigned one or two labels, with the super-concept label always pr
 | object (23591), landscape (19395) | food (5000), furniture (2388), toys (6203), vehicle (5000), beach (2191), forest (2325), mountain (2116), skyline (7763) |
 
 
+Exif tag distribution:
+
+<img src="Evaluation/exif_tag_distribution.png" alt="exif_tag_distribution" width="450"/>
+
+
 Note: The Flickr photo metadata to download the corresponding images and their Exif data are located in **[Flickr Photo Metadata](/Flickr Photo Metadata/)**
 
 # Overall Results

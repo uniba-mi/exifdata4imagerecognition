@@ -16,21 +16,21 @@ Each image is assigned one or two labels, with the super-concept label always pr
 
 **F1-Scores**:
 
-Macro F1-scores of fusion models and baseline models for each problem scenario and image resolution (reached on the test set)
+Macro F1-scores of fusion models and baseline models for each problem scenario and image resolution (reached on the test set).
 
 <img src="Evaluation/f1.png" alt="f1-scores" width="1200"/>
 
 
 **F1-Delta**:
 
-Macro F1-score delta of fusion models compared to image only models (reached on the test set)
+Macro F1-score delta of fusion models compared to image only models (reached on the test set).
 
 <img src="Evaluation/f1-delta.png" alt="f1-delta" width="1200"/>
 
 
 **Training Times**:
 
-Total average training time delta of fusion models compared to baseline models
+Total average training time delta of fusion models compared to baseline models.
 
 <img src="Evaluation/training_time.png" alt="training-time" width="420"/>
 

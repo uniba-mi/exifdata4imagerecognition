@@ -75,11 +75,11 @@ export PYTHONPATH=$PYTHONPATH:/path/to/src
 
 ## Flickr Crawler
 
-The Flickr crawler is used to export image and EXIF data from the image portal [Flickr](https://flickr.com/) and provides two basic functionalities. Photos can either be exported directly from [Flickr groups](https://www.flickr.com/groups) or by conducting a free-text search using an arbitrary search term. Groups are identified by a unique ID and contain photos related to a particular topic. In some groups, only photos that exclusively show the group's topic may be uploaded. In other groups, however, it is also allowed to upload photos that contain objects that are not directly related to the group’s main topic, e.g. in the background of a photo. Therefore, and since the group rules are enforced with varying degrees of strictness, it can be assumed that training data collected from groups contains a certain amount of noise. When a free text search is performed, the Flickr API returns images whose title, description or user tags contain the corresponding search term. User tags are keywords used to succinctly describe the content of images. They can be added by the image authors. In addition, user tags are automatically determined and added by Flickr robots. The retrieved photos are then sorted according to their relevance determined by Flickr. Since Flickr does not define strict rules for image titles, descriptions and user tags, and the way Flickr determines the relevance of photos for search terms is unknown, it can be assumed that training data collected via free text search also contains a certain amount of images that do not match the desired target concept. Thus, training data collected with the Flickr crawler is always subject to noise if no further filtering is performed.
+The Flickr crawler is used to export image and Exif data from the image portal [Flickr](https://flickr.com/) and provides two basic functionalities. Photos can either be exported directly from [Flickr groups](https://www.flickr.com/groups) or by conducting a free-text search using an arbitrary search term. Groups are identified by a unique ID and contain photos related to a particular topic. In some groups, only photos that exclusively show the group's topic may be uploaded. In other groups, however, it is also allowed to upload photos that contain objects that are not directly related to the group’s main topic, e.g. in the background of a photo. Therefore, and since the group rules are enforced with varying degrees of strictness, it can be assumed that training data collected from groups contains a certain amount of noise. When a free text search is performed, the Flickr API returns images whose title, description or user tags contain the corresponding search term. User tags are keywords used to succinctly describe the content of images. They can be added by the image authors. In addition, user tags are automatically determined and added by Flickr robots. The retrieved photos are then sorted according to their relevance determined by Flickr. Since Flickr does not define strict rules for image titles, descriptions and user tags, and the way Flickr determines the relevance of photos for search terms is unknown, it can be assumed that training data collected via free text search also contains a certain amount of images that do not match the desired target concept. Thus, training data collected with the Flickr crawler is always subject to noise if no further filtering is performed.
 
-The crawler application can be executed via the command line, using the main entry point in **[FlickrCrawlerMain.py](/Implementation/src/Main/FlickrCrawlerMain.py)**. The crawler is invoked with a command line parameter, which determines the function to be executed, either a group export or a free text search. Additionally, EXIF data can be exported. The crawler offers the possibility to crawl an existing metadata file with image IDs, secrets and server information. In order to use the crawler, a valid [API-Key](https://www.flickr.com/services/api/misc.api_keys.html) is required.
+The crawler application can be executed via the command line, using the main entry point in **[FlickrCrawlerMain.py](/Implementation/src/Main/FlickrCrawlerMain.py)**. The crawler is invoked with a command line parameter, which determines the function to be executed, either a group export or a free text search. Additionally, Exif data can be exported. The crawler offers the possibility to crawl an existing metadata file with image IDs, secrets and server information. In order to use the crawler, a valid [API-Key](https://www.flickr.com/services/api/misc.api_keys.html) is required.
 
-The crawler saves the crawled images and EXIF data in the following directory structure. EXIF tags are saved in [JSON](https://www.json.org/json-en.html) file format:
+The crawler saves the crawled images and Exif data in the following directory structure. Exif tags are saved in [JSON](https://www.json.org/json-en.html) file format:
 
 ```
 OutputDir
@@ -149,7 +149,7 @@ optional parameters:
 
 **Examples**
 
-Free-Text search for 'outdoor dog'. The start page is set to 1 and the page limit to 50, which is a total of 25000 images (500 images per page). However, only images that provide EXIF data will be crawled and the EXIF data must contain the EXIF tags FocalLength, ISO, FNumber, ExposureTime and Flash. The image size key is set to 'q' = 150x150px. 
+Free-Text search for 'outdoor dog'. The start page is set to 1 and the page limit to 50, which is a total of 25000 images (500 images per page). However, only images that provide Exif data will be crawled and the Exif data must contain the Exif tags FocalLength, ISO, FNumber, ExposureTime and Flash. The image size key is set to 'q' = 150x150px. 
 
 ```sh
 python FlickrCrawlerMain.py 
@@ -177,19 +177,19 @@ python FlickrCrawlerMain.py
 
 ## Model Training
 
-The usefulness of EXIF data for image classification is evaluated by comparing the classification performance of base models against that of fusion models. Baseline models classify images using only one type of data, either EXIF data or image data, whereas fusion models use both types of data. 
+The usefulness of Exif data for image classification is evaluated by comparing the classification performance of base models against that of fusion models. Baseline models classify images using only one type of data, either Exif data or image data, whereas fusion models use both types of data. 
 
-### Training with EXIF data
+### Training with Exif data
 
-For image classification with EXIF data, a fully-connected, deep neural network with four hidden layers is used. The architecture is individually adapted to the respective classification task based on the used training data. The number of neurons in the input layer is based on the number of EXIF tags used for classification. The output layer contains as many neurons as there are target concepts in the training data. The first hidden layer contains 256 neurons, with the number of neurons in each subsequent layer being halved. All hidden layers use a RELU (rectified linear unit) activation function. The activation function of the output layer is determined based on the training data. A softmax activation function is used for a single-label classification problem and a sigmoid activation function is used for a multi-label classification problem.
+For image classification with Exif data, a fully-connected, deep neural network with four hidden layers is used. The architecture is individually adapted to the respective classification task based on the used training data. The number of neurons in the input layer is based on the number of Exif tags used for classification. The output layer contains as many neurons as there are target concepts in the training data. The first hidden layer contains 256 neurons, with the number of neurons in each subsequent layer being halved. All hidden layers use a RELU (rectified linear unit) activation function. The activation function of the output layer is determined based on the training data. A softmax activation function is used for a single-label classification problem and a sigmoid activation function is used for a multi-label classification problem.
 
 ### Training with image data
 
 A Convolutional Neural Network (CNN) is used for classification based on image data. To facilitate the training process and shorten the training time, transfer learning is used, in which an already trained CNN model is adapted to a new classification task. First, the model architecture is extended with a new classification head that is suitable for the new classification task. As with the Exif-only model, the size of the output layer is automatically determined depending on the number of training concepts in the training dataset. Then, the new classification head is trained using the training data without adapting the weights of the pre-trained model. In the subsequent fine-tuning phase, the weights of the top layers of the pre-trained model are adjusted to detect features present in training images which are important for the new classification task. For this purpose, the weights of the top layers are trained for a certain number of epochs. Since high-level image features are recognized in the top layers of a CNN, it is sufficient to adjust only a certain number of layers of the pre-trained model, depending on the models depth. The CNN model can be created using the state-of-the-art architectures EfficientNet, MobileNet and ResNet (check: [Keras Appliations](https://keras.io/api/applications/) for more details), which are then initialized with pre-trained weights of the [ImageNet](https://www.image-net.org/challenges/LSVRC/) competition to enable [transfer-learning](https://keras.io/examples/vision/image_classification_efficientnet_fine_tuning/). The architectures differ in terms of model depth, number of parameters, and the used network blocks. The larger and deeper a model is, the longer is usually the required training time. However, with increasing depth and number of parameters, the classification performance usually increases as well.
 
-### Training with EXIF & image data
+### Training with Exif & image data
 
-A fusion model combines a CNN used for classification based on image data and a MLP used for classification based on EXIF data by concatenating the output layers of both models and adding a new classification head. The concatenation layer feeds the combined output into an additional fully connected layer before the final classification is performed in the output layer of the new classification head of the mixed model.
+A fusion model combines a CNN used for classification based on image data and a MLP used for classification based on Exif data by concatenating the output layers of both models and adding a new classification head. The concatenation layer feeds the combined output into an additional fully connected layer before the final classification is performed in the output layer of the new classification head of the mixed model.
 
 **Fusion Model - Architecture**:
 
@@ -247,7 +247,7 @@ optional parameters for exif training (note: cannot be used when '-io' is set):
 
 **Examples**
 
-Train an EXIF data only model using super concepts.
+Train an Exif data only model using super concepts.
 
 ```sh
 TrainingMain.py 

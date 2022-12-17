@@ -32,7 +32,7 @@ Macro F1-score delta of fusion models compared to image only models (reached on 
 
 Total average training time delta of fusion models compared to baseline models
 
-<img src="Evaluation/training_time.png" alt="training-time" width="350"/>
+<img src="Evaluation/training_time.png" alt="training-time" width="420"/>
 
 # Technical Documentation
 

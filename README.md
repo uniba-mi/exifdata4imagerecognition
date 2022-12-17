@@ -4,7 +4,7 @@ In addition to photo data, many digital cameras and smartphones capture Exif met
 
 # Training Concepts
 
-Each image is as- signed one or two labels, with the super-concept label always present and one optional sub-concept label. The table shows the concepts with the number of images for each concept. For non-unique sub-concepts the distribution to the two super-concepts is given.
+Each image is assigned one or two labels, with the super-concept label always present and one optional sub-concept label. The table shows the concepts with the number of images for each concept. For non-unique sub-concepts the distribution to the two super-concepts is given.
 
 | Super-concepts | Sub-concepts  |
 |---|---|

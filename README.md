@@ -1,6 +1,38 @@
 # Master Thesis Project - Ralf Lederer
 
-In addition to photo data, many digital cameras and smartphones capture EXIF metadata, which contain information about lighting conditions and the camera parameters used when a photo was captured. While most semantic image recognition approaches only use pixel data for classification decisions, this work aims to examine whether EXIF data can improve image classification performed by convolutional neural networks (CNNs). We compare the classification performance and training time of fusion models that use both image data and EXIF metadata for image classification in contrast to models that use only image data. The most promising result was obtained with a fusion model which was able to increase the classification accuracy for the selected target concepts by 4.2% compared to the baseline, while the average total training time of all fusion models was reduced by 9.8%.
+In addition to photo data, many digital cameras and smartphones capture Exif metadata which contain information about the camera parameters used when a photo was captured. While most semantic image recognition approaches only use pixel data for classification decisions, this work aims to examine whether Exif data can improve image classification performed by Convolutional Neural Networks (CNNs). We compare the classification performance and training time of fusion models that use both, image data and Exif metadata, for image classification in contrast to models that use only image data. The most promising result was obtained with a fusion model which was able to increase the classification accuracy for the selected target concepts by 7.5% compared to the baseline, while the average total training time of all fusion models was reduced by 7.9%.
+
+# Training Concepts
+
+Each image is as- signed one or two labels, with the super-concept label always present and one optional sub-concept label. The table shows the concepts with the number of images for each concept. For non-unique sub-concepts the distribution to the two super-concepts is given.
+
+| Super-concepts | Sub-concepts  |
+|---|---|
+| indoor (37887), outdoor (36473) | bathroom (2016), bedroom (2028), corridor (2041), kitchen (1997), office (2020), beach (2191), forest (2325), mountain (2116), river (2230), urban (2027), plant (5412,4897), dog (2963,3736), furniture (2388,2405), cat (3026,3183), portrait (2896,3511), sport (4387,4954) |
+| moving (30386), static (28281) | boat (4022,3318), plane (1786,2837), motorcycle (2291,3169), car (3653,902) |
+| object (23591), landscape (19395) | food (5000), furniture (2388), toys (6203), vehicle (5000), beach (2191), forest (2325), mountain (2116), skyline (7763) |
+
+# Overall Results
+
+**F1-Scores**:
+
+Macro F1-scores of fusion models and baseline models for each problem scenario and image resolution (reached on the test set)
+
+<img src="Evaluation/f1.png" alt="f1-scores" width="1200"/>
+
+
+**F1-Delta**:
+
+Macro F1-score delta of fusion models compared to image only models
+
+<img src="Evaluation/f1-delta.png" alt="f1-delta" width="1200"/>
+
+
+**Training Times**:
+
+Total average training time delta of fusion models compared to baseline models
+
+<img src="Evaluation/training_time.png" alt="training-time" width="800"/>
 
 # Technical Documentation
 
@@ -149,7 +181,11 @@ A Convolutional Neural Network (CNN) is used for classification based on image d
 
 ### Training with EXIF & image data
 
-A mixed model combines a CNN used for classification based on image data and a deep neural network used for classification based on EXIF data by concatenating the output layers of both models and adding a new classification head. The concatenation layer feeds the combined output into an additional fully connected layer before the final classification is performed in the output layer of the new classification head of the mixed model.
+A fusion model combines a CNN used for classification based on image data and a MLP used for classification based on EXIF data by concatenating the output layers of both models and adding a new classification head. The concatenation layer feeds the combined output into an additional fully connected layer before the final classification is performed in the output layer of the new classification head of the mixed model.
+
+**Fusion Model - Architecture**:
+
+<img src="Evaluation/architecture.png" alt="fusion-architecture" width="400"/>
 
 The training process of the different models can be carried out using the application in **[TrainingMain.py](/Implementation/src/Main/TrainingMain.py)** which can be started by executing the following command:
 
@@ -320,35 +356,3 @@ train-mixed-landscsape-object:
           devices:
             - capabilities: [gpu] 
 ```
-
-## Training Concepts
-
-Each image is as- signed one or two labels, with the super-concept label always present and one optional sub-concept label. The table shows the concepts with the number of images for each concept. For non-unique sub-concepts the distribution to the two super-concepts is given.
-
-| Super-concepts | Sub-concepts  |
-|---|---|
-| indoor (37887), outdoor (36473) | bathroom (2016), bedroom (2028), corridor (2041), kitchen (1997), office (2020), beach (2191), forest (2325), mountain (2116), river (2230), urban (2027), plant (5412,4897), dog (2963,3736), furniture (2388,2405), cat (3026,3183), portrait (2896,3511), sport (4387,4954) |
-| moving (30386), static (28281) | boat (4022,3318), plane (1786,2837), motorcycle (2291,3169), car (3653,902) |
-| object (23591), landscape (19395) | food (5000), furniture (2388), toys (6203), vehicle (5000), beach (2191), forest (2325), mountain (2116), skyline (7763) |
-
-## Overall Results
-
-**F1-Scores**:
-
-Macro F1-scores of fusion models and baseline models for each problem scenario and image resolution (reached on the test set)
-
-<img src="Evaluation/f1.png" alt="f1-scores" width="1200"/>
-
-**F1-Delta**:
-
-Macro F1-score delta of fusion models compared to image only models
-
-<img src="Evaluation/f1_delta.png" alt="f1-delta" width="1200"/>
-
-**Training Times**:
-
-Total average training time delta of fusion models compared to baseline models
-
-<img src="Evaluation/training_time.png" alt="training-time" width="800"/>
-
-

@@ -145,7 +145,7 @@ For image classification with EXIF data, a fully-connected, deep neural network 
 
 ### Training with image data
 
-A Convolutional Neural Network (CNN) is used for classification based on image data. To facilitate the training process and shorten the training time, transfer learning is used, in which an already trained CNN model is adapted to a new classification task. First, the model architecture is extended with a new classification head that is suitable for the new classification task. As with the Exif-only model, the size of the output layer is automatically determined depending on the number of training concepts in the training dataset. Then, the new classification head is trained using the training data without adapting the weights of the pre-trained model. In the subsequent fine-tuning phase, the weights of the top layers of the pre-trained model are adjusted to detect features present in training images which are important for the new classification task. For this purpose, the weights of the top layers are trained for a certain number of epochs. Since high-level image features are recognized in the top layers of a CNN, it is sufficient to adjust only a certain number of layers of the pre-trained model, depending on the models depth. The CNN model can be created using the state-of-the-art architectures EfficientNet, MobileNet and ResNet (check: [Keras Appliations](https://keras.io/api/applications/) for more details), which are then initialized with pre-trained weights of the [ImageNet](https://www.image-net.org/challenges/LSVRC/) competition to enable [transfer-learning](https://keras.io/examples/vision/image_classification_efficientnet_fine_tuning/). The architectures differ in terms of model depth and number of parameters. The larger and deeper a model is, the longer is usually the required training time. However, with increasing depth and number of parameters, the classification performance usually increases as well.
+A Convolutional Neural Network (CNN) is used for classification based on image data. To facilitate the training process and shorten the training time, transfer learning is used, in which an already trained CNN model is adapted to a new classification task. First, the model architecture is extended with a new classification head that is suitable for the new classification task. As with the Exif-only model, the size of the output layer is automatically determined depending on the number of training concepts in the training dataset. Then, the new classification head is trained using the training data without adapting the weights of the pre-trained model. In the subsequent fine-tuning phase, the weights of the top layers of the pre-trained model are adjusted to detect features present in training images which are important for the new classification task. For this purpose, the weights of the top layers are trained for a certain number of epochs. Since high-level image features are recognized in the top layers of a CNN, it is sufficient to adjust only a certain number of layers of the pre-trained model, depending on the models depth. The CNN model can be created using the state-of-the-art architectures EfficientNet, MobileNet and ResNet (check: [Keras Appliations](https://keras.io/api/applications/) for more details), which are then initialized with pre-trained weights of the [ImageNet](https://www.image-net.org/challenges/LSVRC/) competition to enable [transfer-learning](https://keras.io/examples/vision/image_classification_efficientnet_fine_tuning/). The architectures differ in terms of model depth, number of parameters, and the used network blocks. The larger and deeper a model is, the longer is usually the required training time. However, with increasing depth and number of parameters, the classification performance usually increases as well.
 
 ### Training with EXIF & image data
 
@@ -323,18 +323,32 @@ train-mixed-landscsape-object:
 
 ## Training Concepts
 
-Each image is as- signed one or two labels, with the super-concept label always present and one optional sub-concept label.
+Each image is as- signed one or two labels, with the super-concept label always present and one optional sub-concept label. The table shows the concepts with the number of images for each concept. For non-unique sub-concepts the distribution to the two super-concepts is given.
 
 | Super-concepts | Sub-concepts  |
 |---|---|
-| indoor, outdoor | bathroom, bedroom, corridor, kitchen, office, beach, forest, mountain, river, urban, plant, dog, furniture, cat, portrait, sport |
-| moving, static | boat, plane, car, motorcycle |
-| object, landscape | food, furniture, toys, vehicle, beach, forest, mountain, skyline |
+| indoor (37887), outdoor (36473) | bathroom (2016), bedroom (2028), corridor (2041), kitchen (1997), office (2020), beach (2191), forest (2325), mountain (2116), river (2230), urban (2027), plant (5412,4897), dog (2963,3736), furniture (2388,2405), cat (3026,3183), portrait (2896,3511), sport (4387,4954) |
+| moving (30386), static (28281) | boat (4022,3318), plane (1786,2837), motorcycle (2291,3169), car (3653,902) |
+| object (23591), landscape (19395) | food (5000), furniture (2388), toys (6203), vehicle (5000), beach (2191), forest (2325), mountain (2116), skyline (7763) |
 
 ## Overall Results
 
-F1-Scores:
+**F1-Scores**:
 
 Macro F1-scores of fusion models and baseline models for each problem scenario and image resolution (reached on the test set)
 
 <img src="Evaluation/f1.png" alt="f1-scores" width="1200"/>
+
+**F1-Delta**:
+
+Macro F1-score delta of fusion models compared to image only models
+
+<img src="Evaluation/f1_delta.png" alt="f1-delta" width="1200"/>
+
+**Training Times**:
+
+Total average training time delta of fusion models compared to baseline models
+
+<img src="Evaluation/training_time.png" alt="training-time" width="800"/>
+
+

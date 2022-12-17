@@ -179,8 +179,8 @@ optional parameters:
 | -io | training will be performed with image data only |
 | -eo | training will be performed with exif data only |
 | -trainsize | amount of training data to use for training, default = 0.7 |
-| -testsize | amount of training data to use for testing, default = 0.2 |
-| -valsize | amount of training data to use for validation, default = 0.1 |
+| -valsize | amount of training data to use for validation, default = 0.2 |
+| -testsize | amount of training data to use for testing, default = 0.1 |
 | -tformat | data format of the training data [flickr, mirflickr], comma-separated for multiple zip-files, default = flickr |
 | -optimize | optimization criteria [accuracy, loss], default = loss |
 | -all | if set, all, exif, image and mixed models will be created using default learning parameters and the default<br />CNN architectures: EfficientNetB0, EfficientNetB4, MobileNetV2 and ResNet50V2 (see also: **[source file](/Implementation/src/Main/TrainingMain.py)**)  |
@@ -323,8 +323,18 @@ train-mixed-landscsape-object:
 
 ## Training Concepts
 
-Tbd...
+Each image is as- signed one or two labels, with the super-concept label always present and one optional sub-concept label.
+
+| Super-concepts | Sub-concepts  |
+|---|---|
+| indoor, outdoor | bathroom, bedroom, corridor, kitchen, office, beach, forest, mountain, river, urban, plant, dog, furniture, cat, portrait, sport |
+| moving, static | boat, plane, car, motorcycle |
+| object, landscape | food, furniture, toys, vehicle, beach, forest, mountain, skyline |
 
 ## Overall Results
 
-tbd...
+F1-Scores:
+
+Macro F1-scores of fusion models and baseline models for each problem scenario and image resolution (reached on the test set)
+
+<img src="Evaluation/f1.png" alt="f1-scores" width="1200"/>

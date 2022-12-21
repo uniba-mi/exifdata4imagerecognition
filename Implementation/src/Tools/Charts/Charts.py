@@ -58,7 +58,7 @@ def createBarChart(data: List,
         indexList = list(range(1, len(data[0][0]) + 1))
         labelPos = [(x - (barWidth / len(data[0]) * 2.0)) + ((len(data[0]) / 2.0) - 0.5) * (barWidth / len(data[0])) for x in indexList]
         if bigFont:
-            plt.xticks(labelPos, categoryLabels, fontsize = 18, rotation = 60) 
+            plt.xticks(labelPos, categoryLabels, fontsize = 18, rotation = 0) 
         else:
             plt.xticks(labelPos, categoryLabels)
     
@@ -71,7 +71,7 @@ def createBarChart(data: List,
 
     if yLabel:
         if bigFont:
-            plt.ylabel(yLabel, fontsize = 18)
+            plt.ylabel(yLabel, fontsize = 18, labelpad = 10)
         else:
             plt.ylabel(yLabel)
     
@@ -131,7 +131,7 @@ def createBarChart(data: List,
                                 labelPrefix + valueFormat.format(h) + labelPostfix, 
                                 ha = "center", 
                                 va = "center",
-                                fontsize = 9)
+                                fontsize = 14)
                         bars.append(bar)
     
     plt.tight_layout()
@@ -147,6 +147,7 @@ def createSingleBarChart(data: List,
                          title: str = None, 
                          yLabel: str = None,
                          grid: bool = False,
+                         bigFont: bool = False,
                          legendPosition: str = "lower left",
                          figSize: Tuple = (14.5, 8),
                          barWidth: float = 0.9,
@@ -166,19 +167,26 @@ def createSingleBarChart(data: List,
     for innerIndex, rowData in enumerate(data):
         axes.append(plt.bar(indexList[innerIndex],
                     rowData, 
-                    label = seriesLabels[innerIndex] if len(seriesLabels) - 1 >= innerIndex else "", 
+                    label = seriesLabels[innerIndex] if len(seriesLabels) - 1 >= innerIndex else "",
                     edgecolor = "black",
                     color = colors[0] if sc else colors[innerIndex] if len(colors) - 1 >= innerIndex else colors[0], 
                     width = barWidth))
 
-    plt.xticks(list(range(0, len(categoryLabels))), categoryLabels, rotation = "horizontal")
+    if bigFont:
+        plt.xticks(list(range(0, len(categoryLabels))), categoryLabels, rotation = 60, fontsize = 22)
+    else:
+        plt.xticks(list(range(0, len(categoryLabels))), categoryLabels, rotation = "horizontal")
 
     ax = plt.gca()
     for spine in ax.spines:
         ax.spines[spine].set_visible(False)
+
+    if bigFont:
+        params = {'mathtext.default': 'it', 'font.size': 22 }          
+        plt.rcParams.update(params)
     
     if len(seriesLabels) > 0:
-        plt.legend(loc = legendPosition, ncol = 2)
+        plt.legend(loc = legendPosition, ncol = 2, fontsize = 22)
 
     if grid:
         plt.grid(color = "gray", linestyle = '--', linewidth = 0.5, which = "both")
@@ -187,7 +195,10 @@ def createSingleBarChart(data: List,
         plt.title(title)
 
     if yLabel:
-        plt.ylabel(yLabel)
+        if bigFont:
+            plt.ylabel(yLabel, fontsize = 22, labelpad = 10)
+        else:
+            plt.ylabel(yLabel)
 
     if yLabelFormatter != None:
         ax.yaxis.set_major_formatter(yLabelFormatter)
@@ -204,7 +215,11 @@ def createSingleBarChart(data: List,
                          labelPrefix + valueFormat.format(h / valueFormatFract) + labelPostFix, 
                          ha = "center", 
                          va = "center",
-                         fontsize = 9)
+                         fontsize = 18)
+
+    if bigFont:
+        plt.yticks(fontsize = 20)
+
     plt.tight_layout()
             
     if savePath != None:
@@ -276,7 +291,7 @@ def createSingleBarChartHorizontal(data: List,
 def createTrainingAccuracyLossChart(dataFrames: List[pd.DataFrame], 
                                     dataIndexKey: str, 
                                     valDataIndexKey: str, 
-                                    figSize: Tuple = (9, 5.5), 
+                                    figSize: Tuple = (12, 8), 
                                     labels: List = [], 
                                     title: str = "",
                                     targetEpochPatience: int = 0,
@@ -317,7 +332,7 @@ def createTrainingAccuracyLossChart(dataFrames: List[pd.DataFrame],
 
         start, end = ax.get_xlim()
         ax.xaxis.set_ticks(np.arange(0, end, math.ceil(max(x) / 10.0)))
-        ax.tick_params(axis = "both", which = "major", labelsize = 8)
+        ax.tick_params(axis = "both", which = "major", labelsize = 18)
 
         if targetEpochPatience > 0:
             ax.axvline(x = max(x) - targetEpochPatience, color = "black")
@@ -348,13 +363,13 @@ def createTrainingAccuracyLossChart(dataFrames: List[pd.DataFrame],
     
     fig.legend(legendLines, 
                legendLabels,
-               loc = "lower left", 
-               fontsize = "medium", 
-               bbox_to_anchor = (0.06, 0.84 if count > 1 else 0.75), ncol = 2)
+               loc = "upper left", 
+               fontsize = 20, 
+               bbox_to_anchor = (0.18, 1), ncol = 2) #if count > 1 else 0.75)
 
-    fig.suptitle(title)
+    #fig.suptitle(title)
     fig.tight_layout()
-    make_space_above(axs, topmargin = 1.3)  
+    make_space_above(axs, topmargin = 1.5)  
 
     if savePath != None:
         plt.savefig(savePath, dpi = 300, transparent = True)

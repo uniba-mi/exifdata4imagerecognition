@@ -802,14 +802,15 @@ class ModelEvaluation(object):
             efficientNetB4Delta = np.concatenate((efficientNetB4Delta, np.concatenate([cfLowRes.metricMixedEfficientNetB4 - cfLowRes.metricImageOnlyEfficientNetB4] + [cfHighRes.metricMixedEfficientNetB4 - cfHighRes.metricImageOnlyEfficientNetB4])))
             resNet50V2Delta = np.concatenate((resNet50V2Delta, np.concatenate([cfLowRes.metricMixedResNet50V2 - cfLowRes.metricImageOnlyResNet50V2] + [cfHighRes.metricMixedResNet50V2 - cfHighRes.metricImageOnlyResNet50V2])))
         
-        summedMobileNetV2DeltaLowRes = sum([x for ind, x in enumerate(mobileNetV2Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * 2)
-        summedMobileNetV2DeltaHighRes = sum([x for ind, x in enumerate(mobileNetV2Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * 2)
-        summedEfficientNetB0DeltaLowRes = sum([x for ind, x in enumerate(efficientNetB0Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * 2)
-        summedEfficientNetB0DeltaHighRes = sum([x for ind, x in enumerate(efficientNetB0Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * 2)
-        summedEfficientNetB4DeltaLowRes = sum([x for ind, x in enumerate(efficientNetB4Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * 2)
-        summedEfficientNetB4DeltaHighRes = sum([x for ind, x in enumerate(efficientNetB4Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * 2)
-        summedResNet50V2DeltaLowRes = sum([x for ind, x in enumerate(resNet50V2Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * 2)
-        summedResNet50V2DeltaHighRes = sum([x for ind, x in enumerate(resNet50V2Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * 2)
+        dom = 2
+        summedMobileNetV2DeltaLowRes = sum([x for ind, x in enumerate(mobileNetV2Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * dom)
+        summedMobileNetV2DeltaHighRes = sum([x for ind, x in enumerate(mobileNetV2Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * dom)
+        summedEfficientNetB0DeltaLowRes = sum([x for ind, x in enumerate(efficientNetB0Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * dom)
+        summedEfficientNetB0DeltaHighRes = sum([x for ind, x in enumerate(efficientNetB0Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * dom)
+        summedEfficientNetB4DeltaLowRes = sum([x for ind, x in enumerate(efficientNetB4Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * dom)
+        summedEfficientNetB4DeltaHighRes = sum([x for ind, x in enumerate(efficientNetB4Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * dom)
+        summedResNet50V2DeltaLowRes = sum([x for ind, x in enumerate(resNet50V2Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * dom)
+        summedResNet50V2DeltaHighRes = sum([x for ind, x in enumerate(resNet50V2Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * dom)
 
         totalDeltaLow = [summedMobileNetV2DeltaLowRes, summedEfficientNetB0DeltaLowRes, summedEfficientNetB4DeltaLowRes, summedResNet50V2DeltaLowRes]
         totalDeltaHigh = [summedMobileNetV2DeltaHighRes, summedEfficientNetB0DeltaHighRes, summedEfficientNetB4DeltaHighRes, summedResNet50V2DeltaHighRes]
@@ -837,14 +838,15 @@ class ModelEvaluation(object):
             showValues = True, 
             valueFormat = "{:.3f}",
             labelPrefix = "+",
-            title = "Mixed Model Total Average " + metric.capitalize() + " Gain",
-            yLabel = metric.capitalize() + " Gain",
-            figSize = (8.5, 5),
+            #title = "Mixed Model Total Average " + metric.capitalize() + " Gain",
+            yLabel = "Total Average $F1_{M}$ Gain",
+            figSize = (12, 5),
             barWidth = barWidth,
             grid = True,
+            bigFont = True,
             savePath = None,
-            legendPosition = legendPosition,
-            labelOffset = -0.001)
+            legendPosition = "upper left",
+            labelOffset = -0.002)
         
         createBarChart(
             [[[sum(totalDeltaLow) / len(totalDeltaLow)], [sum(totalDeltaHigh) / len(totalDeltaHigh)]]], 
@@ -908,6 +910,7 @@ class ModelEvaluation(object):
                                                             separateCnns: bool = True,
                                                             figSize: Tuple = (6, 2.8), #5.0
                                                             barWidth: float = 0.8,
+                                                            total: bool = False,
                                                             savePath = None):
         totalsIO50 = np.zeros(shape = (4))
         totalsMixed50 = np.zeros(shape = (4))
@@ -1002,22 +1005,44 @@ class ModelEvaluation(object):
             fracs50 = [(sum(avg50) / len(avg50)) * -100]
             fracs150 = [(sum(avg150) / len(avg150)) * -100]
 
-        createBarChart(
-            [[fracs50, fracs150]], 
-            [["50x50px", "150x150px"]], 
-            categoryLabels = None if not separateCnns else ["MobileNetV2", "EfficientNetB0", "EfficientNetB4", "ResNet50V2"], 
-            showValues = True,
-            showNegativeValues = True,
-            valueFormat = "{:.1f}",
-            labelOffset = 0.9, #-0.4,
-            labelPostfix = "%",
-            title = "" if combineSuperSub else "Super" if super else "",
-            yLabel = "Δ Average Training Time in %", # \n(Mixed vs. Image-Only)",
-            figSize = figSize,
-            savePath = savePath,
-            legendPosition = "lower right",
-            barWidth = barWidth,
-            grid = True)
+        if total:
+            createBarChart(
+                [[totalsIO50, totalsIO150],
+                [totalsMixed50, totalsMixed150]], 
+                [["50x50px Image-Only", "150x150px Image-Only"],
+                 ["50x50px Fusion", "150x150px Fusion"]], 
+                categoryLabels = None if not separateCnns else ["MobileNetV2", "EfficientNetB0", "EfficientNetB4", "ResNet50V2"], 
+                showValues = False,
+                showNegativeValues = True,
+                valueFormat = "{:.0f}",
+                labelOffset = 10,
+                labelPostfix = "",
+                title = "" if combineSuperSub else "Super" if super else "",
+                yLabel = "Total Training Time in Seconds",
+                figSize = (15,7),
+                yLimit = 25000,
+                savePath = savePath,
+                legendPosition = "lower right",
+                barWidth = barWidth,
+                bigFont = True,
+                grid = True)
+        else:
+            createBarChart(
+                [[fracs50, fracs150]], 
+                [["50x50px", "150x150px"]], 
+                categoryLabels = None if not separateCnns else ["MobileNetV2", "EfficientNetB0", "EfficientNetB4", "ResNet50V2"], 
+                showValues = True,
+                showNegativeValues = True,
+                valueFormat = "{:.1f}",
+                labelOffset = 0.9, #-0.4,
+                labelPostfix = "%",
+                title = "" if combineSuperSub else "Super" if super else "",
+                yLabel = "Δ Average Training Time in %", # \n(Mixed vs. Image-Only)",
+                figSize = figSize,
+                savePath = savePath,
+                legendPosition = "lower right",
+                barWidth = barWidth,
+                grid = True)
     
     def createTrainingTimeMixedvsImageOnlyComparison(self, 
                                                     super: bool = False,
@@ -1027,10 +1052,16 @@ class ModelEvaluation(object):
     
         trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150 = self.trainingTimes(super = super)
         
-        print("50x50:")
-        print(np.round(np.subtract(np.ones(shape = (4)), np.divide(trainingTimeMixed50, trainingTimeIO50)), 3) * -100)
-        print("150x150:")
-        print(np.round(np.subtract(np.ones(shape = (4)), np.divide(trainingTimeMixed150, trainingTimeIO150)), 3) * -100)
+        #print("50x50:")
+        #print(np.round(np.subtract(np.ones(shape = (4)), np.divide(trainingTimeMixed50, trainingTimeIO50)), 3) * -100)
+        #print("150x150:")
+        #print(np.round(np.subtract(np.ones(shape = (4)), np.divide(trainingTimeMixed150, trainingTimeIO150)), 3) * -100)
+
+        #print(trainingTimeIO50)
+        print(np.round(trainingTimeIO50 / 60, 1))
+        print(np.round(trainingTimeIO150 / 60, 1))
+        print(np.round(trainingTimeMixed50 / 60, 1))
+        print(np.round(trainingTimeMixed150 / 60, 1))
 
         createBarChart(
             [[trainingTimeIO50, trainingTimeMixed50, trainingTimeIO150, trainingTimeMixed150]], 
@@ -1044,7 +1075,7 @@ class ModelEvaluation(object):
             barWidth = barWidth,
             grid = True)
         
-    def createModelParameterCountComparison(self, figSize: Tuple = (12.5, 5), barWidth: float = 0.7, savePath = None):
+    def createModelParameterCountComparison(self, figSize: Tuple = (20, 8), barWidth: float = 0.7, savePath = None):
         params = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_EXIF_ONLY][EvaluationFiles.MODEL_PARAMS],
                            self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_MOBILENET_V2][EvaluationFiles.MODEL_PARAMS], 
                            self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B0][EvaluationFiles.MODEL_PARAMS], 
@@ -1063,10 +1094,10 @@ class ModelEvaluation(object):
                                                "EfficientNetB0\nImage-Only", 
                                                "EfficientNetB4\nImage-Only", 
                                                "ResNet50V2\nImage-Only",
-                                               "MobileNetV2\nMixed", 
-                                               "EfficientNetB0\nMixed", 
-                                               "EfficientNetB4\nMixed", 
-                                               "ResNet50V2\nMixed"], 
+                                               "MobileNetV2\nFusion", 
+                                               "EfficientNetB0\nFusion", 
+                                               "EfficientNetB4\nFusion", 
+                                               "ResNet50V2\nFusion"], 
                              figSize = figSize,
                              barWidth = barWidth,
                              labelOffset = -500000,
@@ -1077,6 +1108,7 @@ class ModelEvaluation(object):
                              showValues = True,
                              yLimit = 2.5e7,
                              savePath = savePath,
+                             bigFont = True,
                              yLabel = "Model Parameter Count",
                              yLabelFormatter = labelFormatter,
                              grid = True)
@@ -1131,7 +1163,7 @@ class ModelEvaluation(object):
                                         valDataIndexKey = "val_" + metricIndexKey,
                                         labels = ["EXIF MLP"],
                                         title = "Training " + metric + " at Epoch - EXIF-Only" + s,
-                                        figSize = (5.5, 3.0),
+                                        figSize = (10, 5.0),
                                         targetEpochPatience = 50,
                                         savePath = savePath)
 
@@ -1148,7 +1180,7 @@ class ModelEvaluation(object):
                                         title = "Training " + metric + " at Epoch - Image-Only" + s + pixels,
                                         targetEpochPatience = 5,
                                         startFineTuningEpoch = 15,
-                                        savePath = savePath)
+                                        savePath = None)
         
         createTrainingAccuracyLossChart(dataFrames = [rp.fileMixedMobileNetV2, 
                                                       rp.fileMixedEfficientNetB0,
@@ -1163,7 +1195,7 @@ class ModelEvaluation(object):
                                         title = "Training " + metric + " at Epoch - Mixed" + s + pixels,
                                         targetEpochPatience = 5,
                                         startFineTuningEpoch = 15,
-                                        savePath = savePath)
+                                        savePath = None)
         
     def createExifTagDistributionChart(self, customSet: pd.DataFrame = None, figSize: Tuple = (8, 5), barHeight: float = 0.7, savePath = None):
         distribution = self.exifTagDistribution() if customSet is None else customSet
@@ -1173,6 +1205,8 @@ class ModelEvaluation(object):
 
         # convert to percentage
         tagsCount = (tagsCount / np.max(tagsCount)) * 100
+
+        print(tagsCount)
 
         createSingleBarChartHorizontal(tagsCount,
                                        seriesLabels = [],
@@ -1456,21 +1490,21 @@ if __name__ == '__main__':
                                                       savePath = savePath)
 
 
-    evaluations[index].createMixedImageOnlyAbsolutesGroup(evaluations = evaluations, 
+    """ evaluations[index].createMixedImageOnlyAbsolutesGroup(evaluations = evaluations, 
                                                           categoryLabels = ["Landscape-Object\nSuper 50x50px", "Landscape-Object\nSuper 150x150px", "Landscape-Object\nSub 50x50px", "Landscape-Object\nSub 150x150px", 
                                                                             "Moving-Static\nSuper 50x50px", "Moving-Static\nSuper 150x150px", "Moving-Static\nSub 50x50px", "Moving-Static\nSub 150x150px", 
                                                                             "Indoor-Outdoor\nSuper 50x50px", "Indoor-Outdoor\nSuper 150x150px", "Indoor-Outdoor\nSub 50x50px", "Indoor-Outdoor\nSub 150x150px"], 
                                                           figSize = (20, 9), 
                                                           barWidth = 0.6,
                                                           yLimit = 1.001,
-                                                          savePath = None)                         
+                                                          savePath = None)  """                        
 
     #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = False)
     #evaluations[2].createTrainingTimeMixedvsImageOnlyComparison(super = True, savePath = None)
     #evaluations[index].createModelParameterCountComparison(savePath = None)
 
     #evaluations[0].createConfusionMatrix(EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B0, argMaxOnly = False, addNotPredictedClass = True)
-    #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = False, savePath = None)
+    #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = True, total = True, savePath = savePath)
 
     """ cfBasePath = "/Users/ralflederer/Desktop/cf/"
     argMaxOnly = True

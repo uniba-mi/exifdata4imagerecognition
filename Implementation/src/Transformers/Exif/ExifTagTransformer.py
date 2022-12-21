@@ -299,6 +299,7 @@ def transformSharpness(value: str) -> int:
 def transformOrientation(value: str) -> int:
     """ Transforms the exif tag 'Orientation' to its corresponding categorical integer value, e.g. 'rotate 180' -> 3.
     The input value most comply to the exif specification.
+    0 = Unknown
     1 = Horizontal (normal)
     2 = Mirror horizontal
     3 = Rotate 180

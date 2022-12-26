@@ -100,7 +100,7 @@ class BatchGenerator(ABC, Sequence):
         """ Returns the ids of the training data instances for the given range. """
         return np.array([np.array(identifier) for identifier in self.idDataFrame.iloc[start : end]], dtype = object)
     
-    def permutateX(self, columnNames: List[str]) -> "BatchGenerator":
+    def permuteX(self, columnNames: List[str]) -> "BatchGenerator":
         """ Returns a copy of the generator in which the values of the given columns are randomly shuffled (in the x-data set). """
         copiedGenerator = copy.deepcopy(self)
         for columnName in columnNames:

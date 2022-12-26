@@ -13,8 +13,6 @@ class MLPTrainingTests(unittest.TestCase):
 
     def testTrainIndoorOutdoorMixedModel(self):
         tensorflow.get_logger().setLevel("ERROR")
-        #dataSetPaths = { TestTrainingConstants.datasetFilePath : ExifImageTrainingDataFormats.Flickr,
-        #                 TestTrainingConstants.mirDatasetFilePath : ExifImageTrainingDataFormats.MirFlickr }
         
         dataSetPaths = { TestTrainingConstants.indoorOutdoorFilePath : ExifImageTrainingDataFormats.Flickr }
 
@@ -23,17 +21,22 @@ class MLPTrainingTests(unittest.TestCase):
                                         trainSize = 0.7,
                                         validationSize = 0.2,
                                         testSize = 0.1,
-                                        batchSize = 128,
-                                        exifOnly = True,
-                                        useSuperConcepts = False,
+                                        batchSize = 32,
+                                        exifOnly = False,
+                                        useSuperConcepts = True,
                                         imageSize = (150, 150),
                                         seed = 131)
-        
-        # create training task
-        trainingTask = TrainingTask(classifier = MLPClassifier(name = "MLP"), 
-                                    storagePath = None,
-                                    provider = dataProvider)
-        trainingTask.run(epochs = 300, earlyStoppingPatience = 50, optimize = "loss")
+                                        
+        task = TrainingTask(classifier = MixedModel(name = "MixedIndoorOutdoor", 
+                                                      classifier1 = CNNClassifier(name = "CNN", modelFunction = EfficientNetB0), 
+                                                      classifier2 = MLPClassifier(name = "MLP"), 
+                                                      fineTuneLayersCount = 10, 
+                                                      fineTuneEpochs = 1), 
+                            storagePath = TestTrainingConstants.modelDirectory, 
+                            provider = dataProvider)
+
+        task.run(epochs = 2, earlyStoppingPatience = 10, optimize = "loss")
+
 
 if __name__ == '__main__':
     unittest.main()

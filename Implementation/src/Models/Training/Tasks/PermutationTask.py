@@ -39,7 +39,7 @@ class PermutationEvaluationTask(object):
         if verbose > 0:
                 print("starting permutation task for " + classifier.name + " ...")
 
-        # we use the validation data for permutation
+        # we use the test data for permutation
         dataGenerator = dataGeneratorProvider.cachedGenerators[2]
         allColumns = dataGenerator.xDataFrame.columns
         allColumnFeatures = {}
@@ -66,7 +66,7 @@ class PermutationEvaluationTask(object):
             featureScores = []
             for i in range(0, self.permutations):
                 # predict the data generators data and get true labels
-                permutationGenerator = dataGenerator.permutateX(columnNames = columnsToPermutate)
+                permutationGenerator = dataGenerator.permuteX(columnNames = columnsToPermutate)
                 predictionResult = permutationGenerator.predictOn(model = classifier.model, multiLabel = dataGeneratorProvider.multiLabel)
 
                 score = self.metric(predictionResult.trueY, predictionResult.predictionYRounded)
@@ -86,7 +86,7 @@ class PermutationEvaluationTask(object):
         
         # save permutation scores
         if not self.storagePath is None:
-            with open(self.storagePath.joinpath(classifier.name).joinpath("validation_feature_importance.csv"), "w") as file:  
+            with open(self.storagePath.joinpath(classifier.name).joinpath("test_feature_importance.csv"), "w") as file:  
                 writer = csv.writer(file)
                 for key, value in permutationScores.items():
                     writer.writerow([key, "{:.3f}".format(value)])

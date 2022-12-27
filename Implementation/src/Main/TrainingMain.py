@@ -247,7 +247,7 @@ if __name__ == '__main__':
         exifArgs = [arg for arg in args if not arg == PARAM_ALL] + [PARAM_EXIF_ONLY]
         while PARAM_IMAGE_ONLY in exifArgs: exifArgs.remove(PARAM_IMAGE_ONLY)
         setParam(exifArgs, PARAM_BATCH_SIZE, 128)
-        setParam(exifArgs, PARAM_EPOCHS, 300)
+        setParam(exifArgs, PARAM_EPOCHS, 500)
         setParam(exifArgs, PARAM_EARLY_STOPPING_PATIENCE_EPOCHS, 50)
         setParam(exifArgs, PARAM_EXIF_PERMUTATIONS, 50)
         setParam(exifArgs, PARAM_MODEL_NAME, baseName + "_ExifOnly")

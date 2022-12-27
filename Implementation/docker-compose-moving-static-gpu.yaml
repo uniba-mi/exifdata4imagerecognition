@@ -49,7 +49,7 @@ services:
              -cachepath resources/ 
              -outpath models/ 
              -bs 128 
-             -epochs 300 
+             -epochs 500 
              -esepochs 50 
              -eo
              -super 
@@ -72,7 +72,7 @@ services:
              -cachepath resources/ 
              -outpath models/ 
              -bs 128 
-             -epochs 300 
+             -epochs 500 
              -esepochs 50 
              -eo 
              -optimize loss

@@ -5,9 +5,10 @@ import pandas as pd
 from Tools.Charts.Charts import createBarChart, createSingleBarChart, createSingleBarChartHorizontal, createTrainingAccuracyLossChart, createImageOverviewChart
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mlp
 import matplotlib.ticker as ticker
 from DomainModel.ExifData import ExifTag  
-from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 from sklearn.metrics import classification_report
 
 class FileList(object):
@@ -795,14 +796,14 @@ class ModelEvaluation(object):
             efficientNetB4Delta = np.concatenate((efficientNetB4Delta, np.concatenate([cfLowRes.metricMixedEfficientNetB4 - cfLowRes.metricImageOnlyEfficientNetB4] + [cfHighRes.metricMixedEfficientNetB4 - cfHighRes.metricImageOnlyEfficientNetB4])))
             resNet50V2Delta = np.concatenate((resNet50V2Delta, np.concatenate([cfLowRes.metricMixedResNet50V2 - cfLowRes.metricImageOnlyResNet50V2] + [cfHighRes.metricMixedResNet50V2 - cfHighRes.metricImageOnlyResNet50V2])))
 
-            cfHighRes, cfLowRes = modelEvaluation.getHighResLowResClassificationReport(super = False, metric = metric)
+            """ cfHighRes, cfLowRes = modelEvaluation.getHighResLowResClassificationReport(super = False, metric = metric)
 
             mobileNetV2Delta = np.concatenate((mobileNetV2Delta, np.concatenate([cfLowRes.metricMixedMobileNetV2 - cfLowRes.metricImageOnlyMobileNetV2] + [cfHighRes.metricMixedMobileNetV2 - cfHighRes.metricImageOnlyMobileNetV2])))
             efficientNetB0Delta = np.concatenate((efficientNetB0Delta, np.concatenate([cfLowRes.metricMixedEfficientNetB0 - cfLowRes.metricImageOnlyEfficientNetB0] + [cfHighRes.metricMixedEfficientNetB0 - cfHighRes.metricImageOnlyEfficientNetB0])))
             efficientNetB4Delta = np.concatenate((efficientNetB4Delta, np.concatenate([cfLowRes.metricMixedEfficientNetB4 - cfLowRes.metricImageOnlyEfficientNetB4] + [cfHighRes.metricMixedEfficientNetB4 - cfHighRes.metricImageOnlyEfficientNetB4])))
-            resNet50V2Delta = np.concatenate((resNet50V2Delta, np.concatenate([cfLowRes.metricMixedResNet50V2 - cfLowRes.metricImageOnlyResNet50V2] + [cfHighRes.metricMixedResNet50V2 - cfHighRes.metricImageOnlyResNet50V2])))
+            resNet50V2Delta = np.concatenate((resNet50V2Delta, np.concatenate([cfLowRes.metricMixedResNet50V2 - cfLowRes.metricImageOnlyResNet50V2] + [cfHighRes.metricMixedResNet50V2 - cfHighRes.metricImageOnlyResNet50V2]))) """
         
-        dom = 2
+        dom = 1
         summedMobileNetV2DeltaLowRes = sum([x for ind, x in enumerate(mobileNetV2Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * dom)
         summedMobileNetV2DeltaHighRes = sum([x for ind, x in enumerate(mobileNetV2Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * dom)
         summedEfficientNetB0DeltaLowRes = sum([x for ind, x in enumerate(efficientNetB0Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * dom)
@@ -815,7 +816,32 @@ class ModelEvaluation(object):
         totalDeltaLow = [summedMobileNetV2DeltaLowRes, summedEfficientNetB0DeltaLowRes, summedEfficientNetB4DeltaLowRes, summedResNet50V2DeltaLowRes]
         totalDeltaHigh = [summedMobileNetV2DeltaHighRes, summedEfficientNetB0DeltaHighRes, summedEfficientNetB4DeltaHighRes, summedResNet50V2DeltaHighRes]
 
-        createBarChart(
+        mobileNetV2Delta = np.empty(shape = (0))
+        efficientNetB0Delta = np.empty(shape = (0))
+        efficientNetB4Delta = np.empty(shape = (0))
+        resNet50V2Delta = np.empty(shape = (0))
+
+        for modelEvaluation in evaluations:
+            cfHighRes, cfLowRes = modelEvaluation.getHighResLowResClassificationReport(super = False, metric = metric)
+            mobileNetV2Delta = np.concatenate((mobileNetV2Delta, np.concatenate([cfLowRes.metricMixedMobileNetV2 - cfLowRes.metricImageOnlyMobileNetV2] + [cfHighRes.metricMixedMobileNetV2 - cfHighRes.metricImageOnlyMobileNetV2])))
+            efficientNetB0Delta = np.concatenate((efficientNetB0Delta, np.concatenate([cfLowRes.metricMixedEfficientNetB0 - cfLowRes.metricImageOnlyEfficientNetB0] + [cfHighRes.metricMixedEfficientNetB0 - cfHighRes.metricImageOnlyEfficientNetB0])))
+            efficientNetB4Delta = np.concatenate((efficientNetB4Delta, np.concatenate([cfLowRes.metricMixedEfficientNetB4 - cfLowRes.metricImageOnlyEfficientNetB4] + [cfHighRes.metricMixedEfficientNetB4 - cfHighRes.metricImageOnlyEfficientNetB4])))
+            resNet50V2Delta = np.concatenate((resNet50V2Delta, np.concatenate([cfLowRes.metricMixedResNet50V2 - cfLowRes.metricImageOnlyResNet50V2] + [cfHighRes.metricMixedResNet50V2 - cfHighRes.metricImageOnlyResNet50V2])))
+
+        dom = 1
+        summedMobileNetV2DeltaLowRes = sum([x for ind, x in enumerate(mobileNetV2Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * dom)
+        summedMobileNetV2DeltaHighRes = sum([x for ind, x in enumerate(mobileNetV2Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * dom)
+        summedEfficientNetB0DeltaLowRes = sum([x for ind, x in enumerate(efficientNetB0Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * dom)
+        summedEfficientNetB0DeltaHighRes = sum([x for ind, x in enumerate(efficientNetB0Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * dom)
+        summedEfficientNetB4DeltaLowRes = sum([x for ind, x in enumerate(efficientNetB4Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * dom)
+        summedEfficientNetB4DeltaHighRes = sum([x for ind, x in enumerate(efficientNetB4Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * dom)
+        summedResNet50V2DeltaLowRes = sum([x for ind, x in enumerate(resNet50V2Delta) if (ind + 2) % 2 == 0]) / (len(evaluations) * dom)
+        summedResNet50V2DeltaHighRes = sum([x for ind, x in enumerate(resNet50V2Delta) if (ind + 2) % 2 == 1]) / (len(evaluations) * dom)
+
+        totalDeltaLowSub = [summedMobileNetV2DeltaLowRes, summedEfficientNetB0DeltaLowRes, summedEfficientNetB4DeltaLowRes, summedResNet50V2DeltaLowRes]
+        totalDeltaHighSub = [summedMobileNetV2DeltaHighRes, summedEfficientNetB0DeltaHighRes, summedEfficientNetB4DeltaHighRes, summedResNet50V2DeltaHighRes]
+
+        """ createBarChart(
             [[mobileNetV2Delta, efficientNetB0Delta, efficientNetB4Delta, resNet50V2Delta]], 
             [["MobileNetV2", "EfficientNetB0", "EfficientNetB4", "ResNet50V2"]], 
             categoryLabels = categoryLabels, 
@@ -829,26 +855,27 @@ class ModelEvaluation(object):
             savePath = savePath,
             bigFont = True,
             legendPosition = legendPosition,
-            labelOffset = labelOffset)
+            labelOffset = labelOffset) """
         
         createBarChart(
-            [[totalDeltaLow, totalDeltaHigh]], 
-            [["50x50px", "150x150px"]], 
+            [[totalDeltaLow, totalDeltaHigh, totalDeltaLowSub, totalDeltaHighSub]], 
+            [["Super (50x50px)", "Super (150x150px)","Sub (50x50px)", "Sub (150x150px)"]], 
             categoryLabels = ["MobileNetV2", "EfficientNetB0", "EfficientNetB4", "ResNet50V2"], 
             showValues = True, 
             valueFormat = "{:.3f}",
             labelPrefix = "+",
             #title = "Mixed Model Total Average " + metric.capitalize() + " Gain",
-            yLabel = "Total Average $F1_{M}$ Gain",
-            figSize = (12, 5),
-            barWidth = barWidth,
+            yLabel = "Average $F1_{M}$ Gain",
+            figSize = (15.0, 6.5),
+            barWidth = 0.95,
+            yLimit = 0.06,
             grid = True,
             bigFont = True,
-            savePath = None,
+            savePath = savePath,
             legendPosition = "upper left",
-            labelOffset = -0.002)
+            labelOffset = -0.001)
         
-        createBarChart(
+        """ createBarChart(
             [[[sum(totalDeltaLow) / len(totalDeltaLow)], [sum(totalDeltaHigh) / len(totalDeltaHigh)]]], 
             [["50x50px", "150x150px"]], 
             categoryLabels = [""], 
@@ -862,7 +889,7 @@ class ModelEvaluation(object):
             grid = True,
             savePath = None,
             legendPosition = legendPosition,
-            labelOffset = -0.001)
+            labelOffset = -0.001) """
     
     def createMixedImageExifComparison(self, 
                                   super: bool = False, 
@@ -928,6 +955,8 @@ class ModelEvaluation(object):
         fracs150EfficientNetB4 = list()
         fracs150ResNet50V2 = list()
 
+        totalEpochs = np.zeros(shape = (4))
+
         targets = [super]
 
         if combineSuperSub:
@@ -975,7 +1004,72 @@ class ModelEvaluation(object):
                 #print("total_dif:150 " + str(totalDif150))
                 #print("frac:150 " + str(frac150))
 
-        
+                # get epoch counts
+                rpLow = modelEvaluation.getFiles(fileType = EvaluationFiles.TRAINING_HISTORY, super = target, highResolution = False)
+                rpHigh = modelEvaluation.getFiles(fileType = EvaluationFiles.TRAINING_HISTORY, super = target, highResolution = True)
+
+                epochCountsLowIO = ([len(rpLow.fileImageOnlyMobileNetV2.transpose().index), 
+                                     len(rpLow.fileImageOnlyEfficientNetB0.transpose().index), 
+                                     len(rpLow.fileImageOnlyEfficientNetB4.transpose().index), 
+                                     len(rpLow.fileImageOnlyResNet50V2.transpose().index)])
+                
+                epochCountsHighIO = ([len(rpHigh.fileImageOnlyMobileNetV2.transpose().index), 
+                                      len(rpHigh.fileImageOnlyEfficientNetB0.transpose().index), 
+                                      len(rpHigh.fileImageOnlyEfficientNetB4.transpose().index), 
+                                      len(rpHigh.fileImageOnlyResNet50V2.transpose().index)])
+                
+                epochCountsLowMixed = ([len(rpLow.fileMixedMobileNetV2.transpose().index), 
+                                        len(rpLow.fileMixedEfficientNetB0.transpose().index), 
+                                        len(rpLow.fileMixedEfficientNetB4.transpose().index), 
+                                        len(rpLow.fileMixedResNet50V2.transpose().index)])
+                
+                epochCountsHighMixed = ([len(rpHigh.fileMixedMobileNetV2.transpose().index), 
+                                         len(rpHigh.fileMixedEfficientNetB0.transpose().index), 
+                                         len(rpHigh.fileMixedEfficientNetB4.transpose().index), 
+                                         len(rpHigh.fileMixedResNet50V2.transpose().index)])
+                
+
+                averageEpochTimesLowIO = np.round(np.divide(trainingTimeIO50, epochCountsLowIO), 2)
+                averageEpochTimesLow = np.round(np.divide(trainingTimeMixed50, epochCountsLowMixed), 2)
+
+                averageEpochTimesHighIO = np.round(np.divide(trainingTimeIO150, epochCountsHighIO), 2)
+                averageEpochTimesHigh = np.round(np.divide(trainingTimeMixed150, epochCountsHighMixed), 2)
+
+                differencesIOMixedEpoch = np.subtract(epochCountsLowMixed, epochCountsLowIO)
+                differencesIOMixedAverage = np.round(np.add(averageEpochTimesLow, averageEpochTimesLowIO) / 2.0, 1)
+
+                differencesIOMixedEpochHigh = np.subtract(epochCountsHighMixed, epochCountsHighIO)
+                differencesIOMixedAverageHigh = np.round(np.add(averageEpochTimesHigh, averageEpochTimesHighIO) / 2.0, 1)
+
+                formatString = "{0} & {1} & {2} & {3}"
+                """ print("low")
+                print(modelEvaluation.name)
+                print("super" if target else "sub")
+                print(formatString.format(*differencesIOMixedEpoch))
+                print(formatString.format(*differencesIOMixedAverage))
+                print("...")
+
+                print("high")
+                print(modelEvaluation.name)
+                print("super" if target else "sub")
+                print(formatString.format(*differencesIOMixedEpochHigh))
+                print(formatString.format(*differencesIOMixedAverageHigh))
+                print("...") """
+                
+                if not target: #and modelEvaluation.name == "IndoorOutdoor":
+                    #totalEpochs = np.add(totalEpochs, differencesIOMixedEpochHigh)
+                    #totalEpochs = np.add(totalEpochs, differencesIOMixedEpochHigh)
+                    #print(modelEvaluation.name)
+                    #print(formatString.format(*differencesIOMixedEpochHigh))
+                    #print(formatString.format(*differencesIOMixedEpoch))
+                    print("...")
+                
+
+                #totalEpochs = np.add(totalEpochs, differencesIOMixedEpochHigh)
+                #totalEpochs = np.add(totalEpochs, differencesIOMixedEpoch)
+                totalEpochs = np.add(totalEpochs, differencesIOMixedEpoch)
+
+        print(totalEpochs)
         avg50 = [np.sum(fracs50MobileNetV2) / len(fracs50MobileNetV2), np.sum(fracs50EfficientNetB0) / len(fracs50EfficientNetB0), np.sum(fracs50EfficientNetB4) / len(fracs50EfficientNetB4), np.sum(fracs50ResNet50V2) / len(fracs50ResNet50V2)]
         avg150 = [np.sum(fracs150MobileNetV2) / len(fracs150MobileNetV2), np.sum(fracs150EfficientNetB0) / len(fracs150EfficientNetB0), np.sum(fracs150EfficientNetB4) / len(fracs150EfficientNetB4), np.sum(fracs150ResNet50V2) / len(fracs150ResNet50V2)]
         allAvgs = avg50 + avg150
@@ -986,11 +1080,11 @@ class ModelEvaluation(object):
         averageMixed150Time = (sum(totalsMixed150) / len(totalsMixed150)) / loops
         averageExifTime = sum(totalExif) / loops
 
-        print(averageIOTime50 / 60)
-        print(averageIOTime150 / 60)
-        print(averageMixed50Time / 60)
-        print(averageMixed150Time / 60)
-        print(averageExifTime / 60)
+        #print(averageIOTime50 / 60)
+        #print(averageIOTime150 / 60)
+        #print(averageMixed50Time / 60)
+        #print(averageMixed150Time / 60)
+        #print(averageExifTime / 60)
 
         if separateCnns:
             fracs50 = (1.0 - np.divide(totalsMixed50, totalsIO50)) * -100
@@ -1075,7 +1169,7 @@ class ModelEvaluation(object):
             barWidth = barWidth,
             grid = True)
         
-    def createModelParameterCountComparison(self, figSize: Tuple = (20, 8), barWidth: float = 0.7, savePath = None):
+    def createModelParameterCountComparison(self, figSize: Tuple = (20, 11), barWidth: float = 0.7, savePath = None):
         params = np.array([self.evaluationTargetFiles[EvaluationTarget.SUB_EXIF_ONLY][EvaluationFiles.MODEL_PARAMS],
                            self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_MOBILENET_V2][EvaluationFiles.MODEL_PARAMS], 
                            self.evaluationTargetFiles[EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B0][EvaluationFiles.MODEL_PARAMS], 
@@ -1131,7 +1225,7 @@ class ModelEvaluation(object):
                                        showValues = True,
                                        sc = True,
                                        valueFormat = "{:.3f}",
-                                       title = "Average F1-Score Drop on 50 Feature Permutations" + (" (Super)" if super else ""),
+                                       title = "", #"Average F1-Score Drop on 50 Feature Permutations" + (" (Super)" if super else ""),
                                        labelPrefix = "-",
                                        xLimit = 0.15,
                                        savePath = savePath,
@@ -1163,9 +1257,9 @@ class ModelEvaluation(object):
                                         valDataIndexKey = "val_" + metricIndexKey,
                                         labels = ["EXIF MLP"],
                                         title = "Training " + metric + " at Epoch - EXIF-Only" + s,
-                                        figSize = (10, 5.0),
+                                        figSize = (7, 3.75),
                                         targetEpochPatience = 50,
-                                        savePath = savePath)
+                                        savePath = None)
 
         createTrainingAccuracyLossChart(dataFrames = [rp.fileImageOnlyMobileNetV2, 
                                                       rp.fileImageOnlyEfficientNetB0,
@@ -1180,7 +1274,7 @@ class ModelEvaluation(object):
                                         title = "Training " + metric + " at Epoch - Image-Only" + s + pixels,
                                         targetEpochPatience = 5,
                                         startFineTuningEpoch = 15,
-                                        savePath = None)
+                                        savePath = savePath)
         
         createTrainingAccuracyLossChart(dataFrames = [rp.fileMixedMobileNetV2, 
                                                       rp.fileMixedEfficientNetB0,
@@ -1265,7 +1359,10 @@ class ModelEvaluation(object):
                                 imagesPerRow = 5,
                                 savePath = savePath)
 
-    def createConfusionMatrix(self, evaluationTarget: EvaluationTarget, threshold: int = 0.5, argMaxOnly: bool = True, addNotPredictedClass: bool = False, savePath = None):
+    def createSubConceptConfusionMatrix(self, evaluationTarget: EvaluationTarget, threshold: int = 0.5, argMaxOnly: bool = False, addNotPredictedClass: bool = True, distributeNotPredictedToSuper: bool = False, savePath = None, returnCorrectPredicted: bool = False):
+        """ Creates a confusion matrix for sup-concepts for the given evaluation target (model). 
+        The threshold indicates the predicted / not-predicted threshold of individual concepts. """
+
         labels = self.evaluationTargetFiles[evaluationTarget][EvaluationFiles.TEST_LABELS]
         superClassNames = self.getFiles(fileType = EvaluationFiles.CLASS_NAMES, super = True).fileExifOnly
         classNames = self.getFiles(fileType = EvaluationFiles.CLASS_NAMES, super = False).fileExifOnly
@@ -1273,6 +1370,11 @@ class ModelEvaluation(object):
 
         trueY = []
         predictedY = []
+        notPredictedIds = set()
+        correctPredictedIds = set()
+
+        super1Name = superClassNames[0]
+        super2Name = superClassNames[1]
 
         # index for class 'other'
         otherIndex = len(classNames) + 1
@@ -1291,6 +1393,7 @@ class ModelEvaluation(object):
             if len(trueClassNames) == 2:
                 # determine true label index of sub-concepet label
                 subOnlyLabel = [x for x in trueClassNames if x not in superClassNames][0]
+                superOnlyLabel = [x for x in trueClassNames if x in superClassNames][0]
                 trueLabelIndex = classNames.index(subOnlyLabel)
                 
                 if not argMaxOnly:
@@ -1299,6 +1402,7 @@ class ModelEvaluation(object):
                     if subOnlyLabel in predictedClassNames:
                         # correct prediction
                         predictedY.append(trueLabelIndex)
+                        correctPredictedIds.add(imageId)
                     else:
                         # false predcition
                         falseLabels = list(predictedClassNames.difference(trueClassNames))
@@ -1310,15 +1414,23 @@ class ModelEvaluation(object):
                                 subClassIndex = next(i for i,c in enumerate(isSubConcepts) if c == True)
                                 subClass = falseLabels[subClassIndex]
                                 predictedY.append(classNames.index(subClass))
-                                print(subOnlyLabel + ", was predicted as: " + subClass + " [id: " + str(imageId) + "]")
+                                #print(subOnlyLabel + ", was predicted as: " + subClass + " [id: " + str(imageId) + "]")
                             else:
                                 predictedY.append(otherIndex)
                         else:
                             # no sub-label was predicted at all
-                            if addNotPredictedClass:
-                                predictedY.append(otherIndex + 1)
+                            notPredictedIds.add(imageId)
+
+                            if addNotPredictedClass and distributeNotPredictedToSuper:
+                                if superOnlyLabel == super1Name:
+                                    predictedY.append(otherIndex + 1)
+                                else:
+                                    predictedY.append(otherIndex + 2)
                             else:
-                                predictedY.append(otherIndex)
+                                if addNotPredictedClass:
+                                    predictedY.append(otherIndex + 1)
+                                else:
+                                    predictedY.append(otherIndex)
                 else:
                     # code with argMax
                     predictedLabelIndex = np.argmax(classProbabilities)
@@ -1336,28 +1448,215 @@ class ModelEvaluation(object):
                         trueY.append(trueLabelIndex)
                         predictedY.append(otherIndex)
 
+        removeCategoriesFromY = 1
         displayLabels = subOnlyClassNames + ["wrong prediction"]
         if not argMaxOnly and addNotPredictedClass:
-            displayLabels.append("not predicted")
+            if distributeNotPredictedToSuper:
+                displayLabels.append("not predicted (" + super1Name + ")")
+                displayLabels.append("not predicted (" + super2Name + ")")
+                removeCategoriesFromY = 3
+            else:
+                displayLabels.append("not predicted")
+                removeCategoriesFromY = 2
+
+
+        cm = confusion_matrix(trueY, predictedY)
+        cm = cm[:-removeCategoriesFromY]
+
+        fig, ax = plt.subplots(figsize = (10, 8.5))
+        cax = ax.matshow(cm, cmap ="Blues")
+        fontSize = 19
+
+        font = {'family' : 'DejaVu Sans',
+                'weight' : 'bold',
+                'size'   : 19}
+        plt.rc('font', **font)
+
+        tick_marks = np.arange(len(displayLabels))
+        ax.xaxis.set_ticks_position('bottom')
+        plt.yticks(tick_marks[:-removeCategoriesFromY], displayLabels[:-removeCategoriesFromY], fontsize = 19, weight = 'bold')
+        plt.xticks(tick_marks, displayLabels, rotation = 90, fontsize = 19, weight = 'bold')
+        #fig.colorbar(cax)
+
+        cmap = mlp.cm.get_cmap('Blues')
+
+        for (i, j), z in np.ndenumerate(cm):
+            colorValue = abs(cax.norm(cm[i, j]) - 1)
+            colorValue = 1.0 if colorValue >= 0.5 else 0.0
+            ax.text(j, i, '{:0.0f}'.format(z), ha='center', va='center', color = cmap(colorValue))
+        plt.tight_layout()
+        fig.tight_layout()
+
+        if not savePath is None:
+            fig.savefig(savePath, dpi = 300)
+
+        if returnCorrectPredicted:
+            return correctPredictedIds
+        else:
+            return notPredictedIds
+    
+    def createSuperConceptConfusionMatrix(self, target: EvaluationTarget, savePath: Path = None):
+        """ Creates a confusion matrix for super concepts for the given evlauation target (model)."""
+
+        labels = self.evaluationTargetFiles[target][EvaluationFiles.TEST_LABELS]
+        classNames = self.evaluationTargetFiles[EvaluationTarget.SUPER_IMAGEONLY_50_MOBILENET_V2][EvaluationFiles.CLASS_NAMES]
+
+        trueY = []
+        predictedY = []
+        wrongImageIds = []
+
+        for index, row in labels.iterrows():
+            imageId = row["id"]
+            classProbabilities = [float(x) for x in row["predicted_prob"].replace("[", "").replace("]", "").replace("\n", "").split(" ") if x != ""]
+            classLabels = [int(x) for x in row["true"].replace("[", "").replace("]", "").replace("\n", "").replace(".", "").split(" ") if x != ""]
+
+            if len(classProbabilities) != len(classLabels):
+                raise ValueError("number of true labels don't match number of predicted labels")
+
+            argMaxPred = np.argmax(classProbabilities)
+            argMaxTrue = np.argmax(classLabels)
+
+            predictedY.append(argMaxPred)
+            trueY.append(argMaxTrue)
+
+            if argMaxPred != argMaxTrue:
+                wrongImageIds.append(imageId)
 
         plot = ConfusionMatrixDisplay.from_predictions(trueY, 
                                                        predictedY, 
-                                                       display_labels = displayLabels, 
+                                                       display_labels = classNames, 
                                                        cmap = "Blues", 
-                                                       ax = plt.subplots(figsize = (11, 10))[1])
-        
-        plt.rcParams["axes.titlepad"] = 25
-        #plt.title("Confusion Matrix", fontsize = 25)
-        plt.xlabel("Predicted Label", fontsize = 20, labelpad = 20)
-        plt.ylabel("True Label", fontsize = 20, labelpad = 20)
-    
-        plt.xticks(rotation = 90, fontsize = 15)
-        plt.yticks(fontsize = 15)
+                                                       ax = plt.subplots(figsize = (10, 8))[1])
+        font = {'family' : 'DejaVu Sans',
+                'weight' : 'bold',
+                'size'   : 25}
+        plt.rc('font', **font)
+        plt.xlabel("", fontsize = 1, labelpad=0)
+        plt.ylabel("", fontsize = 1, labelpad=0)
+        plt.xticks(rotation = 90, fontsize = 25)
+        plt.yticks(fontsize = 25)
         plt.tight_layout()
 
         if not savePath is None:
             plot.figure_.savefig(savePath, dpi = 300)
+        
+        return wrongImageIds
+    
+    def compareModelClassificationPower(self):
+        """ Prints statistics about the classification power of indiviudal models. """
+        networks = ["MobileNetV2", "EfficientNetB0", "EfficientNetB4", "ResNet50V2"]
+        su = [True, False]
+        res = [False, True]
+        print(self.name)
+        for super in su:
+            for resolution in res:
+                cr = self.getClassificationReport(super = super, 
+                                                  metric = "f1-score", 
+                                                  customClasses = ["macro avg"], 
+                                                  highResolution = resolution)
+                valsIO = [sum(cr.metricImageOnlyMobileNetV2),
+                          sum(cr.metricImageOnlyEfficientNetB0),
+                          sum(cr.metricImageOnlyEfficientNetB4),
+                          sum(cr.metricImageOnlyResNet50V2)]                                  
+                argIO = np.argmax(valsIO)
+                
+                valsMixed = [sum(cr.metricMixedMobileNetV2),
+                             sum(cr.metricMixedEfficientNetB0),
+                             sum(cr.metricMixedEfficientNetB4),
+                             sum(cr.metricMixedResNet50V2)]
+                argMi = np.argmax(valsMixed)
 
+                sub = np.subtract(valsMixed, valsIO)
+
+                print("super-concepts, " if super else "sub-concepts, ", "150x150:" if resolution else "50x50:")
+                print("best network io: " + networks[argIO])
+                print(valsIO)
+                print("best network mixed: " + networks[argMi])
+                print(valsMixed)
+                print("delta")
+                print(sub)
+                print("...")
+    
+    def createNotPredictedByImageOnlyButPredictedByMixedModelSubConceptsImageOverview(self, target1: EvaluationTarget, target2: EvaluationTarget, ids: list = None, showCorrectPredicted: bool = False, savePath = None):
+        """ Creates an overview chart with photos for which the sub-concept was not recognized by the image-only model, but by the fusion model."""
+        if ids == None:
+            if showCorrectPredicted:
+                ids = self.createSubConceptConfusionMatrix(target1, argMaxOnly = False, addNotPredictedClass = True, returnCorrectPredicted = True, distributeNotPredictedToSuper = True)
+            else:
+                imageOnlyNotPredicted = self.createSubConceptConfusionMatrix(target1, argMaxOnly = False, addNotPredictedClass = True)
+                mixedCorrectPredicted = self.createSubConceptConfusionMatrix(target2, argMaxOnly = False, addNotPredictedClass = True, returnCorrectPredicted = True)
+                ids = imageOnlyNotPredicted.intersection(mixedCorrectPredicted)
+
+        labels = self.evaluationTargetFiles[target1][EvaluationFiles.TEST_LABELS]
+        images = []
+        imagePaths = [image for image in self.datasetPath.glob("**/*.jpg") if image.is_file()]
+        gainedIds = list(ids)
+        superClassNames = self.getFiles(fileType = EvaluationFiles.CLASS_NAMES, super = True).fileExifOnly
+
+        imageIndex = range(0, max(len(gainedIds), 50))
+        for index in imageIndex:
+            id = gainedIds[index]
+            imagePath = [image for image in imagePaths if str(id) in image.stem][0]
+            loc = labels[labels["id"] == id]
+            try:
+                trueLabels = loc["true_name"].item().replace("[", "").replace("]", "").replace("'", "")
+            except:
+                continue
+            instanceLabels = [x for x in list(map(lambda x: x.strip(), trueLabels.split(","))) if x not in superClassNames]
+            if instanceLabels[0] == "car":
+                images.append((str(id), imagePath))
+
+                if len(images) == 10:
+                    createImageOverviewChart(images, 
+                                 figSize = (17, 8), 
+                                 imagesPerRow = 5,
+                                 savePath = savePath)
+
+                    images = []
+                
+                if index == imageIndex[:-1] and len(images) > 0:
+                    createImageOverviewChart(images, 
+                                 figSize = (17, 8), 
+                                 imagesPerRow = 5,
+                                 savePath = savePath)
+
+
+                #print(str(index))
+                #print(id)
+                #print("...")
+        
+        
+    
+    def createWrongPredictedByImageOnlyButCorrectByFusionModelSuperConceptsExampleImagesOverview(self, target1: EvaluationTarget, target2: EvaluationTarget, ids: list = None, savePath = None):
+        """ Creates an overview chart with photos missclassified by the image-only model, but correctly classified by the fusion model. """
+        if ids == None:
+            wrongByIO = self.createSuperConceptConfusionMatrix(target1)
+            wrongByFusion = self.createSuperConceptConfusionMatrix(target2)
+            ids = set(wrongByIO) - set(wrongByFusion)
+        
+        images = []
+        labels = self.evaluationTargetFiles[target1][EvaluationFiles.TEST_LABELS]
+        imagePaths = [image for image in self.datasetPath.glob("**/*.jpg") if image.is_file()]
+        gainedIds = list(ids)
+        print(gainedIds)
+
+        imageIndex = range(10, min(len(ids), 30))
+        for index in imageIndex:
+            id = gainedIds[index]
+            imagePath = [image for image in imagePaths if str(id) in image.stem][0]
+            loc = labels[labels["id"] == id]
+            trueLabels = loc["true_name"].item().replace("[", "").replace("]", "").replace("'", "")
+            images.append((trueLabels, imagePath))
+            print(str(index))
+            print(id)
+            print("...")
+        
+        
+        createImageOverviewChart(images, 
+                                 figSize = (17, 8), 
+                                 imagesPerRow = 5,
+                                 savePath = savePath)
+    
 if __name__ == '__main__':
 
     evaluations = []
@@ -1458,7 +1757,11 @@ if __name__ == '__main__':
     #evaluations[2].createClassesImagesOverviewChart(savePath = None)
     #evaluations[2].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [10, 1, 2, 5, 11, 30, 38, 36, 25, 33, 34], highResolution = True, savePath = None)
     #evaluations[2].createWrongByImageOnlyCorrectByMixedClassifiedImageExampleChart(imageIndex = [5, 6, 9, 12, 14, 34, 46, 53, 59, 21], highResolution = False, savePath = None)
-    
+
+    #sub-concepts:
+    exampleImageIds = [47138566662, 5914609160, 51865109007, 29340842057, 51226075666, 3732835632, 37525215870, 14296984415, 15859880000, 25840112747]
+    #evaluations[2].createNotPredictedByImageOnlyButPredictedByMixedModelSubConceptsImageOverview(target1 = EvaluationTarget.SUB_IMAGEONLY_150_MOBILENET_V2, target2 = None, ids = exampleImageIds, savePath = savePath)
+
     # combined evaluations 
 
     # EXIF-Tag distribution
@@ -1481,13 +1784,13 @@ if __name__ == '__main__':
     #evaluations[index].createMixedImageOnlyDelta(super = False, savePath = None)
 
     # Image-Only vs. Mixed Delta (Super, Sub)
-    evaluations[index].createMixedImageOnlyDeltaGroup(evaluations = evaluations, 
+    """ evaluations[index].createMixedImageOnlyDeltaGroup(evaluations = evaluations, 
                                                       categoryLabels = ["Landscape-Object\nSuper 50x50px", "Landscape-Object\nSuper 150x150px", "Landscape-Object\nSub 50x50px", "Landscape-Object\nSub 150x150px", 
                                                                         "Moving-Static\nSuper 50x50px", "Moving-Static\nSuper 150x150px", "Moving-Static\nSub 50x50px", "Moving-Static\nSub 150x150px", 
                                                                         "Indoor-Outdoor\nSuper 50x50px", "Indoor-Outdoor\nSuper 150x150px", "Indoor-Outdoor\nSub 50x50px", "Indoor-Outdoor\nSub 150x150px"], 
                                                       figSize = (20, 9), 
                                                       barWidth = 0.7,
-                                                      savePath = savePath)
+                                                      savePath = savePath) """
 
 
     """ evaluations[index].createMixedImageOnlyAbsolutesGroup(evaluations = evaluations, 
@@ -1506,14 +1809,46 @@ if __name__ == '__main__':
     #evaluations[0].createConfusionMatrix(EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B0, argMaxOnly = False, addNotPredictedClass = True)
     #evaluations[0].createTrainingTimeMixedvsImageOnlyComparisonGrouped(evaluations = evaluations, combineSuperSub = True, separateCnns = True, total = True, savePath = savePath)
 
-    """ cfBasePath = "/Users/ralflederer/Desktop/cf/"
-    argMaxOnly = True
-    addNotPredictedClass = False
+    """  cfBasePath = "/Users/ralflederer/Desktop/cf/MobileNet/"
+    Path(cfBasePath).mkdir(parents = True, exist_ok = True)
+    argMaxOnly = False
+    addNotPredictedClass = True
+    evaluations[1].createSubConceptConfusionMatrix(EvaluationTarget.SUB_EXIF_ONLY, argMaxOnly = argMaxOnly, addNotPredictedClass = addNotPredictedClass, distributeNotPredictedToSuper = False, savePath = cfBasePath + "mv_exif.png")
+    evaluations[1].createSubConceptConfusionMatrix(EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B0, argMaxOnly = argMaxOnly, addNotPredictedClass = addNotPredictedClass, distributeNotPredictedToSuper = False, savePath = cfBasePath + "mv_io.png")
+    evaluations[1].createSubConceptConfusionMatrix(EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B0, argMaxOnly = argMaxOnly, addNotPredictedClass = addNotPredictedClass, distributeNotPredictedToSuper = False, savePath = cfBasePath + "mv_mixed.png")
+    """
+    """ for evaluation in evaluations:
+        evaluation.compareModelClassificationPower() """
+    
+    """ cfBasePath = "/Users/ralflederer/Desktop/cf_super/EfficientNetB0/"
+    Path(cfBasePath).mkdir(parents = True, exist_ok = True)
     for evaluation in evaluations:
-        evaluation.createConfusionMatrix(EvaluationTarget.SUB_EXIF_ONLY, argMaxOnly = argMaxOnly, addNotPredictedClass = addNotPredictedClass, savePath = cfBasePath + evaluation.name + "_exif.png")
-        evaluation.createConfusionMatrix(EvaluationTarget.SUB_IMAGEONLY_50_EFFICIENTNET_B0, argMaxOnly = argMaxOnly, addNotPredictedClass = addNotPredictedClass, savePath = cfBasePath + evaluation.name + "_io_low.png")
-        evaluation.createConfusionMatrix(EvaluationTarget.SUB_MIXED_50_EFFICIENTNET_B0, argMaxOnly = argMaxOnly, addNotPredictedClass = addNotPredictedClass, savePath = cfBasePath + evaluation.name + "_mixed_low.png")
-        evaluation.createConfusionMatrix(EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B0, argMaxOnly = argMaxOnly, addNotPredictedClass = addNotPredictedClass, savePath = cfBasePath + evaluation.name + "_io_high.png")
-        evaluation.createConfusionMatrix(EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B0, argMaxOnly = argMaxOnly, addNotPredictedClass = addNotPredictedClass, savePath = cfBasePath + evaluation.name + "_mixed_high.png") """
+        evaluation.createSuperConceptConfusionMatrix(target = EvaluationTarget.SUPER_EXIF_ONLY, savePath = cfBasePath + evaluation.name + "_exif.png")
+        evaluation.createSuperConceptConfusionMatrix(EvaluationTarget.SUPER_IMAGEONLY_50_EFFICIENTNET_B0, savePath = cfBasePath + evaluation.name + "_io_low.png")
+        evaluation.createSuperConceptConfusionMatrix(EvaluationTarget.SUPER_MIXED_50_EFFICIENTNET_B0, savePath = cfBasePath + evaluation.name + "_mixed_low.png")
+        evaluation.createSuperConceptConfusionMatrix(EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B0, savePath = cfBasePath + evaluation.name + "_io_high.png")
+        evaluation.createSuperConceptConfusionMatrix(EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B0, savePath = cfBasePath + evaluation.name + "_mixed_high.png")
+    evaluations[0].createSuperConceptConfusionMatrix(EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B4, savePath = cfBasePath + evaluations[0].name + "_mixed_high.png") """
+
+
+    #evaluations[2].createWrongPredictedByImageOnlyButCorrectByFusionModelExampleImagesOverview(target1 = EvaluationTarget.SUPER_IMAGEONLY_150_EFFICIENTNET_B0, target2 = EvaluationTarget.SUPER_MIXED_150_EFFICIENTNET_B0)
+
+    #report = evaluations[1].createClassificationReport(EvaluationTarget.SUB_EXIF_ONLY, super = False)
+    #print(report.transpose())
+    
+    #evaluations[1].createEXIFFeatureImportanceChart(super = True, savePath = savePath )
+
+    
+    #evaluations[2].createSubConceptConfusionMatrix(EvaluationTarget.SUB_MIXED_150_MOBILENET_V2, argMaxOnly = False, addNotPredictedClass = True)
+    
+
+    evaluations[1].createNotPredictedByImageOnlyButPredictedByMixedModelSubConceptsImageOverview(target1 = EvaluationTarget.SUB_IMAGEONLY_150_EFFICIENTNET_B0,
+                                                                                                 target2 = EvaluationTarget.SUB_MIXED_150_EFFICIENTNET_B0,
+                                                                                                 showCorrectPredicted = False,
+                                                                                                 savePath = None)
+
+    #evaluations[1].createEXIFFeatureImportanceChart(super = False, savePath = savePath)                                                                                        
+
+    noiseIds = [50294474772, 51266414103, 29801714176]
 
     plt.show()

@@ -9,10 +9,11 @@ def fineTuningLearningRateScheduler(startEpoch, epoch, lr):
     # for transfer learning we use a big learning rate for the initial epochs and then lower the learning-rate
     if epoch < startEpoch + 5:
         return 5e-5
-    elif epoch >= startEpoch + 5 and epoch < startEpoch + 10:
+    elif epoch >= startEpoch + 5 and epoch < startEpoch + 15:
         return 1e-5
     else:
-        return lr * (1.0 / 1.01)
+        # since the start-learning rate is no available here, we decrease the learning rate by 1/1.01 in every step
+        return lr * (1.0 / 1.01) 
 
 def top_2_accuracy(y_true, y_pred):
     return top_k_categorical_accuracy(y_true, y_pred, k = 2)

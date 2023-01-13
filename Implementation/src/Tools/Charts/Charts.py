@@ -58,7 +58,7 @@ def createBarChart(data: List,
         indexList = list(range(1, len(data[0][0]) + 1))
         labelPos = [(x - (barWidth / len(data[0]) * 2.0)) + ((len(data[0]) / 2.0) - 0.5) * (barWidth / len(data[0])) for x in indexList]
         if bigFont:
-            plt.xticks(labelPos, categoryLabels, fontsize = 18, rotation = 0) 
+            plt.xticks(labelPos, categoryLabels, fontsize = 18, rotation = 60) 
         else:
             plt.xticks(labelPos, categoryLabels)
     
@@ -108,7 +108,7 @@ def createBarChart(data: List,
         ax.yaxis.set_major_formatter(yLabelFormatter)
 
     if yLimit != None:
-        ax.set_ylim([0.2, yLimit]) #ax.get_ylim()[0]
+        ax.set_ylim([0.0, yLimit]) #ax.get_ylim()[0]
     
     if bigFont:
         plt.yticks(fontsize = 18)
@@ -173,7 +173,7 @@ def createSingleBarChart(data: List,
                     width = barWidth))
 
     if bigFont:
-        plt.xticks(list(range(0, len(categoryLabels))), categoryLabels, rotation = 60, fontsize = 22)
+        plt.xticks(list(range(0, len(categoryLabels))), categoryLabels, rotation = 60, fontsize = 20)
     else:
         plt.xticks(list(range(0, len(categoryLabels))), categoryLabels, rotation = "horizontal")
 
@@ -182,11 +182,11 @@ def createSingleBarChart(data: List,
         ax.spines[spine].set_visible(False)
 
     if bigFont:
-        params = {'mathtext.default': 'it', 'font.size': 22 }          
+        params = {'mathtext.default': 'it', 'font.size': 18 }          
         plt.rcParams.update(params)
     
     if len(seriesLabels) > 0:
-        plt.legend(loc = legendPosition, ncol = 2, fontsize = 22)
+        plt.legend(loc = legendPosition, ncol = 2, fontsize = 18)
 
     if grid:
         plt.grid(color = "gray", linestyle = '--', linewidth = 0.5, which = "both")
@@ -196,7 +196,7 @@ def createSingleBarChart(data: List,
 
     if yLabel:
         if bigFont:
-            plt.ylabel(yLabel, fontsize = 22, labelpad = 10)
+            plt.ylabel(yLabel, fontsize = 20, labelpad = 10)
         else:
             plt.ylabel(yLabel)
 
@@ -205,6 +205,8 @@ def createSingleBarChart(data: List,
     
     if yLimit != None:
         ax.set_ylim([0, yLimit])
+
+    ax.yaxis.set_ticks(np.arange(0, yLimit, 5e6))
     
     if showValues:
         for axis in axes:
@@ -218,7 +220,7 @@ def createSingleBarChart(data: List,
                          fontsize = 18)
 
     if bigFont:
-        plt.yticks(fontsize = 20)
+        plt.yticks(fontsize = 18)
 
     plt.tight_layout()
             
@@ -291,7 +293,7 @@ def createSingleBarChartHorizontal(data: List,
 def createTrainingAccuracyLossChart(dataFrames: List[pd.DataFrame], 
                                     dataIndexKey: str, 
                                     valDataIndexKey: str, 
-                                    figSize: Tuple = (12, 8), 
+                                    figSize: Tuple = (14, 7.5), 
                                     labels: List = [], 
                                     title: str = "",
                                     targetEpochPatience: int = 0,
@@ -317,14 +319,14 @@ def createTrainingAccuracyLossChart(dataFrames: List[pd.DataFrame],
         ax = axs[row, index] if isinstance(axs, np.ndarray) else axs
         ax.plot(x, y, color = "deepskyblue")
         ax.plot(xVal, yVal, color = "darkseagreen")
-        ax.set_title(labels[count])
+        ax.set_title(labels[count], fontsize = 18)
 
         start, end = ax.get_ylim()
-        end = 1.0
+        end = np.min([end + 0.1, 1.0])
 
         if dataIndexKey == "loss":
-            start = 0
-            end = max(yVal) + 0.35
+            start = np.max([0, start - 0.15])
+            end = max(yVal) + 0.15
 
         ax.set_ylim([start, end])
         ax.yaxis.set_ticks(np.arange(start, end, (end - start) / 8.0))
@@ -364,7 +366,7 @@ def createTrainingAccuracyLossChart(dataFrames: List[pd.DataFrame],
     fig.legend(legendLines, 
                legendLabels,
                loc = "upper left", 
-               fontsize = 20, 
+               fontsize = 19, 
                bbox_to_anchor = (0.18, 1), ncol = 2) #if count > 1 else 0.75)
 
     #fig.suptitle(title)
@@ -375,9 +377,8 @@ def createTrainingAccuracyLossChart(dataFrames: List[pd.DataFrame],
         plt.savefig(savePath, dpi = 300, transparent = True)
 
 def make_space_above(axes, topmargin = 1):
-    # taken from: https://stackoverflow.com/questions/25068384/bbox-to-anchor-and-loc-in-matplotlib
-    """ increase figure size to make topmargin (in inches) space for 
-        titles, without changing the axes sizes """
+    """ increases figure size to add topmargin (in inches) space for titles, without changing the axes sizes 
+    adapted from: https://stackoverflow.com/questions/25068384/bbox-to-anchor-and-loc-in-matplotlib """
     fig = axes.flatten()[0].figure
     s = fig.subplotpars
     w, h = fig.get_size_inches()
@@ -393,7 +394,7 @@ def createImageOverviewChart(images: List[Tuple], figSize: Tuple = (9, 6), image
         ax = plt.subplot(rows, imagesPerRow, index + 1)
         imageRGB = mpimg.imread(image[1])
         plt.imshow(imageRGB)
-        plt.title(image[0], fontsize = 10)
+        plt.title(image[0], fontsize = 25)
         ax.axis("off")
     
     plt.axis("off")
@@ -404,7 +405,7 @@ def createImageOverviewChart(images: List[Tuple], figSize: Tuple = (9, 6), image
 
 def createPrecisionRecallGraph(yTrue, yPred, classes: List[str], storagePath: Path, name: str, multilabel: bool):
     """ creates a precision-recall graph for the given true / predicted labels, using the given class names.
-    Adapted from: https://scikit-learn.org/stable/auto_examples/model_selection/plot_precision_recall.html"""
+    adapted from: https://scikit-learn.org/stable/auto_examples/model_selection/plot_precision_recall.html"""
 
     precision = dict()
     recall = dict()

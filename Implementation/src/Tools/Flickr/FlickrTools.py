@@ -206,3 +206,10 @@ def shrinkDataset(imagesPerClass: int, directoryPath: str, destinationDirectoryP
                         raise ValueError("no exif file found for image with id: " + imageId)
     else:
         raise ValueError("no dataset directory found at: " + directoryPath)
+
+if __name__ == '__main__':
+    # example to create Flickr short URLs
+    exampleImageIds = [26154431303, 113541139, 48948687776, 6780392960, 5791593186]
+
+    for id in exampleImageIds:
+        print("\\url{https://" + toFlickrBase58Url(photoId = id) + "}")

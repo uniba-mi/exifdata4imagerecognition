@@ -1,6 +1,5 @@
 from typing import List
 import pandas as pd
-import numpy as np
 from pathlib import Path
 from Models.Classifiers.Classifier import Classifier
 from keras.models import Model
@@ -10,13 +9,10 @@ from Models.Training.Generators.BatchGenerators import BatchGenerator
 import matplotlib as mpl
 mpl.use("Agg")
 import matplotlib.pyplot as plt
-from sklearn.metrics import ConfusionMatrixDisplay, classification_report, multilabel_confusion_matrix
 import time
 import shutil
 import csv
 from keras.utils.vis_utils import plot_model
-import math
-
 
 def createEvaluationFiles(dataGenerator: BatchGenerator, model: Model, name: str, classNames: List[str], storagePath: Path, omitAxisLabels: bool = False, multiLabel: bool = False):
     """ Creates evaluation files for the given model, evaluating the given data generator. """
@@ -38,6 +34,7 @@ def createEvaluationFiles(dataGenerator: BatchGenerator, model: Model, name: str
         writer.writerow(["id",  "true_name", "true", "predicted_name", "predicted_round", "predicted_prob"]) 
         writer.writerows(labels)
     
+    # !note: this was moved to the evaluation!
     # save ids of misclassified examples
     #with open(storagePath.joinpath(name + "_misclassified_ids.csv"), "w") as idFile:
     #    writer = csv.writer(idFile) 
@@ -49,50 +46,6 @@ def createEvaluationFiles(dataGenerator: BatchGenerator, model: Model, name: str
     #classificationReport = classification_report(predictionResult.trueY, predictionResult.predictionYRounded, digits = 3, output_dict = True, target_names = classNames, zero_division = 0) 
     #reportDataFrame = pd.DataFrame(data = classificationReport).transpose().round(3)
     #reportDataFrame.to_csv(storagePath.joinpath(name + "_classification_report.csv"))
-
-    # create confusion matrix (binary for multi-label)
-    confusionMatrixSavePath = storagePath.joinpath(name + "_confusion_matrix" + str(dataGenerator.size) + ".png")
-    if multiLabel:
-        cf = multilabel_confusion_matrix(predictionResult.trueY, predictionResult.predictionYRounded)
-        columns = 3
-        rows = math.ceil(len(classNames) / columns)
-        f, axes = plt.subplots(rows, columns, figsize = (14, 14))
-        axes = axes.ravel()
-        for i in range(len(classNames)):
-            plot = ConfusionMatrixDisplay(confusion_matrix = cf[i], 
-                                          display_labels = ["not " + classNames[i], classNames[i]])
-            plot.plot(ax = axes[i], cmap = "Blues")
-            plot.ax_.set_title(" ")
-            plot.im_.colorbar.remove()
-            plot.ax_.set_xlabel("")
-            plot.ax_.set_ylabel("")
-
-        # remove empty sub-plots
-        for i in range(len(classNames), rows * columns):
-            axes[i].set_axis_off()
-
-        plt.subplots_adjust(wspace = 0.5, hspace = 0.2)
-        f.savefig(confusionMatrixSavePath, dpi = 300)
-    else:
-        plot = ConfusionMatrixDisplay.from_predictions(predictionResult.trueYMax, 
-                                                       predictionResult.predictionYMax, 
-                                                       display_labels = classNames, 
-                                                       cmap = "Blues", 
-                                                       ax = plt.subplots(figsize = (12, 12))[1])
-
-        if not omitAxisLabels:
-            plt.rcParams["axes.titlepad"] = 25
-            plt.title("Confusion Matrix", fontsize = 25)
-            plt.xlabel("Predicted Label", fontsize = 20)
-            plt.ylabel("True Label", fontsize = 20)
-        else:
-            plt.title("")
-            plt.xlabel("")
-            plt.ylabel("")
-    
-        plt.xticks(rotation = 90, fontsize = 15)
-        plt.yticks(fontsize = 15)
-        plot.figure_.savefig(confusionMatrixSavePath, dpi = 300)
     
     # save prediction time to txt
     with open(storagePath.joinpath(name + "_prediction_time.txt"), "w") as timeFile:

@@ -126,7 +126,8 @@ class BatchGenerator(ABC, Sequence):
 
         if multiLabel:
             # round with threshold for each label individually
-            threshold = 0.5
+            # this is the standard threshold which could be further optimized, e.g. with a precision-recall graph
+            threshold = 0.5 
             predictionYRounded = np.where(predictionY >= threshold, 1, 0)
         else:
             # round prediction (this is setting the top k probabilities to 1.0 and all other to 0.0) k = 1 

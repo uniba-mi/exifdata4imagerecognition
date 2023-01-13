@@ -2,7 +2,7 @@ from typing import Tuple
 from Models.Training.Generators.BatchGenerators import BatchGenerator
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
-from keras.optimizers import Adam, Nadam
+from keras.optimizers import Adam, SGD
 from keras.regularizers import l2, l1
 from keras.models import Model
 from scikeras.wrappers import KerasClassifier
@@ -62,12 +62,12 @@ class MLPClassifier(Classifier):
         gridParams = {
             "model__inputSize": [self.inputShape],
             "model__outputSize": [self.outputShape],
-            "model__optimizer": ["Adam", "Nadam"],
-            "model__dropoutRate": [0.0, 0.25, 0.7],
-            "model__alpha": [0.0001, 0.001],
-            "batch_size": [32, 64, 128],
-            "epochs": [250],
-            #"optimizer__learning_rate": [0.001, 0.01, 0.1]
+            "model__optimizer": ["Adam", "SGD"],
+            "model__dropoutRate": [0.0, 0.25, 0.5, 0.7],
+            "model__alpha": [0.00005, 0.0001, 0.001, 0.01],
+            "batch_size": [16, 32, 64, 128, 256],
+            "epochs": [125, 250, 500],
+            "optimizer__learning_rate": [0.00005, 0.0001, 0.001, 0.01, 0.1]
         }
 
         clf = GridSearchCV(model, param_grid = gridParams, n_jobs = 1, cv = 3, verbose = 1)

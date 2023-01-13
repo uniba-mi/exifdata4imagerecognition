@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.metrics import classification_report
 
 class EvaluationTask(object):
-    """ An evaluation task evaluates the data of a data generator for a specific keras model.  """
+    """ An evaluation task evaluates the data of a data generator for a particular keras model.  """
 
     model: Model
     dataProvider: BatchGeneratorProvider

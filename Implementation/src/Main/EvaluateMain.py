@@ -29,19 +29,18 @@ def printUsage():
     print("\t \t{eo}: model is exif only".format(eo = PARAM_EXIF_ONLY))
     print("\t \t{size}: image size to use (width/height), comma-separated".format(size = PARAM_IMAGE_SIZE))
 
-
 def test():
     # create data provider
     dataProvider = ExifImageProvider(dataSetsPaths = { "/Users/ralflederer/Desktop/res/mi_indoor_outdoor_multilabel.zip" : ExifImageTrainingDataFormats.toTrainingDataFormat(name = "flickr") },
-                                             cachePath = "/Users/ralflederer/Desktop/res",
-                                             trainSize = 1.0,
-                                             validationSize = 0.0,
-                                             testSize = 0.0,
-                                             batchSize = 32,
-                                             imageSize = (150, 150),
-                                             useSuperConcepts = True,
-                                             exifOnly = False,
-                                             imageOnly = False)
+                                     cachePath = "/Users/ralflederer/Desktop/res",
+                                     trainSize = 1.0,
+                                     validationSize = 0.0,
+                                     testSize = 0.0,
+                                     batchSize = 32,
+                                     imageSize = (150, 150),
+                                     useSuperConcepts = True,
+                                     exifOnly = False,
+                                     imageOnly = False)
             
     #  create evaluation task
     evaluationTask = EvaluationTask(modelPath = "/Users/ralflederer/Desktop/model.keras", provider = dataProvider)

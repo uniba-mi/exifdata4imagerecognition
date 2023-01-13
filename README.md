@@ -15,7 +15,7 @@ Each image is assigned one or two labels, with the super-concept label always pr
 
 Exif tag distribution:
 
-<img src="Evaluation/exif_tag_distribution.png" alt="exif_tag_distribution" width="450"/>
+<img src="Evaluation/exif_tag_distribution.png" alt="exif_tag_distribution" width="550"/>
 
 
 Note: The Flickr photo metadata to download the corresponding photos and their Exif data are located in **[Flickr Photo Metadata](/Flickr Photo Metadata/)**

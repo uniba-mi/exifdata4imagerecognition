@@ -193,7 +193,7 @@ A fusion model combines a CNN used for classification based on image data and a 
 
 **Fusion Model - Architecture**:
 
-<img src="Evaluation/architecture.png" alt="fusion-architecture" width="500"/>
+<img src="Evaluation/architecture.png" alt="fusion-architecture" width="700"/>
 
 
 The training process of the different models can be carried out using the application in **[TrainingMain.py](/Implementation/src/Main/TrainingMain.py)** which can be started by executing the following command:

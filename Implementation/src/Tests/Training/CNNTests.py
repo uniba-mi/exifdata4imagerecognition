@@ -16,7 +16,7 @@ class CNNTrainingTests(unittest.TestCase):
         #dataSetPaths = { TestTrainingConstants.datasetFilePath : ExifImageTrainingDataFormats.Flickr,
         #                 TestTrainingConstants.mirDatasetFilePath : ExifImageTrainingDataFormats.MirFlickr }
 
-        dataSetPaths = { TestTrainingConstants.landscapesObjectsFilePath : ExifImageTrainingDataFormats.Flickr }
+        dataSetPaths = { TestTrainingConstants.movingStaticFilePath : ExifImageTrainingDataFormats.Flickr }
 
         dataProvider = ExifImageProvider(dataSetsPaths = dataSetPaths,
                                         cachePath = TestTrainingConstants.cacheStoragePath,
@@ -29,7 +29,7 @@ class CNNTrainingTests(unittest.TestCase):
                                         imageOnly = True,
                                         seed = 131)
 
-        task = TrainingTask(classifier = CNNClassifier(name = "CNNMobileNetV2IndoorOutdoor",
+        task = TrainingTask(classifier = CNNClassifier(name = "CNNMobileNetV2MovingStatic",
                                                          modelFunction = MobileNetV2,
                                                          fineTuneLayersCount = 10,
                                                          fineTuneEpochs = 1),
@@ -37,6 +37,7 @@ class CNNTrainingTests(unittest.TestCase):
                             provider = dataProvider)
 
         task.run(epochs = 2, earlyStoppingPatience = 10, optimize = "loss")
+
 
 if __name__ == '__main__':
     unittest.main()

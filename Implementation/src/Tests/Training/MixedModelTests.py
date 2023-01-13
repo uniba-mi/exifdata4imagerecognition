@@ -6,7 +6,9 @@ from Models.Classifiers.MixedModel import MixedModel
 from Models.Training.Generators.BatchGeneratorProvider import ExifImageProvider
 from Models.Training.Tasks.TrainingTask import TrainingTask
 from Tests.Training.TestTrainingConstants import TestTrainingConstants
-from keras.applications.efficientnet import EfficientNetB0
+from keras.applications.efficientnet import EfficientNetB4
+from keras.applications.mobilenet_v2 import MobileNetV2
+from keras.applications.resnet_v2 import ResNet50V2
 from DomainModel.TrainingDataFormat import ExifImageTrainingDataFormats
 
 class MLPTrainingTests(unittest.TestCase):
@@ -14,7 +16,7 @@ class MLPTrainingTests(unittest.TestCase):
     def testTrainIndoorOutdoorMixedModel(self):
         tensorflow.get_logger().setLevel("ERROR")
         
-        dataSetPaths = { TestTrainingConstants.indoorOutdoorFilePath : ExifImageTrainingDataFormats.Flickr }
+        dataSetPaths = { TestTrainingConstants.movingStaticFilePath : ExifImageTrainingDataFormats.Flickr }
 
         dataProvider = ExifImageProvider(dataSetsPaths = dataSetPaths,
                                         cachePath = TestTrainingConstants.cacheStoragePath,
@@ -27,8 +29,8 @@ class MLPTrainingTests(unittest.TestCase):
                                         imageSize = (150, 150),
                                         seed = 131)
                                         
-        task = TrainingTask(classifier = MixedModel(name = "MixedIndoorOutdoor", 
-                                                      classifier1 = CNNClassifier(name = "CNN", modelFunction = EfficientNetB0), 
+        task = TrainingTask(classifier = MixedModel(name = "MixedMobileNetV2MovingStatic", 
+                                                      classifier1 = CNNClassifier(name = "CNN", modelFunction = MobileNetV2), 
                                                       classifier2 = MLPClassifier(name = "MLP"), 
                                                       fineTuneLayersCount = 10, 
                                                       fineTuneEpochs = 1), 

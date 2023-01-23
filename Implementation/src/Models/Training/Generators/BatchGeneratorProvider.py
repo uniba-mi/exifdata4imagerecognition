@@ -8,7 +8,6 @@ from Tools.Data.DataFrameHelpers import writeCSVDataFrame, readCSVDataFrame
 from Tools.Data.ExifTagCounter import ExifTagCounter
 from DataSource.DatasetFile import ExifImageDatasetFile
 from DataSource.TrainingDataSource import CompositeTrainingDataSource, StaticTrainingDataSource
-from DataSource.DatasetFile import ExifImageDatasetFile
 from DomainModel.TrainingDataFormat import ExifImageTrainingDataFormats
 from Transformers.DataSource.DataSourceInstanceTransformer import DataSourceInstanceTransformer
 from Transformers.DataSource.DataSourceToDataFrameTransformer import ExiImageDataSourceToDataFrameTransformer

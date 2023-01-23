@@ -258,12 +258,23 @@ if __name__ == '__main__':
                 try:
                     with open(metadataPath) as json_file:
                         metadata = json.load(json_file)
-                except:
+                        if isinstance(metadata, list):
+                            # we have a file with only metadata entries
+                            crawlPhotos(metadata, photosDir, crawlExif, requiredExifTags, photoSize)
+                        else:
+                            # we have a file with concepts & metadata entries
+                            photoBaseDir = Path(photosDir)
+                            for concept in metadata:
+                                # create dir for concept
+                                dirPath = photoBaseDir.joinpath(concept)
+                                if not dirPath.exists():
+                                    dirPath.mkdir(parents = False, exist_ok = False)
+                                
+                                # crawl concept
+                                conceptMetadata = metadata[concept]
+                                crawlPhotos(conceptMetadata, str(dirPath), crawlExif, requiredExifTags, photoSize)
+                except Exception as e:
                     raise ValueError("error: could not load given metadata file")
-
-                # crawl photos
-                crawlPhotos(metadata, photosDir, crawlExif, requiredExifTags, photoSize)
-
             else:
                 printUsage()
      

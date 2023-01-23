@@ -95,7 +95,7 @@ class Downloader(object):
     
     def downloadAllTo(self, urlsAndPaths, callback = None, **callbackArgs) -> list:
         """ Executes downloadAllTo() for each entry in the given list, within one download session, in a blocking manner.  
-        Also the needed time is to download all urls is returned.  """
+        Also, the needed time to download all urls is returned.  """
         start = time.time()       
         result = asyncio.get_event_loop().run_until_complete(self.downloadAllToAsync(urlsAndPaths = urlsAndPaths, 
                                                                                      callback = callback, **callbackArgs))

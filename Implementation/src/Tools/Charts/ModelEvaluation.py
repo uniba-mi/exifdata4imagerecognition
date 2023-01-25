@@ -1601,7 +1601,7 @@ class ModelEvaluation(object):
             else:
                 imageOnlyNotPredicted = self.createSubConceptConfusionMatrix(target1, argMaxOnly = False, addNotPredictedClass = True, noChart = True)
                 mixedCorrectPredicted = self.createSubConceptConfusionMatrix(target2, argMaxOnly = False, addNotPredictedClass = True, returnCorrectPredicted = True, noChart = True)
-                ids = imageOnlyNotPredicted - mixedCorrectPredicted
+                ids = imageOnlyNotPredicted.intersection(mixedCorrectPredicted)
 
         labels = self.evaluationTargetFiles[target1][EvaluationFiles.TEST_LABELS]
         images = []

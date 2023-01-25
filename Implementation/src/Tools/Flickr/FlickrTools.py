@@ -45,7 +45,7 @@ def checkExifTagsExsist(filePath: str, tags: list) -> bool:
         return True
     return False
 
-def toFlickrBase58Url(photoId: str) -> str:
+def toFlickrBase58Url(photoId: int) -> str:
     """ Converts the given Flickr photo id to a base58 Flickr short website url. """
     alphabet = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"
     bc = len(alphabet)
